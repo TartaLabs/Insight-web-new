@@ -61,13 +61,12 @@ export interface TaskRecord {
   };
 }
 
-// Updated Invitee Interface
 export interface Invitee {
   id: string;
   nickname: string;
-  inviteDate: string; // New field
-  pendingReward: number; // New field
-  claimedReward: number; // New field
+  inviteDate: string;
+  pendingReward: number;
+  claimedReward: number;
   lastActive: string;
 }
 
@@ -79,7 +78,7 @@ export interface UserProfile {
   proExpiryDate?: string; 
   
   balanceMEMO: number;       // On-chain Balance
-  pendingRewards: number;    // Off-chain Pending Pool (Tasks)
+  pendingRewards: number;    // Off-chain Pending Pool
   invitationRewards: number; // Specific Pending Pool for Invites
   balanceMNT: number;        
   balanceUSDT: number;       
@@ -112,6 +111,7 @@ export interface Transaction {
 
 export interface LeaderboardEntry {
   rank: number;
+  nickname: string; // Added nickname
   address: string;
   totalEarned: number;
 }

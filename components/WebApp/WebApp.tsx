@@ -3,6 +3,7 @@ import { Login } from './Login';
 import { Dashboard } from './Dashboard';
 import { TaskFlow } from './TaskFlow';
 import { UpgradeModal } from './UpgradeModal';
+import { TransactionModal } from './TransactionModal';
 import { Logo } from '../Logo';
 import { UserProfile, TaskCounts, Transaction, LeaderboardEntry, EmotionType, PricingPlan, TaskRecord, Invitee } from '../../types';
 import { LogOut } from 'lucide-react';
@@ -12,11 +13,11 @@ interface WebAppProps {
 }
 
 const MOCK_LEADERBOARD: LeaderboardEntry[] = [
-    { rank: 1, address: '0x71...9A23', totalEarned: 54200 },
-    { rank: 2, address: '0x8A...22B1', totalEarned: 48100 },
-    { rank: 3, address: '0xCC...1102', totalEarned: 32050 },
-    { rank: 4, address: '0x1D...5599', totalEarned: 28000 },
-    { rank: 5, address: '0xEE...9911', totalEarned: 15400 },
+    { rank: 1, nickname: 'Neo_X', address: '0x71...9A23', totalEarned: 54200 },
+    { rank: 2, nickname: 'CyberPunk', address: '0x8A...22B1', totalEarned: 48100 },
+    { rank: 3, nickname: 'Glitch01', address: '0xCC...1102', totalEarned: 32050 },
+    { rank: 4, nickname: 'DataMiner', address: '0x1D...5599', totalEarned: 28000 },
+    { rank: 5, nickname: 'ZeroCool', address: '0xEE...9911', totalEarned: 15400 },
 ];
 
 const INITIAL_INVITEES: Invitee[] = [
@@ -28,9 +29,18 @@ const INITIAL_INVITEES: Invitee[] = [
 export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
-  
   const [activeTaskEmotion, setActiveTaskEmotion] = useState<EmotionType | null>(null);
   const [activeDraftTask, setActiveDraftTask] = useState<TaskRecord | undefined>(undefined);
+
+  // Transaction Modal State
+  const [txModal, setTxModal] = useState<{
+      isOpen: boolean;
+      type: 'CLAIM' | 'UPGRADE' | 'APPROVE';
+      title: string;
+      amount?: string;
+      cost?: string;
+      onSuccessCallback?: () => void;
+  }>({ isOpen: false, type: 'CLAIM', title: '' });
 
   const [user, setUser] = useState<UserProfile>({
       walletAddress: '',
@@ -38,7 +48,7 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
       isPro: false,
       balanceMEMO: 0,
       pendingRewards: 0,
-      invitationRewards: 15.5, // Matches initial sum of pending
+      invitationRewards: 15.5,
       balanceMNT: 0,
       balanceUSDT: 0,
       streakDays: 1,
@@ -51,14 +61,13 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
   const [tasks, setTasks] = useState<TaskRecord[]>([]);
   const [invitees, setInvitees] = useState<Invitee[]>(INITIAL_INVITEES);
   
-  // Simulation: Invitee activity increases invitation rewards
+  // Simulation: Invitee activity
   useEffect(() => {
       const interval = setInterval(() => {
           if (Math.random() > 0.6) {
-              const amount = 0.5; // 5% commission
+              const amount = 0.5;
               const randomInviteeIndex = Math.floor(Math.random() * invitees.length);
               
-              // Update specific invitee
               setInvitees(prev => {
                   const newInvitees = [...prev];
                   newInvitees[randomInviteeIndex] = {
@@ -68,13 +77,11 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
                   return newInvitees;
               });
 
-              // Update Global User state
               setUser(prev => ({
                   ...prev,
                   invitationRewards: prev.invitationRewards + amount
               }));
               
-              // Log Issuance
               setHistory(prev => [{
                   id: `inv-${Date.now()}`,
                   category: 'ISSUANCE',
@@ -130,6 +137,7 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
   };
 
   const handleSubmitTask = (record: TaskRecord) => {
+      // 1. DEDUCT COUNT IMMEDIATELY
       setTaskCounts(c => ({ ...c, [record.emotion]: (c[record.emotion] || 0) + 1 }));
 
       setTasks(prev => {
@@ -179,46 +187,32 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
       setActiveTaskEmotion(task.emotion);
   };
 
-  const processClaimTransaction = (txId: string, amount: number, type: 'CLAIM' | 'DAILY_BONUS' | 'INVITE_CLAIM') => {
-      setTimeout(() => {
-          const success = Math.random() > 0.3; 
-
-          setHistory(prev => prev.map(tx => {
-              if (tx.id === txId) {
-                  return {
-                      ...tx,
-                      status: success ? 'SUCCESS' : 'FAILED',
-                      txHash: success ? '0x3a...8f92' : undefined,
-                  };
-              }
-              return tx;
-          }));
-
-          if (success) {
-              setUser(prev => ({
-                  ...prev,
-                  balanceMEMO: prev.balanceMEMO + amount,
-              }));
-              
-              // If Invitation claim success, move pending to claimed for all invitees
-              if (type === 'INVITE_CLAIM') {
-                  setInvitees(prev => prev.map(inv => ({
-                      ...inv,
-                      claimedReward: inv.claimedReward + inv.pendingReward,
-                      pendingReward: 0
-                  })));
-              }
-
-          } else {
-              if (type === 'CLAIM') {
-                  setUser(prev => ({ ...prev, pendingRewards: prev.pendingRewards + amount }));
-              }
-              if (type === 'INVITE_CLAIM') {
-                  setUser(prev => ({ ...prev, invitationRewards: prev.invitationRewards + amount }));
-              }
-          }
-      }, 3000);
+  // --- TRIGGER TRANSACTION MODAL ---
+  const triggerTransaction = (
+      type: 'CLAIM' | 'UPGRADE' | 'APPROVE', 
+      title: string, 
+      amount: string | undefined,
+      cost: string | undefined,
+      action: () => void
+  ) => {
+      setTxModal({
+          isOpen: true,
+          type,
+          title,
+          amount,
+          cost,
+          onSuccessCallback: action
+      });
   };
+
+  const handleTxSuccess = () => {
+      if (txModal.onSuccessCallback) {
+          txModal.onSuccessCallback();
+      }
+      setTxModal(prev => ({ ...prev, isOpen: false }));
+  };
+
+  // --- ACTIONS ---
 
   const handleClaimAll = () => {
       const gasCost = 0.005;
@@ -226,29 +220,29 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
           alert('Insufficient MNT for Gas!');
           return;
       }
+      if (user.pendingRewards <= 0) return;
 
-      const amount = user.pendingRewards;
-      if (amount <= 0) return;
+      triggerTransaction('CLAIM', 'Claim Task Rewards', `+${user.pendingRewards} $mEMO`, `~${gasCost} MNT`, () => {
+          const amount = user.pendingRewards;
+          setUser(prev => ({ 
+              ...prev, 
+              balanceMNT: prev.balanceMNT - gasCost,
+              balanceMEMO: prev.balanceMEMO + amount,
+              pendingRewards: 0 
+          }));
 
-      setUser(prev => ({ 
-          ...prev, 
-          balanceMNT: prev.balanceMNT - gasCost,
-          pendingRewards: 0 
-      }));
-
-      const txId = Date.now().toString();
-      const newTx: Transaction = {
-        id: txId,
-        category: 'CLAIM',
-        amount: amount,
-        cost: `-${gasCost} MNT`,
-        timestamp: Date.now(),
-        desc: 'Claimed Rewards',
-        status: 'PENDING',
-      };
-      setHistory(prev => [newTx, ...prev]);
-
-      processClaimTransaction(txId, amount, 'CLAIM');
+          setHistory(prev => [{
+            id: Date.now().toString(),
+            category: 'CLAIM',
+            source: 'Label Task',
+            amount: amount,
+            cost: `-${gasCost} MNT`,
+            timestamp: Date.now(),
+            status: 'SUCCESS',
+            txHash: '0xabc...123',
+            desc: 'Batch Claim Tasks'
+          }, ...prev]);
+      });
   };
 
   const handleClaimInvitationRewards = () => {
@@ -257,35 +251,39 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
           alert('Insufficient MNT for Gas!');
           return;
       }
+      if (user.invitationRewards <= 0) return;
 
-      const amount = user.invitationRewards;
-      if (amount <= 0) return;
+      triggerTransaction('CLAIM', 'Claim Commissions', `+${user.invitationRewards.toFixed(1)} $mEMO`, `~${gasCost} MNT`, () => {
+          const amount = user.invitationRewards;
+          setUser(prev => ({ 
+              ...prev, 
+              balanceMNT: prev.balanceMNT - gasCost,
+              balanceMEMO: prev.balanceMEMO + amount,
+              invitationRewards: 0 
+          }));
+          
+          setInvitees(prev => prev.map(inv => ({
+              ...inv,
+              claimedReward: inv.claimedReward + inv.pendingReward,
+              pendingReward: 0
+          })));
 
-      setUser(prev => ({ 
-          ...prev, 
-          balanceMNT: prev.balanceMNT - gasCost,
-          invitationRewards: 0 
-      }));
-
-      const txId = Date.now().toString();
-      const newTx: Transaction = {
-        id: txId,
-        category: 'CLAIM',
-        amount: amount,
-        cost: `-${gasCost} MNT`,
-        timestamp: Date.now(),
-        desc: 'Claimed Invite Commissions',
-        status: 'PENDING',
-      };
-      setHistory(prev => [newTx, ...prev]);
-
-      processClaimTransaction(txId, amount, 'INVITE_CLAIM');
+          setHistory(prev => [{
+            id: Date.now().toString(),
+            category: 'CLAIM',
+            source: 'Invitation',
+            amount: amount,
+            cost: `-${gasCost} MNT`,
+            timestamp: Date.now(),
+            status: 'SUCCESS',
+            txHash: '0xdef...456',
+            desc: 'Claimed Commissions'
+          }, ...prev]);
+      });
   };
 
   const handleClaimDailyBonus = () => {
       const gasCost = 0.002;
-      const today = new Date().toISOString().split('T')[0];
-      
       if (user.balanceMNT < gasCost) {
           alert('Insufficient MNT for Gas!');
           return;
@@ -296,35 +294,37 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
       if (user.proPlanId === 'quarterly') amount = 10;
       if (user.proPlanId === 'yearly') amount = 30;
 
-      setHistory(prev => [{
-          id: `iss-${Date.now()}`,
-          category: 'ISSUANCE',
-          source: 'Pro Daily',
-          amount: amount,
-          timestamp: Date.now(),
-          status: 'SUCCESS',
-          desc: 'Daily Bonus Issued'
-      }, ...prev]);
+      triggerTransaction('CLAIM', 'Claim Daily Bonus', `+${amount} $mEMO`, `~${gasCost} MNT`, () => {
+          const today = new Date().toISOString().split('T')[0];
+          setUser(prev => ({ 
+            ...prev, 
+            balanceMNT: prev.balanceMNT - gasCost,
+            balanceMEMO: prev.balanceMEMO + amount,
+            lastDailyBonusDate: today
+          }));
 
-      setUser(prev => ({ 
-        ...prev, 
-        balanceMNT: prev.balanceMNT - gasCost,
-        lastDailyBonusDate: today
-      }));
+          setHistory(prev => [{
+              id: Date.now().toString(),
+              category: 'ISSUANCE',
+              source: 'Pro Daily',
+              amount: amount,
+              timestamp: Date.now(),
+              status: 'SUCCESS',
+              desc: 'Daily Bonus Issued'
+          }, ...prev]);
 
-      const txId = Date.now().toString();
-      const newTx: Transaction = {
-        id: txId,
-        category: 'CLAIM',
-        amount: amount,
-        cost: `-${gasCost} MNT`,
-        timestamp: Date.now(),
-        desc: 'Claimed Daily Bonus',
-        status: 'PENDING',
-      };
-      setHistory(prev => [newTx, ...prev]);
-
-      processClaimTransaction(txId, amount, 'DAILY_BONUS');
+          setHistory(prev => [{
+            id: Date.now().toString() + '_claim',
+            category: 'CLAIM',
+            source: 'Pro Daily',
+            amount: amount,
+            cost: `-${gasCost} MNT`,
+            timestamp: Date.now(),
+            status: 'SUCCESS',
+            txHash: '0xghi...789',
+            desc: 'Claimed Bonus'
+          }, ...prev]);
+      });
   };
 
   const handleRetryClaim = (tx: Transaction) => {
@@ -334,16 +334,16 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
           return;
       }
 
-      setUser(prev => ({ ...prev, balanceMNT: prev.balanceMNT - gasCost }));
-
-      setHistory(prev => prev.map(t => {
-          if (t.id === tx.id) {
-              return { ...t, status: 'PENDING', timestamp: Date.now() };
-          }
-          return t;
-      }));
-
-      processClaimTransaction(tx.id, tx.amount, 'CLAIM');
+      triggerTransaction('CLAIM', 'Retry Claim', `+${tx.amount} $mEMO`, `~${gasCost} MNT`, () => {
+          setUser(prev => ({ ...prev, balanceMNT: prev.balanceMNT - gasCost }));
+          
+          setHistory(prev => prev.map(t => {
+              if (t.id === tx.id) {
+                  return { ...t, status: 'SUCCESS', txHash: '0xretry...999', timestamp: Date.now() };
+              }
+              return t;
+          }));
+      });
   };
 
   const handleUpgrade = (plan: PricingPlan) => {
@@ -357,33 +357,34 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
          return;
      }
 
-     const now = new Date();
-     let daysToAdd = 30;
-     if (plan.id === 'quarterly') daysToAdd = 90;
-     if (plan.id === 'yearly') daysToAdd = 365;
-     now.setDate(now.getDate() + daysToAdd);
+     triggerTransaction('UPGRADE', `Upgrade to ${plan.name}`, undefined, `-${plan.usdtPrice} USDT`, () => {
+         const now = new Date();
+         let daysToAdd = 30;
+         if (plan.id === 'quarterly') daysToAdd = 90;
+         if (plan.id === 'yearly') daysToAdd = 365;
+         now.setDate(now.getDate() + daysToAdd);
 
-     setUser(prev => ({ 
-         ...prev, 
-         isPro: true, 
-         proPlanId: plan.id,
-         proExpiryDate: now.toISOString(),
-         balanceUSDT: prev.balanceUSDT - plan.usdtPrice,
-         balanceMNT: prev.balanceMNT - gasCost,
-     }));
-     
-     const newTx: Transaction = {
-        id: Date.now().toString(),
-        category: 'SPEND',
-        amount: 0,
-        cost: `-${plan.usdtPrice} USDT`,
-        timestamp: Date.now(),
-        desc: `Upgraded to ${plan.name}`,
-        status: 'SUCCESS',
-        txHash: '0x99...plan'
-    };
-    setHistory(prev => [newTx, ...prev]);
-    setShowUpgrade(false);
+         setUser(prev => ({ 
+             ...prev, 
+             isPro: true, 
+             proPlanId: plan.id,
+             proExpiryDate: now.toISOString(),
+             balanceUSDT: prev.balanceUSDT - plan.usdtPrice,
+             balanceMNT: prev.balanceMNT - gasCost,
+         }));
+         
+         setHistory(prev => [{
+            id: Date.now().toString(),
+            category: 'SPEND',
+            amount: 0,
+            cost: `-${plan.usdtPrice} USDT`,
+            timestamp: Date.now(),
+            desc: `Upgraded to ${plan.name}`,
+            status: 'SUCCESS',
+            txHash: '0xplan...buy'
+        }, ...prev]);
+        setShowUpgrade(false);
+     });
   };
 
   const getDailyLimit = () => {
@@ -405,26 +406,27 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#050509] text-white">
-        <div className="fixed top-0 w-full z-40 bg-[#050509]/80 backdrop-blur-md border-b border-white/10 px-6 py-4 flex justify-between items-center">
+    <div className="relative min-h-screen bg-[#020205] text-white">
+        {/* App Bar */}
+        <div className="fixed top-0 w-full z-40 bg-[#020205]/90 backdrop-blur-md border-b border-tech-blue/20 px-6 py-4 flex justify-between items-center">
             <div className="flex items-center gap-3">
                 <Logo className="w-8 h-8" />
                 <div className="hidden md:block">
-                    <div className="font-bold tracking-tight">INSIGHT WEB</div>
+                    <div className="font-bold tracking-tight font-mono text-tech-blue">INSIGHT_PROTOCOL</div>
                 </div>
             </div>
             <div className="flex items-center gap-4">
-                <div className="hidden md:flex items-center gap-2 bg-white/5 rounded-full px-4 py-1.5 border border-white/10">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    <span className="text-xs font-mono text-gray-400">Mantle Mainnet</span>
+                <div className="hidden md:flex items-center gap-2 bg-tech-blue/5 rounded border border-tech-blue/20 px-3 py-1">
+                    <div className="w-1.5 h-1.5 bg-tech-blue rounded-full animate-pulse" />
+                    <span className="text-[10px] font-mono text-tech-blue tracking-widest">MANTLE_MAINNET</span>
                 </div>
                 
                 <button 
                    onClick={onExit}
-                   className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 px-4 py-2 rounded-full transition-all text-gray-400 hover:text-white text-xs font-bold uppercase tracking-wider group"
+                   className="flex items-center gap-2 text-gray-500 hover:text-red-500 transition-colors text-[10px] font-bold uppercase tracking-widest group"
                 >
-                    <LogOut size={14} className="group-hover:-translate-x-0.5 transition-transform" />
-                    <span>Exit App</span>
+                    <LogOut size={12} className="group-hover:-translate-x-0.5 transition-transform" />
+                    <span>Disconnect</span>
                 </button>
             </div>
         </div>
@@ -451,6 +453,7 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
             onClaimInvitationRewards={handleClaimInvitationRewards}
         />
 
+        {/* Overlays */}
         {activeTaskEmotion && (
             <TaskFlow 
                 emotion={activeTaskEmotion}
@@ -470,6 +473,18 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
                 user={user}
                 onClose={() => setShowUpgrade(false)}
                 onUpgrade={handleUpgrade}
+            />
+        )}
+
+        {/* Transaction Simulation Modal */}
+        {txModal.isOpen && (
+            <TransactionModal 
+                type={txModal.type}
+                title={txModal.title}
+                amount={txModal.amount}
+                cost={txModal.cost}
+                onClose={() => setTxModal(prev => ({ ...prev, isOpen: false }))}
+                onSuccess={handleTxSuccess}
             />
         )}
     </div>
