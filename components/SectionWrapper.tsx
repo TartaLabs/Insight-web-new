@@ -12,7 +12,7 @@ export const SectionWrapper: React.FC<SectionWrapperProps> = ({ children, classN
   const isInView = useInView(ref, { margin: "-10% 0px -10% 0px", once: true });
 
   return (
-    <section id={id} ref={ref} className={`relative overflow-hidden ${className}`}>
+    <section id={id} ref={ref} className={`relative overflow-hidden py-12 md:py-14 lg:py-16 ${className}`}>
       {/* Tech Reveal Effect */}
       <motion.div
         initial={{ opacity: 0, y: 50, filter: 'blur(10px)' }}

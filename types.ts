@@ -39,6 +39,21 @@ export interface PricingPlan {
   usdtPrice: number;
 }
 
+export type SubscriptionStatus = 'SUCCESS' | 'PENDING' | 'FAILED';
+
+export interface SubscriptionRecord {
+  id: string;
+  planId: string;
+  planName: string;
+  amountUSDT: number;
+  chain: string;
+  wallet: string;
+  txHash?: string;
+  createdAt: number;
+  status: SubscriptionStatus;
+  expiry?: string;
+}
+
 export type EmotionType = 'Happy' | 'Anger' | 'Sad' | 'Fear' | 'Disgust' | 'Surprise' | 'Neutral';
 
 // --- Web App Types ---
@@ -87,6 +102,10 @@ export interface UserProfile {
   inviteCount: number;
   lastResetDate: string;     
   lastDailyBonusDate?: string; 
+
+  inviteCodeApplied?: string;
+  invitedBy?: string;
+  inviteLocked?: boolean;
 }
 
 export interface TaskCounts {

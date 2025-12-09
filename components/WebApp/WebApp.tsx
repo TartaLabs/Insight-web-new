@@ -5,26 +5,48 @@ import { TaskFlow } from './TaskFlow';
 import { UpgradeModal } from './UpgradeModal';
 import { TransactionModal } from './TransactionModal';
 import { Logo } from '../Logo';
-import { UserProfile, TaskCounts, Transaction, LeaderboardEntry, EmotionType, PricingPlan, TaskRecord, Invitee } from '../../types';
+import { UserProfile, TaskCounts, Transaction, LeaderboardEntry, EmotionType, PricingPlan, TaskRecord, Invitee, SubscriptionRecord } from '../../types';
 import { LogOut } from 'lucide-react';
 
 interface WebAppProps {
   onExit: () => void;
 }
 
-const MOCK_LEADERBOARD: LeaderboardEntry[] = [
+const getTodayUTC = () => new Date().toISOString().split('T')[0];
+
+const generateLeaderboard = (): LeaderboardEntry[] => {
+  const base: LeaderboardEntry[] = [
     { rank: 1, nickname: 'Neo_X', address: '0x71...9A23', totalEarned: 54200 },
     { rank: 2, nickname: 'CyberPunk', address: '0x8A...22B1', totalEarned: 48100 },
     { rank: 3, nickname: 'Glitch01', address: '0xCC...1102', totalEarned: 32050 },
-    { rank: 4, nickname: 'DataMiner', address: '0x1D...5599', totalEarned: 28000 },
-    { rank: 5, nickname: 'ZeroCool', address: '0xEE...9911', totalEarned: 15400 },
-];
+  ];
+  let total = 28000;
+  for (let i = 4; i <= 1000; i++) {
+    total = Math.max(100, total - Math.floor(Math.random() * 80 + 20));
+    base.push({
+      rank: i,
+      nickname: `User${1000 + i}`,
+      address: `0x${(Math.random() * 10 ** 6).toFixed(0)}...${(Math.random() * 10 ** 6).toFixed(0)}`,
+      totalEarned: total,
+    });
+  }
+  return base;
+};
+
+const MOCK_LEADERBOARD: LeaderboardEntry[] = generateLeaderboard();
 
 const INITIAL_INVITEES: Invitee[] = [
     { id: '1', nickname: 'Alice_99', inviteDate: '2024-11-01', pendingReward: 4.5, claimedReward: 40.5, lastActive: '2h ago' },
     { id: '2', nickname: 'Bob_Eth', inviteDate: '2024-11-15', pendingReward: 1.0, claimedReward: 11.0, lastActive: '5m ago' },
     { id: '3', nickname: 'CryptoDave', inviteDate: '2024-10-20', pendingReward: 10.0, claimedReward: 78.0, lastActive: '1d ago' },
 ];
+
+const INVITE_LIMIT = 10;
+const INITIAL_INVITE_USAGE: Record<string, { owner: string; used: number }> = {
+    'TARTA10': { owner: 'Tarta Labs', used: 10 },
+    'ALICE99': { owner: 'Alice_99', used: 3 },
+    'BASIC01': { owner: 'Community Member', used: 0 },
+};
 
 export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -53,13 +75,26 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
       balanceUSDT: 0,
       streakDays: 1,
       inviteCount: 3,
-      lastResetDate: new Date().toISOString().split('T')[0],
+      lastResetDate: getTodayUTC(),
+      inviteCodeApplied: '',
+      invitedBy: '',
+      inviteLocked: false,
   });
 
   const [taskCounts, setTaskCounts] = useState<TaskCounts>({});
   const [history, setHistory] = useState<Transaction[]>([]);
   const [tasks, setTasks] = useState<TaskRecord[]>([]);
   const [invitees, setInvitees] = useState<Invitee[]>(INITIAL_INVITEES);
+  const [inviteCodeInfo, setInviteCodeInfo] = useState<{ code: string; invitedBy: string; locked: boolean; persisted: boolean }>({
+      code: '',
+      invitedBy: '',
+      locked: false,
+      persisted: false
+  });
+  const [inviteUsage, setInviteUsage] = useState<Record<string, { owner: string; used: number }>>(INITIAL_INVITE_USAGE);
+  const [ownInviteCode, setOwnInviteCode] = useState('');
+  const [inviteLink, setInviteLink] = useState('');
+  const [subscriptions, setSubscriptions] = useState<SubscriptionRecord[]>([]);
   
   // Simulation: Invitee activity
   useEffect(() => {
@@ -98,8 +133,7 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
 
   useEffect(() => {
       const checkReset = () => {
-          const now = new Date();
-          const todayISO = now.toISOString().split('T')[0];
+          const todayISO = getTodayUTC();
           if (todayISO !== user.lastResetDate) {
               setTaskCounts({});
               setUser(prev => ({ ...prev, lastResetDate: todayISO }));
@@ -110,15 +144,119 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
       return () => clearInterval(interval);
   }, [user.lastResetDate]);
 
+  // Prefill invite code from storage or URL
+  useEffect(() => {
+      const storedCode = localStorage.getItem('insight_invite_code') || '';
+      const storedBy = localStorage.getItem('insight_invited_by') || '';
+      if (storedCode) {
+          const res = validateInviteCode(storedCode);
+          if (res.ok) {
+              setInviteCodeInfo({ code: storedCode, invitedBy: res.invitedBy || storedBy || 'Community Member', locked: true, persisted: true });
+          } else {
+              localStorage.removeItem('insight_invite_code');
+              localStorage.removeItem('insight_invited_by');
+          }
+      } else {
+          const params = new URLSearchParams(window.location.search);
+          const code = params.get('code') || '';
+          const inviter = params.get('inviter') || '';
+          if (code) {
+              const res = validateInviteCode(code);
+              if (res.ok) {
+                  const owner = res.invitedBy || inviteUsage[code]?.owner || inviter || 'Community Member';
+                  setInviteCodeInfo({ code, invitedBy: owner, locked: true, persisted: false });
+              } else {
+                  setInviteCodeInfo({ code: '', invitedBy: '', locked: false, persisted: false });
+              }
+          }
+      }
+  }, [inviteUsage]);
+
+  const validateInviteCode = (code: string) => {
+      const trimmed = code.trim();
+      if (!trimmed) return { ok: true, invitedBy: '' };
+      const record = inviteUsage[trimmed];
+      if (!record) {
+          return { ok: false, message: 'Invite code is invalid or expired' };
+      }
+      if (record.used >= INVITE_LIMIT) {
+          return { ok: false, message: 'Invite code has reached the limit (10/10)', invitedBy: record.owner };
+      }
+      return { ok: true, invitedBy: record.owner };
+  };
+
+  const bindInviteCode = (code: string, options?: { lock?: boolean; persist?: boolean }) => {
+      const trimmed = code.trim();
+      if (!trimmed) {
+          setInviteCodeInfo({ code: '', invitedBy: '', locked: false, persisted: false });
+          setUser(prev => ({ ...prev, inviteCodeApplied: '', invitedBy: '', inviteLocked: false }));
+          return { ok: true };
+      }
+
+      const { ok, message, invitedBy } = validateInviteCode(trimmed);
+      if (!ok) return { ok, message };
+
+      const owner = invitedBy || 'Community Member';
+      const shouldPersist = options?.persist ?? false;
+      const shouldLock = options?.lock ?? false;
+
+      setInviteCodeInfo(prev => ({
+          code: trimmed,
+          invitedBy: owner,
+          locked: shouldLock || prev.locked,
+          persisted: prev.persisted || shouldPersist
+      }));
+
+      setUser(prev => ({
+          ...prev,
+          inviteCodeApplied: trimmed,
+          invitedBy: owner,
+          inviteLocked: shouldLock || prev.inviteLocked
+      }));
+
+      if (shouldPersist && (!inviteCodeInfo.persisted || inviteCodeInfo.code !== trimmed)) {
+          setInviteUsage(prev => {
+              const current = prev[trimmed] || { owner, used: 0 };
+              const updatedUsed = Math.min(INVITE_LIMIT, current.used + 1);
+              return { ...prev, [trimmed]: { owner: current.owner || owner, used: updatedUsed } };
+          });
+          localStorage.setItem('insight_invite_code', trimmed);
+          localStorage.setItem('insight_invited_by', owner);
+      }
+
+      return { ok: true, invitedBy: owner };
+  };
+
   const handleLogin = (nickname: string) => {
-      setUser(prev => ({ 
-          ...prev, 
-          nickname, 
-          walletAddress: '0x71C...9A23',
+      if (inviteCodeInfo.code) {
+          const bindResult = bindInviteCode(inviteCodeInfo.code, { lock: true, persist: !inviteCodeInfo.persisted });
+          if (!bindResult.ok) return; // stop login if invite invalid
+      }
+
+     const wallet = '0x71c1234567890abcdef1234567890abcd9a23';
+     setUser(prev => ({ 
+         ...prev, 
+         nickname, 
+         walletAddress: wallet,
           balanceMNT: 5.0,
           balanceUSDT: 100.0,
-          balanceMEMO: 100
+          balanceMEMO: 100,
+          inviteCodeApplied: inviteCodeInfo.code || prev.inviteCodeApplied,
+          invitedBy: inviteCodeInfo.invitedBy || prev.invitedBy,
+          inviteLocked: inviteCodeInfo.code ? true : prev.inviteLocked
       }));
+
+     const code = `INV-${wallet.replace(/[^0-9a-zA-Z]/g, '').slice(-6).toUpperCase() || 'NODE'}`;
+      setOwnInviteCode(code);
+      if (typeof window !== 'undefined') {
+          const link = `${window.location.origin}${window.location.pathname}?code=${code}&inviter=${encodeURIComponent(nickname || 'user')}`;
+          setInviteLink(link);
+      }
+      setInviteUsage(prev => ({ ...prev, [code]: { owner: nickname || 'You', used: prev[code]?.used || 0 } }));
+
+      if (inviteCodeInfo.code && !inviteCodeInfo.persisted) {
+          setInviteCodeInfo(prev => ({ ...prev, locked: true, persisted: true }));
+      }
       setIsLoggedIn(true);
   };
 
@@ -134,6 +272,30 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
       });
       setActiveTaskEmotion(null);
       setActiveDraftTask(undefined);
+  };
+
+  const handleRenameNickname = (nextName: string) => {
+      const trimmed = nextName.trim();
+      const valid = /^[A-Za-z0-9]{1,15}$/.test(trimmed);
+      if (!valid) return { ok: false, message: 'Use 1-15 letters or numbers.' };
+
+      const existingNicknames = [
+        ...MOCK_LEADERBOARD.map(l => l.nickname),
+        ...invitees.map(i => i.nickname)
+      ];
+      const taken = existingNicknames.some(n => n.toLowerCase() === trimmed.toLowerCase());
+      if (taken && trimmed.toLowerCase() !== (user.nickname || '').toLowerCase()) {
+          return { ok: false, message: 'Nickname already taken.' };
+      }
+
+      setUser(prev => ({ ...prev, nickname: trimmed }));
+
+      if (ownInviteCode && typeof window !== 'undefined') {
+          const link = `${window.location.origin}${window.location.pathname}?code=${ownInviteCode}&inviter=${encodeURIComponent(trimmed)}`;
+          setInviteLink(link);
+      }
+
+      return { ok: true };
   };
 
   const handleSubmitTask = (record: TaskRecord) => {
@@ -295,7 +457,7 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
       if (user.proPlanId === 'yearly') amount = 30;
 
       triggerTransaction('CLAIM', 'Claim Daily Bonus', `+${amount} $mEMO`, `~${gasCost} MNT`, () => {
-          const today = new Date().toISOString().split('T')[0];
+          const today = getTodayUTC();
           setUser(prev => ({ 
             ...prev, 
             balanceMNT: prev.balanceMNT - gasCost,
@@ -361,22 +523,36 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
          const now = new Date();
          let daysToAdd = 30;
          if (plan.id === 'quarterly') daysToAdd = 90;
-         if (plan.id === 'yearly') daysToAdd = 365;
-         now.setDate(now.getDate() + daysToAdd);
+     if (plan.id === 'yearly') daysToAdd = 365;
+     now.setDate(now.getDate() + daysToAdd);
 
-         setUser(prev => ({ 
-             ...prev, 
-             isPro: true, 
-             proPlanId: plan.id,
-             proExpiryDate: now.toISOString(),
-             balanceUSDT: prev.balanceUSDT - plan.usdtPrice,
-             balanceMNT: prev.balanceMNT - gasCost,
-         }));
-         
-         setHistory(prev => [{
-            id: Date.now().toString(),
-            category: 'SPEND',
-            amount: 0,
+     setUser(prev => ({ 
+         ...prev, 
+         isPro: true, 
+         proPlanId: plan.id,
+         proExpiryDate: now.toISOString(),
+         balanceUSDT: prev.balanceUSDT - plan.usdtPrice,
+         balanceMNT: prev.balanceMNT - gasCost,
+     }));
+     
+     const record: SubscriptionRecord = {
+        id: `sub-${Date.now()}`,
+        planId: plan.id,
+        planName: plan.name,
+        amountUSDT: plan.usdtPrice,
+        chain: 'Mantle',
+        wallet: user.walletAddress || '0x71C...9A23',
+        txHash: `0x${Date.now().toString(16)}DEMO`,
+        createdAt: Date.now(),
+        status: 'SUCCESS',
+        expiry: now.toISOString(),
+     };
+     setSubscriptions(prev => [record, ...prev]);
+     
+     setHistory(prev => [{
+        id: Date.now().toString(),
+        category: 'SPEND',
+        amount: 0,
             cost: `-${plan.usdtPrice} USDT`,
             timestamp: Date.now(),
             desc: `Upgraded to ${plan.name}`,
@@ -402,7 +578,23 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
   };
 
   if (!isLoggedIn) {
-      return <Login onLoginSuccess={handleLogin} />;
+      const existingNicknames = [
+        ...MOCK_LEADERBOARD.map(l => l.nickname),
+        ...invitees.map(i => i.nickname)
+      ];
+      return (
+        <Login 
+          onLoginSuccess={handleLogin} 
+          onBack={onExit}
+          inviteCode={inviteCodeInfo.code}
+          inviteLocked={inviteCodeInfo.locked || inviteCodeInfo.persisted}
+          invitedBy={inviteCodeInfo.invitedBy}
+          existingNicknames={existingNicknames}
+          onInviteChange={(code) => setInviteCodeInfo(prev => ({ ...prev, code, invitedBy: '', locked: false, persisted: false }))}
+          onValidateInvite={validateInviteCode}
+          onPersistInvite={(code, invitedBy) => bindInviteCode(code, { lock: true, persist: true })}
+        />
+      );
   }
 
   return (
@@ -412,13 +604,13 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
             <div className="flex items-center gap-3">
                 <Logo className="w-8 h-8" />
                 <div className="hidden md:block">
-                    <div className="font-bold tracking-tight font-mono text-tech-blue">INSIGHT_PROTOCOL</div>
+                    <div className="font-bold tracking-tight font-mono text-tech-blue">INSIGHT WEB</div>
                 </div>
             </div>
             <div className="flex items-center gap-4">
                 <div className="hidden md:flex items-center gap-2 bg-tech-blue/5 rounded border border-tech-blue/20 px-3 py-1">
                     <div className="w-1.5 h-1.5 bg-tech-blue rounded-full animate-pulse" />
-                    <span className="text-[10px] font-mono text-tech-blue tracking-widest">MANTLE_MAINNET</span>
+                    <span className="text-[10px] font-mono text-tech-blue tracking-widest">MANTLE MAINNET</span>
                 </div>
                 
                 <button 
@@ -440,6 +632,12 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
             history={history}
             leaderboard={MOCK_LEADERBOARD}
             invitees={invitees}
+            inviteCodeInfo={inviteCodeInfo}
+            ownInviteCode={ownInviteCode}
+            inviteLink={inviteLink}
+            subscriptions={subscriptions}
+            onRenameNickname={handleRenameNickname}
+            onApplyInviteCode={(code) => bindInviteCode(code, { lock: true, persist: true })}
             onStartTask={(emo) => {
                 setActiveDraftTask(undefined);
                 setActiveTaskEmotion(emo);

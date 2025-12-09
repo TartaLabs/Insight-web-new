@@ -24,6 +24,11 @@ export const EmotionOrb: React.FC = () => {
   useEffect(() => {
     if (!containerRef.current) return;
 
+    // Remove any previously mounted orb canvases (handles hot-reload / double-mount) without touching HUD overlays
+    document.querySelectorAll('canvas.emotion-orb').forEach((canvas) => {
+      canvas.remove();
+    });
+
     // --- Scene Setup ---
     const scene = new THREE.Scene();
     // Reduced fog slightly to ensure colors pop
@@ -42,6 +47,7 @@ export const EmotionOrb: React.FC = () => {
       antialias: true,
       powerPreference: "high-performance" 
     });
+    renderer.domElement.classList.add('emotion-orb');
     renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     containerRef.current.appendChild(renderer.domElement);
@@ -274,7 +280,7 @@ export const EmotionOrb: React.FC = () => {
                    ARBITRUM <span style={{ color: 'var(--active-color)' }}>$aEMO</span>
                 </div>
                 <div className="text-xs font-bold text-white">
-                   MANTLE <span style={{ color: 'var(--active-color)' }}>$mEMO</span>
+                  MANTLE <span style={{ color: 'var(--active-color)' }}>$mEMO</span>
                 </div>
              </div>
           </motion.div>

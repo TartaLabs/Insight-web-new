@@ -16,12 +16,12 @@ export const EmotionShowcase: React.FC = () => {
   const [active, setActive] = useState<number | null>(null);
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-20">
-      <div className="mb-12 text-center">
-        <h2 className="text-3xl md:text-5xl font-bold mb-4">
+    <div className="w-full container mx-auto px-6 lg:px-8 xl:px-10">
+      <div className="mb-10 text-center">
+        <h2 className="text-4xl md:text-5xl font-extrabold mb-4 text-white">
           <span className="text-white">7 Core Dimensions</span>
         </h2>
-        <p className="text-gray-400 max-w-2xl mx-auto">
+        <p className="text-gray-400 max-w-2xl mx-auto text-base md:text-lg">
           We collect and label the full spectrum of human expression. Select a task, capture the feeling, and contribute to the dataset.
         </p>
       </div>

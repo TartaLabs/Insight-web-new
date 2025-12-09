@@ -24,7 +24,7 @@ export const GlobalScrollEffects: React.FC = () => {
   }, []);
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
       {/* 1. Warp Speed Lines (Triggered by Scroll Velocity) */}
       <div className="absolute inset-0 flex justify-between px-[10%] opacity-50">
         {[...Array(6)].map((_, i) => (
@@ -63,11 +63,11 @@ export const GlobalScrollEffects: React.FC = () => {
 
       {/* 3. Subtle Background Grid Parallax */}
       <motion.div 
-        className="absolute inset-0 z-[-1]"
+        className="absolute inset-0"
         style={{
-            backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)`,
-            backgroundSize: '100px 100px',
+            backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px)`,
+            backgroundSize: '110px 110px',
             y: useTransform(scrollY, (v) => v * 0.05)
         }}
       />

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Camera, Check, RotateCcw, Save, Scan, Zap } from 'lucide-react';
 import { EmotionType, TaskRecord } from '../../types';
+import { Button } from './Button';
 
 interface TaskFlowProps {
   emotion: EmotionType;
@@ -20,6 +21,10 @@ export const TaskFlow: React.FC<TaskFlowProps> = ({ emotion, initialTask, reward
   
   // Data State
   const [photo, setPhoto] = useState<string | null>(initialTask?.imageUrl || null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [cameraError, setCameraError] = useState<string>('');
   
   // Label Form State
   const [isClear, setIsClear] = useState<boolean | null>(initialTask?.draftData?.isClear ?? null);
@@ -28,12 +33,32 @@ export const TaskFlow: React.FC<TaskFlowProps> = ({ emotion, initialTask, reward
   const [arousal, setArousal] = useState(initialTask?.draftData?.arousal ?? 50);
 
   // Handlers
-  const handleStartCapture = () => setCurrentStep('capture');
+  const handleStartCapture = async () => {
+    setCameraError('');
+    setCurrentStep('capture');
+    try {
+      const media = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      setStream(media);
+      if (videoRef.current) {
+        videoRef.current.srcObject = media;
+        await videoRef.current.play();
+      }
+    } catch (e) {
+      setCameraError('Camera access denied or unavailable.');
+    }
+  };
 
   const handleCapture = () => {
-     // Mocking a captured image
-     const mockImage = `https://dummyimage.com/600x800/000/fff&text=${emotion}`;
-     setPhoto(mockImage);
+     if (!videoRef.current || !canvasRef.current) return;
+     const video = videoRef.current;
+     const canvas = canvasRef.current;
+     const ctx = canvas.getContext('2d');
+     if (!ctx) return;
+     canvas.width = video.videoWidth;
+     canvas.height = video.videoHeight;
+     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+     const dataUrl = canvas.toDataURL('image/png');
+     setPhoto(dataUrl);
      setCurrentStep('review');
   };
 
@@ -83,6 +108,14 @@ export const TaskFlow: React.FC<TaskFlowProps> = ({ emotion, initialTask, reward
 
   const canSubmit = isClear !== null && isStaged !== null;
 
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+      }
+    };
+  }, [stream]);
+
   return (
     <motion.div 
         className="fixed inset-0 z-50 bg-[#020205]/95 backdrop-blur-sm flex items-center justify-center p-4 font-mono"
@@ -99,8 +132,8 @@ export const TaskFlow: React.FC<TaskFlowProps> = ({ emotion, initialTask, reward
                         <ArrowLeft size={20} />
                     </button>
                     <div>
-                        <h2 className="font-bold text-white tracking-widest uppercase">Mission: {emotion} Protocol</h2>
-                        <div className="text-[10px] text-tech-blue">REWARD: {rewardAmount} $mEMO</div>
+                        <h2 className="font-bold text-white tracking-widest uppercase">Emotion Labeling</h2>
+                        <div className="text-[10px] text-tech-blue">Reward: {rewardAmount} $mEMO</div>
                     </div>
                 </div>
                 <div className="text-xs text-gray-500 font-mono">
@@ -138,28 +171,25 @@ export const TaskFlow: React.FC<TaskFlowProps> = ({ emotion, initialTask, reward
                         <p className="text-gray-300 mb-8 leading-relaxed">
                             Initialize facial capture sequence. Replicate the target emotion <span className="text-tech-blue font-bold">{emotion.toUpperCase()}</span>. Ensure optimal lighting conditions.
                         </p>
-                        <button 
-                            onClick={handleStartCapture}
-                            className="px-8 py-3 bg-tech-blue text-black font-bold uppercase tracking-widest hover:bg-white transition-colors clip-path-polygon-[10px_0,100%_0,100%_calc(100%-10px),calc(100%-10px)_100%,0_100%,0_10px]"
-                            style={{ clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' }}
-                        >
-                            Activate Camera
-                        </button>
+                        <Button onClick={handleStartCapture} className="mt-2">Activate Camera</Button>
                     </div>
                 )}
 
                 {currentStep === 'capture' && (
                     <div className="flex flex-col items-center w-full z-10">
                         <div className="relative w-full max-w-sm aspect-[3/4] bg-black border border-white/20 mb-8 overflow-hidden">
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <p className="text-tech-blue animate-pulse font-mono text-xs">VIDEO_FEED_ACTIVE</p>
-                            </div>
-                            {/* Face Frame UI */}
+                            <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+                            <canvas ref={canvasRef} className="hidden" />
                             <div className="absolute inset-0 border-2 border-tech-blue/30 m-8 rounded-[40%]" />
                             <div className="absolute top-1/2 left-0 w-full h-0.5 bg-tech-blue/20" />
                             <div className="absolute left-1/2 top-0 w-0.5 h-full bg-tech-blue/20" />
+                            {cameraError && (
+                              <div className="absolute inset-0 bg-black/70 flex items-center justify-center text-red-400 text-xs px-4 text-center">
+                                {cameraError}
+                              </div>
+                            )}
                         </div>
-                        <button onClick={handleCapture} className="w-20 h-20 rounded-full border-2 border-white flex items-center justify-center hover:scale-105 transition-transform group">
+                        <button onClick={handleCapture} disabled={!!cameraError} className="w-20 h-20 rounded-full border-2 border-white flex items-center justify-center hover:scale-105 transition-transform group disabled:opacity-40 disabled:cursor-not-allowed">
                             <div className="w-16 h-16 bg-white rounded-full group-hover:bg-tech-blue transition-colors" />
                         </button>
                     </div>
@@ -174,19 +204,16 @@ export const TaskFlow: React.FC<TaskFlowProps> = ({ emotion, initialTask, reward
                             </div>
                         </div>
                         <div className="flex gap-4 w-full max-w-sm mb-6">
-                            <button onClick={handleRetake} className="flex-1 py-3 border border-white/20 hover:bg-white/10 text-gray-300 font-bold text-xs uppercase flex items-center justify-center gap-2 transition-colors">
+                            <Button variant="ghost" onClick={handleRetake} className="flex-1">
                                <RotateCcw size={14} /> Retake
-                            </button>
-                            <button onClick={handleSave} className="flex-1 py-3 border border-white/20 hover:bg-white/10 text-gray-300 font-bold text-xs uppercase flex items-center justify-center gap-2 transition-colors">
+                            </Button>
+                            <Button variant="secondary" onClick={handleSave} className="flex-1">
                                <Save size={14} /> Save Draft
-                            </button>
+                            </Button>
                         </div>
-                        <button 
-                            onClick={handleConfirmPhoto} 
-                            className="w-full max-w-sm py-3 bg-tech-blue text-black font-bold uppercase tracking-widest hover:bg-white transition-colors"
-                        >
+                        <Button onClick={handleConfirmPhoto} className="w-full max-w-sm">
                             Proceed to Analysis
-                        </button>
+                        </Button>
                     </div>
                 )}
 
@@ -200,22 +227,26 @@ export const TaskFlow: React.FC<TaskFlowProps> = ({ emotion, initialTask, reward
                         </div>
                         
                         <div>
-                            <label className="block text-xs text-tech-blue mb-2 font-bold uppercase">1. Visibility Check</label>
+                            <label className="block text-xs text-tech-blue mb-2 font-bold uppercase">Is there a clear human face? *</label>
                             <div className="flex gap-4">
-                                <button onClick={() => setIsClear(true)} className={`flex-1 py-3 border ${isClear === true ? 'bg-tech-blue text-black border-tech-blue' : 'border-white/20 text-gray-500 hover:border-white'}`}>CLEAR</button>
-                                <button onClick={() => setIsClear(false)} className={`flex-1 py-3 border ${isClear === false ? 'bg-tech-blue text-black border-tech-blue' : 'border-white/20 text-gray-500 hover:border-white'}`}>OBSTRUCTED</button>
+                                <Button variant={isClear === true ? 'primary' : 'ghost'} className="flex-1" onClick={() => setIsClear(true)}>Yes</Button>
+                                <Button variant={isClear === false ? 'primary' : 'ghost'} className="flex-1" onClick={() => setIsClear(false)}>No</Button>
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-xs text-tech-blue mb-2 font-bold uppercase">2. Emotion Class</label>
+                            <label className="block text-xs text-tech-blue mb-2 font-bold uppercase">Please select the type of emotion? *</label>
                             <div className="w-full bg-white/5 border border-white/10 px-4 py-3 text-gray-300 cursor-not-allowed font-mono">
-                                {emotion.toUpperCase()} [LOCKED]
+                                {emotion.toUpperCase()} [Locked]
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-xs text-tech-blue mb-2 font-bold uppercase">3. Intensity Scalar</label>
+                            <label className="block text-xs text-tech-blue mb-2 font-bold uppercase">How strong do you think the emotion in this photo is? *</label>
+                            <div className="flex items-center justify-between text-[10px] text-gray-500 mb-2">
+                              <span>Lowest</span>
+                              <span>Highest</span>
+                            </div>
                             <div className="flex items-center gap-4">
                                 <input type="range" min="0" max="100" value={intensity} onChange={(e) => setIntensity(Number(e.target.value))} className="flex-1 accent-tech-blue h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer" />
                                 <span className="font-mono text-tech-blue w-8 text-right">{intensity}</span>
@@ -223,20 +254,32 @@ export const TaskFlow: React.FC<TaskFlowProps> = ({ emotion, initialTask, reward
                         </div>
 
                         <div>
-                            <label className="block text-xs text-tech-blue mb-2 font-bold uppercase">4. Authenticity</label>
+                            <label className="block text-xs text-tech-blue mb-2 font-bold uppercase">How natural do you think this photo is? *</label>
                             <div className="flex gap-4">
-                                <button onClick={() => setIsStaged(true)} className={`flex-1 py-3 border ${isStaged === true ? 'bg-tech-blue text-black border-tech-blue' : 'border-white/20 text-gray-500 hover:border-white'}`}>STAGED</button>
-                                <button onClick={() => setIsStaged(false)} className={`flex-1 py-3 border ${isStaged === false ? 'bg-tech-blue text-black border-tech-blue' : 'border-white/20 text-gray-500 hover:border-white'}`}>NATURAL</button>
+                                <Button variant={isStaged === false ? 'primary' : 'ghost'} className="flex-1" onClick={() => setIsStaged(false)}>Natural</Button>
+                                <Button variant={isStaged === true ? 'primary' : 'ghost'} className="flex-1" onClick={() => setIsStaged(true)}>Pose</Button>
                             </div>
                         </div>
 
-                        <button 
+                        <div>
+                            <label className="block text-xs text-tech-blue mb-2 font-bold uppercase">How would you rate your emotional continuity? *</label>
+                            <div className="flex items-center justify-between text-[10px] text-gray-500 mb-2">
+                              <span>Lowest</span>
+                              <span>Highest</span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <input type="range" min="0" max="100" value={arousal} onChange={(e) => setArousal(Number(e.target.value))} className="flex-1 accent-tech-blue h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer" />
+                                <span className="font-mono text-tech-blue w-8 text-right">{arousal}</span>
+                            </div>
+                        </div>
+
+                        <Button 
                             onClick={handleSubmit}
                             disabled={!canSubmit}
-                            className={`w-full mt-8 py-4 font-bold uppercase tracking-widest transition-all ${!canSubmit ? 'bg-white/5 text-gray-600 cursor-not-allowed' : 'bg-tech-blue text-black hover:bg-white hover:shadow-[0_0_20px_rgba(0,243,255,0.4)]'}`}
+                            className="w-full mt-8"
                         >
                             Submit to Consensus
-                        </button>
+                        </Button>
                     </div>
                 )}
             </div>

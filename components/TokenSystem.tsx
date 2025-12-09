@@ -3,21 +3,21 @@ import { Share2, Gift, History } from 'lucide-react';
 
 export const TokenSystem: React.FC = () => {
   return (
-    <div className="w-full max-w-6xl mx-auto px-4">
-      <div className="flex flex-col items-center mb-16">
-        <h2 className="text-3xl md:text-5xl font-bold mb-6 text-center">
+    <div className="w-full container mx-auto px-6 lg:px-8 xl:px-10">
+      <div className="flex flex-col items-center mb-12">
+        <h2 className="text-4xl md:text-5xl font-extrabold mb-4 text-center">
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-tech-blue to-white">
             The Dual-Chain Economy
           </span>
         </h2>
-        <p className="text-tech-gray text-center max-w-2xl text-lg">
-           A unified incentive layer. Earn <span className="text-tech-blue">$aEMO</span> on Arbitrum via Mobile, or <span className="text-blue-400">$mEMO</span> on Mantle via Web. Both serve as your soulbound proof of contribution to Emotion AI.
+        <p className="text-tech-gray text-center max-w-2xl text-base md:text-lg">
+          A unified incentive layer. Earn <span className="text-blue-400">$aEMO</span> on Arbitrum via Mobile, or <span className="text-tech-blue">$mEMO</span> on Mantle via Web. Both serve as your soulbound proof of contribution to Emotion AI.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
          {/* Referral Card */}
-         <div className="bg-surface border border-white/10 p-8 rounded-xl relative overflow-hidden group hover:border-tech-blue/30 transition-all duration-300">
+         <div className="bg-black/40 border border-white/10 p-8 rounded-xl relative overflow-hidden group hover:border-tech-blue/30 transition-all duration-300">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-tech-blue">
                <Share2 size={100} />
             </div>
@@ -28,7 +28,7 @@ export const TokenSystem: React.FC = () => {
          </div>
 
          {/* Airdrop Card */}
-         <div className="bg-surface border border-white/10 p-8 rounded-xl relative overflow-hidden group hover:border-white/30 transition-all duration-300">
+         <div className="bg-black/40 border border-white/10 p-8 rounded-xl relative overflow-hidden group hover:border-white/30 transition-all duration-300">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-white">
                <Gift size={100} />
             </div>
@@ -39,7 +39,7 @@ export const TokenSystem: React.FC = () => {
          </div>
 
          {/* History Card */}
-         <div className="bg-surface border border-white/10 p-8 rounded-xl relative overflow-hidden group hover:border-blue-400/30 transition-all duration-300">
+         <div className="bg-black/40 border border-white/10 p-8 rounded-xl relative overflow-hidden group hover:border-blue-400/30 transition-all duration-300">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-blue-400">
                <History size={100} />
             </div>

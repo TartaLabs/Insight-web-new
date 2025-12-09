@@ -33,17 +33,17 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
         {/* Mobile Platform */}
         <motion.div 
-          className="relative bg-surface border border-white/10 rounded-2xl overflow-hidden group hover:border-tech-blue/50 transition-colors duration-500"
+          className="relative bg-surface border border-white/10 rounded-2xl overflow-hidden group hover:border-blue-400/50 transition-colors duration-500"
           whileHover={{ y: -5 }}
         >
-          <div className="absolute top-0 right-0 p-32 bg-tech-blue/5 rounded-full blur-[80px] group-hover:bg-tech-blue/10 transition-colors" />
+          <div className="absolute top-0 right-0 p-32 bg-blue-500/5 rounded-full blur-[80px] group-hover:bg-blue-500/10 transition-colors" />
           
           <div className="p-8 md:p-12 relative z-10">
             <div className="flex items-center justify-between mb-8">
-               <div className="w-16 h-16 bg-tech-blue/10 rounded-xl flex items-center justify-center text-tech-blue">
+               <div className="w-16 h-16 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400">
                  <Smartphone size={32} />
                </div>
-               <div className="px-4 py-1 rounded-full border border-tech-blue/30 bg-tech-blue/5 text-tech-blue text-xs font-mono tracking-widest">
+               <div className="px-4 py-1 rounded-full border border-blue-400/30 bg-blue-400/5 text-blue-400 text-xs font-mono tracking-widest">
                  ARBITRUM CHAIN
                </div>
             </div>
@@ -53,11 +53,11 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
 
             <div className="grid grid-cols-2 gap-4 mb-10 text-sm">
                <div className="flex items-center gap-3 text-gray-300">
-                  <Shield size={16} className="text-tech-blue" />
+                  <Shield size={16} className="text-blue-400" />
                   <span>Sequence AA Wallet</span>
                </div>
                <div className="flex items-center gap-3 text-gray-300">
-                  <Zap size={16} className="text-tech-blue" />
+                  <Zap size={16} className="text-blue-400" />
                   <span>Earn $aEMO</span>
                </div>
             </div>
@@ -67,7 +67,7 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
                 href="https://testflight.apple.com/join/hAEjSyKf" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 bg-white text-black py-4 rounded font-bold hover:bg-tech-blue hover:text-black transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-400 text-white py-4 rounded font-bold hover:opacity-90 transition-opacity shadow-[0_10px_30px_rgba(59,130,246,0.3)]"
               >
                  <AppleLogo height={18} width={18} />
                  <span>Apple Store</span>
@@ -87,17 +87,17 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
 
         {/* Web Platform */}
         <motion.div 
-          className="relative bg-surface border border-white/10 rounded-2xl overflow-hidden group hover:border-blue-400/50 transition-colors duration-500"
+          className="relative bg-surface border border-white/10 rounded-2xl overflow-hidden group hover:border-tech-blue/50 transition-colors duration-500"
           whileHover={{ y: -5 }}
         >
-          <div className="absolute top-0 left-0 p-32 bg-blue-500/5 rounded-full blur-[80px] group-hover:bg-blue-500/10 transition-colors" />
+          <div className="absolute top-0 left-0 p-32 bg-tech-blue/5 rounded-full blur-[80px] group-hover:bg-tech-blue/10 transition-colors" />
           
           <div className="p-8 md:p-12 relative z-10">
             <div className="flex items-center justify-between mb-8">
-               <div className="w-16 h-16 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400">
+               <div className="w-16 h-16 bg-tech-blue/10 rounded-xl flex items-center justify-center text-tech-blue">
                  <Monitor size={32} />
                </div>
-               <div className="px-4 py-1 rounded-full border border-blue-400/30 bg-blue-400/5 text-blue-400 text-xs font-mono tracking-widest">
+               <div className="px-4 py-1 rounded-full border border-tech-blue/30 bg-tech-blue/5 text-tech-blue text-xs font-mono tracking-widest">
                  MANTLE CHAIN
                </div>
             </div>
@@ -107,18 +107,18 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
 
             <div className="grid grid-cols-2 gap-4 mb-10 text-sm">
                <div className="flex items-center gap-3 text-gray-300">
-                  <Shield size={16} className="text-blue-400" />
+                  <Shield size={16} className="text-tech-blue" />
                   <span>EOA Wallet Login</span>
                </div>
                <div className="flex items-center gap-3 text-gray-300">
-                  <Zap size={16} className="text-blue-400" />
+                  <Zap size={16} className="text-tech-blue" />
                   <span>Earn $mEMO</span>
-               </div>
+                </div>
             </div>
 
             <button 
               onClick={onLaunch}
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-400 text-white py-4 rounded font-bold hover:opacity-90 transition-opacity"
+              className="w-full flex items-center justify-center gap-2 bg-white text-black py-4 rounded font-bold hover:bg-tech-blue hover:text-black transition-colors border border-white/20"
             >
                  <span>Launch Web App</span>
                  <ChevronRight size={18} />
