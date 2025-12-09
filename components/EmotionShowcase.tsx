@@ -21,7 +21,7 @@ export const EmotionShowcase: React.FC = () => {
         <h2 className="text-4xl md:text-5xl font-extrabold mb-4 text-white">
           <span className="text-white">7 Core Dimensions</span>
         </h2>
-        <p className="text-gray-400 max-w-2xl mx-auto text-base md:text-lg">
+        <p className="text-gray-400 max-w-4xl mx-auto text-base md:text-lg leading-relaxed">
           We collect and label the full spectrum of human expression. Select a task, capture the feeling, and contribute to the dataset.
         </p>
       </div>

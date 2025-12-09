@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Zap, Shield, Sparkles, Layers, Calendar, Gamepad2, Headphones, HeartPulse, Bot, Car, Building2, X, Cpu, Smartphone, Terminal } from 'lucide-react';
 import { SectionWrapper } from './SectionWrapper';
@@ -16,6 +16,49 @@ export const EmotionalSDK: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', company: '', useCase: '' });
   const [submitted, setSubmitted] = useState(false);
+  const fullCode = useMemo(() => (
+    "import 'package:insight_sdk/insight.dart';\n" +
+    "\n" +
+    "// Initialize local engine\n" +
+    "await Insight.initialize(\n" +
+    "  mode: ComputeMode.local,\n" +
+    "  latency: Latency.ultraLow, // ~20ms\n" +
+    ");\n" +
+    "\n" +
+    "// Stream real-time emotions\n" +
+    "Insight.stream.listen((emotion) {\n" +
+    "  print('Detected: ${emotion.label}');\n" +
+    "});\n"
+  ), []);
+
+  const [typed, setTyped] = useState('');
+  const [cursorVisible, setCursorVisible] = useState(true);
+
+  useEffect(() => {
+    let charIndex = 0;
+    const typeInterval = setInterval(() => {
+      charIndex += 1;
+      if (charIndex > fullCode.length) {
+        setTimeout(() => { setTyped(''); charIndex = 0; }, 800);
+      } else {
+        setTyped(fullCode.slice(0, charIndex));
+      }
+    }, 25);
+
+    const cursorBlink = setInterval(() => setCursorVisible(v => !v), 500);
+
+    return () => {
+      clearInterval(typeInterval);
+      clearInterval(cursorBlink);
+    };
+  }, [fullCode]);
+
+  const CodeTyper: React.FC = () => (
+    <div className="relative text-gray-200 whitespace-pre-wrap min-h-[240px]">
+      {typed}
+      <span className={`ml-0.5 ${cursorVisible ? 'opacity-100' : 'opacity-0'}`}>|</span>
+    </div>
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +73,7 @@ export const EmotionalSDK: React.FC = () => {
         <div className="absolute right-0 bottom-0 w-[520px] h-[520px] bg-emerald-500/10 blur-[200px]" />
       </div>
 
-      <div className="relative z-10 container mx-auto px-6 space-y-16">
+      <div className="relative z-10 container mx-auto px-6 space-y-10">
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-12 xl:gap-16 items-start min-h-[60vh]">
           <div className="space-y-5">
             <div className="inline-flex items-center gap-2 px-3 py-1 border border-white/10 rounded-full bg-white/5 backdrop-blur">
@@ -85,7 +128,7 @@ export const EmotionalSDK: React.FC = () => {
           </div>
 
           <div className="w-full">
-            <div className="bg-[#0c111a] border border-white/10 rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.45)] overflow-hidden">
+            <div className="bg-[#0c111a] border border-white/10 rounded-2xl shadow-[0_25px_50px_rgba(0,0,0,0.45)] overflow-hidden min-h-[260px]">
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-black/60">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
@@ -94,25 +137,19 @@ export const EmotionalSDK: React.FC = () => {
                 </div>
                 <div className="text-[11px] text-gray-400 font-mono">Flutter / Dart</div>
               </div>
-              <div className="p-5 font-mono text-[12px] leading-6 text-gray-200 bg-gradient-to-br from-[#0a0d14] via-[#0b121c] to-[#05070c] whitespace-pre">
-                {[
-                  "import 'package:insight_sdk/insight.dart';",
-                  '',
-                  '// Initialize local engine',
-                  'await Insight.initialize(',
-                  '  mode: ComputeMode.local,',
-                  '  latency: Latency.ultraLow, // ~20ms',
-                  ');',
-                  '',
-                  '// Stream real-time emotions',
-                  'Insight.stream.listen((emotion) {',
-                  "  print('Detected: ${emotion.label}');",
-                  '});',
-                ].join('\\n')}
+              <div className="p-5 font-mono text-[12px] leading-6 text-gray-200 bg-gradient-to-br from-[#0a0d14] via-[#0b121c] to-[#05070c] whitespace-pre relative">
+                <motion.div
+                  key="code-block"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                  className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-b from-white/2 via-transparent to-transparent pointer-events-none"
+                />
+                <CodeTyper />
               </div>
               <div className="px-4 py-3 border-t border-white/10 flex items-center justify-between text-[11px] text-gray-400 bg-black/50">
                 <div className="flex items-center gap-2">
-                  <Cpu size={12} /> SDK v2.1.0 Stable
+                  <Cpu size={12} /> SDK v2.1.0 Stable · For demo only
                 </div>
                 <div className="flex items-center gap-2 text-emerald-400">
                   <Terminal size={12} /> System Status: Live

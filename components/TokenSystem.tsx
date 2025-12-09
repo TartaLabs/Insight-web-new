@@ -2,6 +2,8 @@ import React from 'react';
 import { Share2, Gift, History } from 'lucide-react';
 
 export const TokenSystem: React.FC = () => {
+  const titleClass = "text-xl font-bold text-[#f8fbff] drop-shadow-[0_0_10px_rgba(255,255,255,0.35)] leading-tight relative z-10";
+
   return (
     <div className="w-full container mx-auto px-6 lg:px-8 xl:px-10">
       <div className="flex flex-col items-center mb-12">
@@ -10,40 +12,31 @@ export const TokenSystem: React.FC = () => {
             The Dual-Chain Economy
           </span>
         </h2>
-        <p className="text-tech-gray text-center max-w-2xl text-base md:text-lg">
+        <p className="text-tech-gray text-center max-w-4xl text-base md:text-lg leading-relaxed mx-auto">
           A unified incentive layer. Earn <span className="text-blue-400">$aEMO</span> on Arbitrum via Mobile, or <span className="text-tech-blue">$mEMO</span> on Mantle via Web. Both serve as your soulbound proof of contribution to Emotion AI.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
          {/* Referral Card */}
-         <div className="bg-black/40 border border-white/10 p-8 rounded-xl relative overflow-hidden group hover:border-tech-blue/30 transition-all duration-300">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-tech-blue">
-               <Share2 size={100} />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">Referral Program</h3>
+         <div className="bg-black/30 border border-white/10 p-8 rounded-xl relative overflow-hidden group hover:border-tech-blue/30 transition-all duration-300">
+            <h3 className={titleClass}>Referral Program</h3>
             <p className="text-sm text-gray-400 mb-6">Invite up to 10 friends and build your passive data income stream.</p>
             <div className="text-4xl font-bold text-tech-blue mb-2">5%</div>
             <p className="text-xs font-mono text-gray-500">COMMISSION ON INVITEES' EARNINGS</p>
          </div>
 
          {/* Airdrop Card */}
-         <div className="bg-black/40 border border-white/10 p-8 rounded-xl relative overflow-hidden group hover:border-white/30 transition-all duration-300">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-white">
-               <Gift size={100} />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">Future Airdrops</h3>
+         <div className="bg-black/30 border border-white/10 p-8 rounded-xl relative overflow-hidden group hover:border-white/30 transition-all duration-300">
+            <h3 className={titleClass}>Future Airdrops</h3>
             <p className="text-sm text-gray-400 mb-6">Your token balance is the key to unlocking future governance rights.</p>
             <div className="text-xl font-bold text-white mb-2">Soulbound</div>
             <p className="text-xs font-mono text-gray-500">NON-TRANSFERABLE PROOF OF WORK</p>
          </div>
 
          {/* History Card */}
-         <div className="bg-black/40 border border-white/10 p-8 rounded-xl relative overflow-hidden group hover:border-blue-400/30 transition-all duration-300">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-blue-400">
-               <History size={100} />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">Transparent Ledger</h3>
+         <div className="bg-black/30 border border-white/10 p-8 rounded-xl relative overflow-hidden group hover:border-blue-400/30 transition-all duration-300">
+            <h3 className={titleClass}>Transparent Ledger</h3>
             <p className="text-sm text-gray-400 mb-6">Track every earned token from Tasks, Invites, and Bonuses.</p>
             <div className="space-y-2">
                <div className="flex justify-between text-xs text-gray-500 border-b border-white/5 pb-1">

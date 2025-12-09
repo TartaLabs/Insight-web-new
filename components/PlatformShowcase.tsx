@@ -25,7 +25,7 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
         <h2 className="text-3xl md:text-5xl font-bold mb-6">
           <span className="text-white">Choose Your Interface</span>
         </h2>
-        <p className="text-tech-gray max-w-2xl mx-auto text-lg">
+        <p className="text-tech-gray max-w-4xl mx-auto text-lg leading-relaxed">
           Insight is available wherever you are. Mobile users enjoy seamless onboarding via Sequence AA on Arbitrum, while Web users retain full control via EOA on Mantle.
         </p>
       </div>
@@ -33,10 +33,10 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
         {/* Mobile Platform */}
         <motion.div 
-          className="relative bg-surface border border-white/10 rounded-2xl overflow-hidden group hover:border-blue-400/50 transition-colors duration-500"
+          className="relative bg-black/40 border border-white/10 rounded-2xl overflow-hidden group hover:border-blue-400/30 transition-colors duration-500"
           whileHover={{ y: -5 }}
         >
-          <div className="absolute top-0 right-0 p-32 bg-blue-500/5 rounded-full blur-[80px] group-hover:bg-blue-500/10 transition-colors" />
+          <div className="absolute inset-0 pointer-events-none" />
           
           <div className="p-8 md:p-12 relative z-10">
             <div className="flex items-center justify-between mb-8">
@@ -87,10 +87,10 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
 
         {/* Web Platform */}
         <motion.div 
-          className="relative bg-surface border border-white/10 rounded-2xl overflow-hidden group hover:border-tech-blue/50 transition-colors duration-500"
+          className="relative bg-black/40 border border-white/10 rounded-2xl overflow-hidden group hover:border-tech-blue/30 transition-colors duration-500"
           whileHover={{ y: -5 }}
         >
-          <div className="absolute top-0 left-0 p-32 bg-tech-blue/5 rounded-full blur-[80px] group-hover:bg-tech-blue/10 transition-colors" />
+          <div className="absolute inset-0 pointer-events-none" />
           
           <div className="p-8 md:p-12 relative z-10">
             <div className="flex items-center justify-between mb-8">

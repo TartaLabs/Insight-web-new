@@ -14,7 +14,7 @@ export const Workflow: React.FC = () => {
   return (
     <div className="w-full relative">
       <div className="container mx-auto px-6 lg:px-8 xl:px-10 relative">
-        <h2 className="text-4xl font-extrabold mb-12 text-center text-white">Contribution Pipeline</h2>
+        <h2 className="text-4xl md:text-5xl font-extrabold mb-12 text-center text-white">Contribution Pipeline</h2>
         
         <div className="relative">
           {/* Connecting Line */}

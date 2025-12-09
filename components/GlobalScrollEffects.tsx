@@ -24,9 +24,9 @@ export const GlobalScrollEffects: React.FC = () => {
   }, []);
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-      {/* 1. Warp Speed Lines (Triggered by Scroll Velocity) */}
-      <div className="absolute inset-0 flex justify-between px-[10%] opacity-50">
+    <div className="fixed inset-0 pointer-events-none z-30 overflow-hidden">
+      {/* 1. Warp Speed Lines (softened) */}
+      <div className="absolute inset-0 flex justify-between px-[10%] opacity-20">
         {[...Array(6)].map((_, i) => (
           <motion.div
             key={`warp-${i}`}
@@ -34,7 +34,7 @@ export const GlobalScrollEffects: React.FC = () => {
             style={{
               height: warpHeight,
               opacity: warpOpacity,
-              y: useTransform(scrollY, (v) => v * (0.1 + i * 0.05)) // Parallax
+              y: useTransform(scrollY, (v) => v * (0.05 + i * 0.03))
             }}
           />
         ))}
@@ -61,19 +61,19 @@ export const GlobalScrollEffects: React.FC = () => {
          </div>
       </div>
 
-      {/* 3. Subtle Background Grid Parallax */}
+      {/* 3. Subtle Background Grid Parallax (uniform light grid) */}
       <motion.div 
         className="absolute inset-0"
         style={{
-            backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px)`,
-            backgroundSize: '110px 110px',
+            backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)`,
+            backgroundSize: '120px 120px',
             y: useTransform(scrollY, (v) => v * 0.05)
         }}
       />
-      
-      {/* 4. Vignette Overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#050509_100%)] opacity-80" />
+
+      {/* 4. Vignette Overlay (softened) */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.45)_0%,rgba(0,0,0,0.75)_100%)] opacity-30" />
     </div>
   );
 };

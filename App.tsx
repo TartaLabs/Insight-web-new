@@ -130,14 +130,13 @@ export default function App() {
               </div>
               
               {/* Unified Typography Structure */}
-              <h1 className="flex flex-col gap-2 md:gap-4 font-extrabold tracking-tight text-white brightness-110">
-                <span className="text-5xl md:text-7xl leading-tight">The Emotional</span>
-                <span className="text-5xl md:text-7xl leading-tight">Layer</span>
-                <span className="text-5xl md:text-7xl leading-tight text-gray-400">of Future AGI.</span>
+              <h1 className="flex flex-col gap-2 md:gap-3 font-extrabold tracking-tight text-white brightness-110">
+                <span className="text-5xl md:text-6xl lg:text-7xl leading-tight">The Emotional Layer of</span>
+                <span className="text-5xl md:text-6xl lg:text-7xl leading-tight text-gray-300">Future AGI.</span>
               </h1>
               
-              <p className="text-lg text-gray-400 max-w-xl leading-relaxed">
-                Insight is the decentralized infrastructure for collecting and labeling the world's emotional data. We fuel <strong>AGI models</strong> to give Artificial Intelligence true EQ.
+              <p className="text-lg text-gray-400 max-w-lg md:max-w-2xl lg:max-w-3xl leading-relaxed">
+                Insight labels the world's emotional data in a decentralized way and fuels <strong>AGI models</strong> to give AI true EQ.
               </p>
 
               <div className="flex flex-wrap gap-4 pt-4">
@@ -168,7 +167,7 @@ export default function App() {
         </header>
         
         {/* Mission Section - cleaner spacing + scroll reveal */}
-        <SectionWrapper id="vision" className="relative overflow-hidden py-10 md:py-12">
+        <SectionWrapper id="vision" className="relative overflow-hidden py-20 md:py-24 mt-12 md:mt-16">
           <div className="container mx-auto px-6 lg:px-8 xl:px-10 max-w-screen-xl text-center space-y-5 relative">
             <div className="inline-flex items-center gap-3 px-5 py-2.5 bg-white/5 border border-white/10 rounded-full text-[12px] md:text-sm font-mono tracking-[0.25em] text-tech-blue mx-auto shadow-[0_0_15px_rgba(0,243,255,0.2)]">
               <span className="w-2 h-2 rounded-full bg-tech-blue shadow-[0_0_8px_rgba(0,243,255,0.7)]" />
@@ -213,7 +212,7 @@ export default function App() {
         </SectionWrapper>
 
         {/* Platform Selection */}
-        <SectionWrapper id="platforms" className="relative">
+        <SectionWrapper id="platforms" className="relative pt-0">
            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,243,255,0.05)_0%,transparent_50%)]" />
            <div className="container mx-auto px-6 lg:px-8 xl:px-10">
              <PlatformShowcase onLaunch={() => setCurrentView('webapp')} />
