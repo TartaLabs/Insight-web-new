@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
@@ -15,7 +15,7 @@
               'tech-silver': '#e0e0e0',
               'tech-gray': '#888899',
               'deep-bg': '#050509',
-              'surface': '#0a0a0f',
+              surface: '#0a0a0f',
             },
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
@@ -27,19 +27,22 @@
             animation: {
               'spin-slow': 'spin 10s linear infinite',
               'pulse-fast': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'scan': 'scan 4s linear infinite',
+              scan: 'scan 4s linear infinite',
             },
             keyframes: {
               scan: {
                 '0%': { transform: 'translateY(-100%)' },
                 '100%': { transform: 'translateY(100%)' },
-              }
-            }
+              },
+            },
           },
         },
-      }
+      };
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
       body {
         background-color: #050509;
@@ -47,29 +50,29 @@
         overflow-x: hidden;
       }
       .scrollbar-hide::-webkit-scrollbar {
-          display: none;
+        display: none;
       }
       .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
       }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "framer-motion": "https://aistudiocdn.com/framer-motion@^12.23.25",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
-    "three": "https://aistudiocdn.com/three@0.160.0/build/three.module.js"
-  }
-}
-</script>
-</head>
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://aistudiocdn.com/react@^19.2.0",
+          "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+          "react/": "https://aistudiocdn.com/react@^19.2.0/",
+          "framer-motion": "https://aistudiocdn.com/framer-motion@^12.23.25",
+          "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+          "three": "https://aistudiocdn.com/three@0.160.0/build/three.module.js"
+        }
+      }
+    </script>
+  </head>
   <body>
     <div id="root"></div>
     <!-- Mount React app -->
-    <script type="module" src="/index.tsx"></script>
+    <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>

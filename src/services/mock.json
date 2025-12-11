@@ -1,0 +1,582 @@
+{
+  "status": 0,
+  "data": {
+    "claimed_at": 1764720000,
+    "tasks": [
+      {
+        "id": "9e4c7e251d88_1_1764720000",
+        "user_id": "9e4c7e251d88",
+        "task_id": 1,
+        "status": "INIT",
+        "task_type": "DAILY",
+        "media_nums": 2,
+        "emotion_type": "HAPPY",
+        "claimed_at": 1764720000,
+        "validation_failure_count": 0,
+        "medias": {},
+        "created_at": 1764727768,
+        "updated_at": 1764727768,
+        "name": "Daily HAPPY Emotion Task",
+        "description": "Capture a photo expressing happy emotion and answer the questionnaire.",
+        "questions": [
+          {
+            "id": 1,
+            "type": "SINGLE_CHOICE",
+            "title": "Is there a clear human face?",
+            "description": "Please check if there is a clear human face in the photo",
+            "options": [
+              "Yes",
+              "No"
+            ],
+            "required": true,
+            "order": 1
+          },
+          {
+            "id": 2,
+            "type": "SINGLE_CHOICE",
+            "title": "Please select the type of emotion?",
+            "description": "Choose the emotion type that best matches the photo",
+            "options": [
+              "HAPPY",
+              "SAD",
+              "ANGRY",
+              "FEAR",
+              "SURPRISE",
+              "DISGUST",
+              "NEUTRAL",
+              "EXCITED",
+              "CALM",
+              "CONFUSED"
+            ],
+            "required": true,
+            "order": 2
+          },
+          {
+            "id": 3,
+            "type": "RATING",
+            "title": "How strong do you think the emotion in this photo is?",
+            "description": "Rate the emotional intensity from lowest to highest",
+            "options": null,
+            "required": true,
+            "order": 3
+          },
+          {
+            "id": 4,
+            "type": "SINGLE_CHOICE",
+            "title": "How natural do you think this photo is?",
+            "description": "Evaluate the naturalness of the photo",
+            "options": [
+              "Natural",
+              "Pose"
+            ],
+            "required": true,
+            "order": 4
+          },
+          {
+            "id": 5,
+            "type": "RATING",
+            "title": "How would you rate your emotional continuity?",
+            "description": "Rate your emotional continuity from calmness to exciting",
+            "options": null,
+            "required": true,
+            "order": 5
+          }
+        ],
+        "media_type": "IMAGE",
+        "reward_amount": 500000000000
+      },
+      {
+        "id": "9e4c7e251d88_2_1764720000",
+        "user_id": "9e4c7e251d88",
+        "task_id": 2,
+        "status": "INIT",
+        "task_type": "DAILY",
+        "media_nums": 2,
+        "emotion_type": "SAD",
+        "claimed_at": 1764720000,
+        "validation_failure_count": 0,
+        "medias": {},
+        "created_at": 1764727768,
+        "updated_at": 1764727768,
+        "name": "Daily SAD Emotion Task",
+        "description": "Capture a photo expressing sad emotion and answer the questionnaire.",
+        "questions": [
+          {
+            "id": 1,
+            "type": "SINGLE_CHOICE",
+            "title": "Is there a clear human face?",
+            "description": "Please check if there is a clear human face in the photo",
+            "options": [
+              "Yes",
+              "No"
+            ],
+            "required": true,
+            "order": 1
+          },
+          {
+            "id": 2,
+            "type": "SINGLE_CHOICE",
+            "title": "Please select the type of emotion?",
+            "description": "Choose the emotion type that best matches the photo",
+            "options": [
+              "HAPPY",
+              "SAD",
+              "ANGRY",
+              "FEAR",
+              "SURPRISE",
+              "DISGUST",
+              "NEUTRAL",
+              "EXCITED",
+              "CALM",
+              "CONFUSED"
+            ],
+            "required": true,
+            "order": 2
+          },
+          {
+            "id": 3,
+            "type": "RATING",
+            "title": "How strong do you think the emotion in this photo is?",
+            "description": "Rate the emotional intensity from lowest to highest",
+            "options": null,
+            "required": true,
+            "order": 3
+          },
+          {
+            "id": 4,
+            "type": "SINGLE_CHOICE",
+            "title": "How natural do you think this photo is?",
+            "description": "Evaluate the naturalness of the photo",
+            "options": [
+              "Natural",
+              "Pose"
+            ],
+            "required": true,
+            "order": 4
+          },
+          {
+            "id": 5,
+            "type": "RATING",
+            "title": "How would you rate your emotional continuity?",
+            "description": "Rate your emotional continuity from calmness to exciting",
+            "options": null,
+            "required": true,
+            "order": 5
+          }
+        ],
+        "media_type": "IMAGE",
+        "reward_amount": 4000000000000
+      },
+      {
+        "id": "9e4c7e251d88_3_1764720000",
+        "user_id": "9e4c7e251d88",
+        "task_id": 3,
+        "status": "INIT",
+        "task_type": "DAILY",
+        "media_nums": 2,
+        "emotion_type": "ANGRY",
+        "claimed_at": 1764720000,
+        "validation_failure_count": 0,
+        "medias": {},
+        "created_at": 1764727768,
+        "updated_at": 1764727768,
+        "name": "Daily ANGRY Emotion Task",
+        "description": "Capture a photo expressing angry emotion and answer the questionnaire.",
+        "questions": [
+          {
+            "id": 1,
+            "type": "SINGLE_CHOICE",
+            "title": "Is there a clear human face?",
+            "description": "Please check if there is a clear human face in the photo",
+            "options": [
+              "Yes",
+              "No"
+            ],
+            "required": true,
+            "order": 1
+          },
+          {
+            "id": 2,
+            "type": "SINGLE_CHOICE",
+            "title": "Please select the type of emotion?",
+            "description": "Choose the emotion type that best matches the photo",
+            "options": [
+              "HAPPY",
+              "SAD",
+              "ANGRY",
+              "FEAR",
+              "SURPRISE",
+              "DISGUST",
+              "NEUTRAL",
+              "EXCITED",
+              "CALM",
+              "CONFUSED"
+            ],
+            "required": true,
+            "order": 2
+          },
+          {
+            "id": 3,
+            "type": "RATING",
+            "title": "How strong do you think the emotion in this photo is?",
+            "description": "Rate the emotional intensity from lowest to highest",
+            "options": null,
+            "required": true,
+            "order": 3
+          },
+          {
+            "id": 4,
+            "type": "SINGLE_CHOICE",
+            "title": "How natural do you think this photo is?",
+            "description": "Evaluate the naturalness of the photo",
+            "options": [
+              "Natural",
+              "Pose"
+            ],
+            "required": true,
+            "order": 4
+          },
+          {
+            "id": 5,
+            "type": "RATING",
+            "title": "How would you rate your emotional continuity?",
+            "description": "Rate your emotional continuity from calmness to exciting",
+            "options": null,
+            "required": true,
+            "order": 5
+          }
+        ],
+        "media_type": "IMAGE",
+        "reward_amount": 60000000000
+      },
+      {
+        "id": "9e4c7e251d88_4_1764720000",
+        "user_id": "9e4c7e251d88",
+        "task_id": 4,
+        "status": "INIT",
+        "task_type": "DAILY",
+        "media_nums": 2,
+        "emotion_type": "FEAR",
+        "claimed_at": 1764720000,
+        "validation_failure_count": 0,
+        "medias": {},
+        "created_at": 1764727768,
+        "updated_at": 1764727768,
+        "name": "Daily FEAR Emotion Task",
+        "description": "Capture a photo expressing fear emotion and answer the questionnaire.",
+        "questions": [
+          {
+            "id": 1,
+            "type": "SINGLE_CHOICE",
+            "title": "Is there a clear human face?",
+            "description": "Please check if there is a clear human face in the photo",
+            "options": [
+              "Yes",
+              "No"
+            ],
+            "required": true,
+            "order": 1
+          },
+          {
+            "id": 2,
+            "type": "SINGLE_CHOICE",
+            "title": "Please select the type of emotion?",
+            "description": "Choose the emotion type that best matches the photo",
+            "options": [
+              "HAPPY",
+              "SAD",
+              "ANGRY",
+              "FEAR",
+              "SURPRISE",
+              "DISGUST",
+              "NEUTRAL",
+              "EXCITED",
+              "CALM",
+              "CONFUSED"
+            ],
+            "required": true,
+            "order": 2
+          },
+          {
+            "id": 3,
+            "type": "RATING",
+            "title": "How strong do you think the emotion in this photo is?",
+            "description": "Rate the emotional intensity from lowest to highest",
+            "options": null,
+            "required": true,
+            "order": 3
+          },
+          {
+            "id": 4,
+            "type": "SINGLE_CHOICE",
+            "title": "How natural do you think this photo is?",
+            "description": "Evaluate the naturalness of the photo",
+            "options": [
+              "Natural",
+              "Pose"
+            ],
+            "required": true,
+            "order": 4
+          },
+          {
+            "id": 5,
+            "type": "RATING",
+            "title": "How would you rate your emotional continuity?",
+            "description": "Rate your emotional continuity from calmness to exciting",
+            "options": null,
+            "required": true,
+            "order": 5
+          }
+        ],
+        "media_type": "IMAGE",
+        "reward_amount": 100000000
+      },
+      {
+        "id": "9e4c7e251d88_5_1764720000",
+        "user_id": "9e4c7e251d88",
+        "task_id": 5,
+        "status": "INIT",
+        "task_type": "DAILY",
+        "media_nums": 2,
+        "emotion_type": "SURPRISE",
+        "claimed_at": 1764720000,
+        "validation_failure_count": 0,
+        "medias": {},
+        "created_at": 1764727768,
+        "updated_at": 1764727768,
+        "name": "Daily SURPRISE Emotion Task",
+        "description": "Capture a photo expressing surprise emotion and answer the questionnaire.",
+        "questions": [
+          {
+            "id": 1,
+            "type": "SINGLE_CHOICE",
+            "title": "Is there a clear human face?",
+            "description": "Please check if there is a clear human face in the photo",
+            "options": [
+              "Yes",
+              "No"
+            ],
+            "required": true,
+            "order": 1
+          },
+          {
+            "id": 2,
+            "type": "SINGLE_CHOICE",
+            "title": "Please select the type of emotion?",
+            "description": "Choose the emotion type that best matches the photo",
+            "options": [
+              "HAPPY",
+              "SAD",
+              "ANGRY",
+              "FEAR",
+              "SURPRISE",
+              "DISGUST",
+              "NEUTRAL",
+              "EXCITED",
+              "CALM",
+              "CONFUSED"
+            ],
+            "required": true,
+            "order": 2
+          },
+          {
+            "id": 3,
+            "type": "RATING",
+            "title": "How strong do you think the emotion in this photo is?",
+            "description": "Rate the emotional intensity from lowest to highest",
+            "options": null,
+            "required": true,
+            "order": 3
+          },
+          {
+            "id": 4,
+            "type": "SINGLE_CHOICE",
+            "title": "How natural do you think this photo is?",
+            "description": "Evaluate the naturalness of the photo",
+            "options": [
+              "Natural",
+              "Pose"
+            ],
+            "required": true,
+            "order": 4
+          },
+          {
+            "id": 5,
+            "type": "RATING",
+            "title": "How would you rate your emotional continuity?",
+            "description": "Rate your emotional continuity from calmness to exciting",
+            "options": null,
+            "required": true,
+            "order": 5
+          }
+        ],
+        "media_type": "IMAGE",
+        "reward_amount": 50000000000
+      },
+      {
+        "id": "9e4c7e251d88_6_1764720000",
+        "user_id": "9e4c7e251d88",
+        "task_id": 6,
+        "status": "INIT",
+        "task_type": "DAILY",
+        "media_nums": 2,
+        "emotion_type": "DISGUST",
+        "claimed_at": 1764720000,
+        "validation_failure_count": 0,
+        "medias": {},
+        "created_at": 1764727768,
+        "updated_at": 1764727768,
+        "name": "Daily DISGUST Emotion Task",
+        "description": "Capture a photo expressing disgust emotion and answer the questionnaire.",
+        "questions": [
+          {
+            "id": 1,
+            "type": "SINGLE_CHOICE",
+            "title": "Is there a clear human face?",
+            "description": "Please check if there is a clear human face in the photo",
+            "options": [
+              "Yes",
+              "No"
+            ],
+            "required": true,
+            "order": 1
+          },
+          {
+            "id": 2,
+            "type": "SINGLE_CHOICE",
+            "title": "Please select the type of emotion?",
+            "description": "Choose the emotion type that best matches the photo",
+            "options": [
+              "HAPPY",
+              "SAD",
+              "ANGRY",
+              "FEAR",
+              "SURPRISE",
+              "DISGUST",
+              "NEUTRAL",
+              "EXCITED",
+              "CALM",
+              "CONFUSED"
+            ],
+            "required": true,
+            "order": 2
+          },
+          {
+            "id": 3,
+            "type": "RATING",
+            "title": "How strong do you think the emotion in this photo is?",
+            "description": "Rate the emotional intensity from lowest to highest",
+            "options": null,
+            "required": true,
+            "order": 3
+          },
+          {
+            "id": 4,
+            "type": "SINGLE_CHOICE",
+            "title": "How natural do you think this photo is?",
+            "description": "Evaluate the naturalness of the photo",
+            "options": [
+              "Natural",
+              "Pose"
+            ],
+            "required": true,
+            "order": 4
+          },
+          {
+            "id": 5,
+            "type": "RATING",
+            "title": "How would you rate your emotional continuity?",
+            "description": "Rate your emotional continuity from calmness to exciting",
+            "options": null,
+            "required": true,
+            "order": 5
+          }
+        ],
+        "media_type": "IMAGE",
+        "reward_amount": 900000000
+      },
+      {
+        "id": "9e4c7e251d88_7_1764720000",
+        "user_id": "9e4c7e251d88",
+        "task_id": 7,
+        "status": "INIT",
+        "task_type": "DAILY",
+        "media_nums": 2,
+        "emotion_type": "NEUTRAL",
+        "claimed_at": 1764720000,
+        "validation_failure_count": 0,
+        "medias": {},
+        "created_at": 1764727768,
+        "updated_at": 1764727768,
+        "name": "Daily NEUTRAL Emotion Task",
+        "description": "Capture a photo expressing neutral emotion and answer the questionnaire.",
+        "questions": [
+          {
+            "id": 1,
+            "type": "SINGLE_CHOICE",
+            "title": "Is there a clear human face?",
+            "description": "Please check if there is a clear human face in the photo",
+            "options": [
+              "Yes",
+              "No"
+            ],
+            "required": true,
+            "order": 1
+          },
+          {
+            "id": 2,
+            "type": "SINGLE_CHOICE",
+            "title": "Please select the type of emotion?",
+            "description": "Choose the emotion type that best matches the photo",
+            "options": [
+              "HAPPY",
+              "SAD",
+              "ANGRY",
+              "FEAR",
+              "SURPRISE",
+              "DISGUST",
+              "NEUTRAL",
+              "EXCITED",
+              "CALM",
+              "CONFUSED"
+            ],
+            "required": true,
+            "order": 2
+          },
+          {
+            "id": 3,
+            "type": "RATING",
+            "title": "How strong do you think the emotion in this photo is?",
+            "description": "Rate the emotional intensity from lowest to highest",
+            "options": null,
+            "required": true,
+            "order": 3
+          },
+          {
+            "id": 4,
+            "type": "SINGLE_CHOICE",
+            "title": "How natural do you think this photo is?",
+            "description": "Evaluate the naturalness of the photo",
+            "options": [
+              "Natural",
+              "Pose"
+            ],
+            "required": true,
+            "order": 4
+          },
+          {
+            "id": 5,
+            "type": "RATING",
+            "title": "How would you rate your emotional continuity?",
+            "description": "Rate your emotional continuity from calmness to exciting",
+            "options": null,
+            "required": true,
+            "order": 5
+          }
+        ],
+        "media_type": "IMAGE",
+        "reward_amount": 1000000000
+      }
+    ]
+  }
+}

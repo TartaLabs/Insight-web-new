@@ -1,0 +1,249 @@
+// 从request.ts导入request实例
+import { request } from './request';
+
+// 从model文件夹导入所有类型定义
+import type {
+  ApiResponse,
+  User,
+  AdInfo,
+  AdStatus,
+  InviteRecord,
+  InviteResponese,
+  Product,
+  Pro,
+  RewardRecord,
+  RewardResponese,
+  DailyTasksResponse,
+} from './model/types';
+
+// 用户相关接口
+export const apiUser = {
+  /**
+   * 获取用户数据
+   */
+  getUserData: async (): Promise<User> => {
+    const response = await request.get<ApiResponse<{ user: User }>>('/api/1/user/data');
+    return response.data.user;
+  },
+
+  /**
+   * 验证推荐码
+   */
+  verifyRefCode: async (code: string): Promise<boolean> => {
+    const response = await request.get<ApiResponse<boolean>>('/api/1/user/verify_ref', {
+      params: { referral_code: code },
+    });
+    return response.data;
+  },
+
+  /**
+   * 更新用户数据
+   */
+  updateUserData: async (nickname: string, refCode?: string): Promise<unknown> => {
+    const response = await request.post<ApiResponse<unknown>>('/api/1/user/update', {
+      data: { nickname, referral: refCode },
+    });
+    return response.data;
+  },
+};
+
+// 广告相关接口
+export const apiAd = {
+  /**
+   * 观看广告
+   */
+  watchedAd: async (): Promise<AdInfo> => {
+    const response = await request.post<ApiResponse<AdInfo>>('/api/1/user/task/watch-ad');
+    return response.data;
+  },
+
+  /**
+   * 获取广告状态
+   */
+  getAdStatus: async (): Promise<AdStatus> => {
+    const response = await request.get<ApiResponse<AdStatus>>('/api/1/user/task/ad-watch-status');
+    return response.data;
+  },
+};
+
+// 邀请相关接口
+export const apiInvite = {
+  /**
+   * 获取邀请记录
+   */
+  getInviteRecords: async (limit: number, offset: number): Promise<InviteResponese> => {
+    const response = await request.get<ApiResponse<{ total: number; users: InviteRecord[] }>>(
+      '/api/1/user/task/invite-list',
+      {
+        params: { limit, offset },
+      },
+    );
+    return {
+      total: response.data.total,
+      users: response.data.users,
+    };
+  },
+
+  /**
+   * 获取邀请铸造签名
+   */
+  getInviteMint: async (): Promise<string> => {
+    const response = await request.post<ApiResponse<{ uuid: string }>>(
+      '/api/1/user/task/mint-invite-signature',
+    );
+    return response.data.uuid;
+  },
+};
+
+// 排行榜相关接口
+export const apiLeaderboard = {
+  /**
+   * 获取用户代币余额排行榜
+   */
+  getTokenLeaderboard: async (limit: number = 50, offset: number = 0): Promise<unknown> => {
+    return request.get('/api/1/user/task/token-leaderboard', {
+      params: { limit, offset },
+    });
+  },
+
+  /**
+   * 获取用户每周代币排行榜
+   */
+  getWeeklyLeaderboard: async (limit: number = 50, offset: number = 0): Promise<unknown> => {
+    return request.get('/api/1/user/task/weekly-leaderboard', {
+      params: { limit, offset },
+    });
+  },
+};
+
+// 支付相关接口
+export const apiPayment = {
+  /**
+   * 获取产品列表
+   */
+  getProductList: async (): Promise<Product[]> => {
+    const response = await request.get<ApiResponse<Product[]>>('/api/1/user/payment/products');
+    return response.data;
+  },
+};
+
+// PRO相关接口
+export const apiPro = {
+  /**
+   * 获取PRO版本信息
+   */
+  getProVersion: async (): Promise<Pro> => {
+    const response = await request.get<ApiResponse<Pro>>('/api/1/user/pro-version');
+    return response.data;
+  },
+
+  /**
+   * 获取PRO版本列表
+   */
+  getProVersionList: async (): Promise<Pro[]> => {
+    const response = await request.get<ApiResponse<Pro[]>>('/api/1/user/pro-version/list');
+    return response.data;
+  },
+
+  /**
+   * 更新PRO版本
+   */
+  updateProVersion: async (proVersion: string): Promise<Pro> => {
+    const response = await request.post<ApiResponse<Pro>>('/api/1/user/pro-version/update', {
+      data: { pro_version: proVersion },
+    });
+    return response.data;
+  },
+};
+
+// 奖励记录相关接口
+export const apiRecords = {
+  /**
+   * 获取奖励记录
+   */
+  getRewardRecords: async (limit: number, offset: number): Promise<RewardResponese> => {
+    const response = await request.get<ApiResponse<{ total: number; records: RewardRecord[] }>>(
+      '/api/1/user/task/reward-records',
+      {
+        params: { limit, offset },
+      },
+    );
+    return {
+      total: response.data.total,
+      records: response.data.records,
+    };
+  },
+};
+
+// 任务相关接口
+export const apiTask = {
+  /**
+   * 获取每日任务
+   */
+  getDailyTasks: async (): Promise<DailyTasksResponse> => {
+    const response = await request.post<DailyTasksResponse>('/api/1/user/task/claim');
+    return response;
+  },
+
+  /**
+   * 提交任务
+   */
+  submissionTask: async (
+    taskId: number,
+    medias: Array<Record<string, unknown>>,
+  ): Promise<unknown> => {
+    return request.post('/api/1/user/task/submit', {
+      data: { task_id: taskId, medias },
+    });
+  },
+
+  /**
+   * 获取媒体文件上传URL
+   */
+  getUploadUrl: async (taskId: number): Promise<unknown> => {
+    return request.post('/api/1/user/task/upload-url', {
+      data: { task_id: taskId },
+    });
+  },
+
+  /**
+   * 上传任务图片
+   */
+  uploadTaskImage: async (taskId: number, file: File): Promise<string> => {
+    const urlRes = await request.post<ApiResponse<{ upload_url: string; file_url: string }>>(
+      '/api/1/user/task/upload-url',
+      {
+        data: { task_id: taskId },
+      },
+    );
+    const uploadUrl = urlRes.data.upload_url;
+    const fileUrl = urlRes.data.file_url;
+    await request.uploadImage(uploadUrl, file);
+    return fileUrl;
+  },
+
+  /**
+   * 获取可领取金额
+   */
+  getClaimableAmount: async (type: string): Promise<string> => {
+    const response = await request.get<ApiResponse<{ claimable_amount: string }>>(
+      '/api/1/user/task/claimable-amount',
+      {
+        params: { task_type: type },
+      },
+    );
+    return response.data.claimable_amount || '0';
+  },
+};
+
+// 导出所有API模块
+export default {
+  user: apiUser,
+  ad: apiAd,
+  invite: apiInvite,
+  leaderboard: apiLeaderboard,
+  payment: apiPayment,
+  pro: apiPro,
+  records: apiRecords,
+  task: apiTask,
+};
