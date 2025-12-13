@@ -4,10 +4,12 @@ import { apiPro } from '../services/api';
 
 interface ProState {
   pro: Pro | null;
+  proVersionList: Pro[] | null;
   loading: boolean;
   error: string | null;
   initialized: boolean;
   fetchProVersion: () => Promise<void>;
+  fetchProVersionList: () => Promise<void>;
   setPro: (pro: Pro | null) => void;
   updatePro: (updates: Partial<Pro>) => void;
   setLoading: (loading: boolean) => void;
@@ -17,6 +19,7 @@ interface ProState {
 
 export const useProStore = create<ProState>((set, get) => ({
   pro: null,
+  proVersionList: [],
   loading: false,
   error: null,
   initialized: false,
@@ -35,6 +38,17 @@ export const useProStore = create<ProState>((set, get) => ({
     }
   },
 
+  fetchProVersionList: async () => {
+    try {
+      const proVersionList = await apiPro.getProVersionList();
+      set({ proVersionList });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to fetch pro version list';
+      console.error(errorMessage);
+    }
+  },
+
   setPro: (pro: Pro | null) => set({ pro }),
 
   updatePro: (updates: Partial<Pro>) =>
@@ -48,4 +62,3 @@ export const useProStore = create<ProState>((set, get) => ({
 
   reset: () => set({ pro: null, loading: false, error: null, initialized: false }),
 }));
-

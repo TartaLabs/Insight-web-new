@@ -1,62 +1,40 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Check, Loader2, CreditCard, AlertCircle } from 'lucide-react';
-import { PricingPlan, UserProfile } from '../../../types';
 import { Button } from './Button';
+import { useProStore } from '@/store/proStore';
+import { Pro } from '@/services/model/types';
+import { useUserStore } from '@/store/userStore';
 
 interface UpgradeModalProps {
-  user: UserProfile;
   onClose: () => void;
-  onUpgrade: (plan: PricingPlan) => void;
+  onUpgrade: (proVersion: string) => void;
 }
 
-const plans: PricingPlan[] = [
-  {
-    id: 'monthly',
-    name: 'PRO MONTHLY',
-    price: '$3.99',
-    usdtPrice: 3.99,
-    period: '/ month',
-    dailyBonus: 5,
-    dailyLimit: 3,
-    rewardPerTask: 3,
-    features: ['Daily Bonus: 5 $mEMO', 'Task Limit: 3x', 'Reward: 3 $mEMO'],
-  },
-  {
-    id: 'quarterly',
-    name: 'PRO QUARTERLY',
-    price: '$9.99',
-    usdtPrice: 9.99,
-    period: '/ 3 months',
-    dailyBonus: 10,
-    dailyLimit: 4,
-    rewardPerTask: 4,
-    features: ['Daily Bonus: 10 $mEMO', 'Task Limit: 4x', 'Reward: 4 $mEMO'],
-    recommended: true,
-  },
-  {
-    id: 'yearly',
-    name: 'PRO YEARLY',
-    price: '$32.99',
-    usdtPrice: 32.99,
-    period: '/ year',
-    dailyBonus: 30,
-    dailyLimit: 5,
-    rewardPerTask: 5,
-    features: ['Daily Bonus: 30 $mEMO', 'Task Limit: 5x', 'Reward: 5 $mEMO', 'Airdrop Multiplier'],
-  },
-];
+const getFeatures = (pro: Pro) => {
+  return [
+    `Daily Bonus: ${pro.benefits.daily_free_points} $mEMO`,
+    `Task Limit: ${pro.benefits.daily_initial_annotation}x`,
+    `Reward: ${pro.benefits.points_per_annotation} $mEMO`,
+  ];
+};
 
-export const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpgrade }) => {
+export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onUpgrade }) => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [step, setStep] = useState<'select' | 'approve' | 'pay' | 'done'>('select');
   const [error, setError] = useState<string | null>(null);
+  const proVersionList = useProStore((state) => state.proVersionList);
+  const user = useUserStore((state) => state.user);
+
+  const proList = proVersionList.filter((p) => p.is_pro);
   const resetState = () => {
     setStep('select');
     setIsProcessing(false);
     setError(null);
   };
+
+  const isRecommend = (pro: Pro) => pro.pro_version === 'PRO_QUARTER';
 
   const handleClose = () => {
     resetState();
@@ -70,21 +48,25 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpg
 
     // Simulate a realistic approve -> pay flow
     setStep('approve');
-    setTimeout(() => {
-      // mock allowance success
-      setStep('pay');
-      setTimeout(() => {
-        const plan = plans.find((p) => p.id === selectedPlan);
-        if (plan) onUpgrade(plan);
-        setStep('done');
-        setIsProcessing(false);
-      }, 1800);
-    }, 1500);
+    onUpgrade(selectedPlan);
+    // TODO 接入支付
+    // setTimeout(() => {
+    //   // mock allowance success
+    //   setStep('pay');
+    //   setTimeout(() => {
+    //     const plan = plans.find((p) => p.id === selectedPlan);
+    //     if (plan) onUpgrade(plan);
+    //     setStep('done');
+    //     setIsProcessing(false);
+    //   }, 1800);
+    // }, 1500);
   };
 
-  const selectedPlanDetails = plans.find((p) => p.id === selectedPlan);
-  const canAfford = selectedPlanDetails ? user.balanceUSDT >= selectedPlanDetails.usdtPrice : false;
-  const hasGas = user.balanceMNT > 0.002;
+  const selectedPlanDetails = proList.find((p) => p.pro_version === selectedPlan);
+
+  // TODO 接入支付
+  const canAfford = false;
+  const hasGas = false;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
@@ -101,7 +83,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpg
                 Pay with <span className="text-green-400 font-bold">USDT</span> on Mantle Network
               </p>
               <div className="text-[11px] text-gray-500 font-mono mt-1">
-                Wallet: {user.walletAddress || 'Connected'}
+                Wallet: {user.wallet_address || 'Connected'}
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -110,7 +92,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpg
                 <div
                   className={`font-mono font-bold ${canAfford ? 'text-green-500' : 'text-red-500'}`}
                 >
-                  {user.balanceUSDT.toFixed(3)} USDT
+                  {0} USDT
                 </div>
               </div>
               <Button
@@ -127,27 +109,27 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpg
 
           {step === 'select' ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {plans.map((plan) => (
+              {proList.map((pro) => (
                 <div
-                  key={plan.id}
-                  onClick={() => setSelectedPlan(plan.id)}
-                  className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all ${
-                    selectedPlan === plan.id
+                  key={pro.pro_version}
+                  onClick={() => setSelectedPlan(pro.pro_version)}
+                  className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all overflow-hidden ${
+                    selectedPlan === pro.pro_version
                       ? 'border-tech-blue bg-tech-blue/5'
                       : 'border-white/10 hover:border-white/30 bg-white/5'
                   }`}
                 >
-                  {plan.recommended && (
+                  {isRecommend(pro) && (
                     <div className="absolute top-0 right-0 bg-tech-blue text-black text-[10px] font-bold px-2 py-1 rounded-bl-lg">
                       BEST VALUE
                     </div>
                   )}
-                  <h3 className="font-mono text-sm text-gray-400 mb-2">{plan.name}</h3>
-                  <div className="text-2xl font-bold text-white mb-1">{plan.price}</div>
-                  <p className="text-xs text-gray-500 mb-4">{plan.period}</p>
+                  <h3 className="font-mono text-sm text-gray-400 mb-2">{pro.display_name}</h3>
+                  <div className="text-2xl font-bold text-white mb-1">{pro.benefits.price}</div>
+                  <p className="text-xs text-gray-500 mb-4">{pro.benefits.duration} days</p>
 
                   <ul className="space-y-2 mb-4">
-                    {plan.features.map((f, i) => (
+                    {getFeatures(pro).map((f, i) => (
                       <li key={i} className="flex items-center gap-2 text-xs text-gray-300">
                         <Check size={12} className="text-tech-blue" />
                         {f}
@@ -204,7 +186,9 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpg
           <div className="p-6 border-t border-white/10 flex justify-between items-center bg-black/20">
             <div className="text-sm text-gray-400">
               Selected:{' '}
-              <span className="text-white font-bold">{selectedPlanDetails?.name || 'None'}</span>
+              <span className="text-white font-bold">
+                {selectedPlanDetails?.display_name || 'None'}
+              </span>
             </div>
 
             <div className="flex items-center gap-4">

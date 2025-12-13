@@ -16,6 +16,7 @@ export interface User {
   pro_version_expires_at?: number;
   referral_code?: string;
   token_amount?: number;
+  wallet_address?: string;
 }
 
 // 广告相关类型定义
