@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, RotateCcw, Save, Scan } from 'lucide-react';
-import { EmotionType, TaskRecord } from '../../types';
+import { EmotionType, TaskRecord } from '../../../types';
 import { Button } from './Button';
 
 interface TaskFlowProps {

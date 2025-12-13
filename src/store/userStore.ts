@@ -48,4 +48,3 @@ export const useUserStore = create<UserState>((set, get) => ({
 
   reset: () => set({ user: null, loading: false, error: null, initialized: false }),
 }));
-

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, FileText } from 'lucide-react';
-import { Logo } from './Logo';
+import { Logo } from '../../components/Logo';
 
 interface PageProps {
   onBack: () => void;

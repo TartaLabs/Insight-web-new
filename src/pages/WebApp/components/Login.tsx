@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Wallet, ArrowRight, Check, X, ArrowLeft } from 'lucide-react';
-import { Logo } from '../Logo';
-import { PrivacyPolicyContent } from '../PrivacyPolicy';
-import { TermsOfUseContent } from '../TermsOfUse';
+import { Logo } from '../../../components/Logo';
+import { PrivacyPolicyContent } from '../../Privacy';
+import { TermsOfUseContent } from '../../Terms';
 
 interface LoginProps {
   onLoginSuccess: (nickname: string) => void;

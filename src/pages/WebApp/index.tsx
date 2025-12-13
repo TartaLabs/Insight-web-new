@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Login } from './Login';
-import { Dashboard } from './Dashboard';
-import { TaskFlow } from './TaskFlow';
-import { UpgradeModal } from './UpgradeModal';
-import { TransactionModal } from './TransactionModal';
-import { Logo } from '../Logo';
+import { Login } from './components/Login';
+import { Dashboard } from './components/Dashboard';
+import { TaskFlow } from './components/TaskFlow';
+import { UpgradeModal } from './components/UpgradeModal';
+import { TransactionModal } from './components/TransactionModal';
+import { Logo } from '../../components/Logo';
 import {
   UserProfile,
   TaskCounts,
@@ -129,7 +129,7 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
     fetchDailyTasks,
   ]);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [activeTaskEmotion, setActiveTaskEmotion] = useState<EmotionType | null>(null);
   const [activeDraftTask, setActiveDraftTask] = useState<TaskRecord | undefined>(undefined);

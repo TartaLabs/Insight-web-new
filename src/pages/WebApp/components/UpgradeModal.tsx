@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Check, Loader2, CreditCard, AlertCircle } from 'lucide-react';
-import { PricingPlan, UserProfile } from '../../types';
+import { PricingPlan, UserProfile } from '../../../types';
 import { Button } from './Button';
 
 interface UpgradeModalProps {

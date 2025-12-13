@@ -8,7 +8,7 @@ import {
   TaskRecord,
   Invitee,
   SubscriptionRecord,
-} from '../../types';
+} from '../../../types';
 import {
   Crown,
   Clock,
