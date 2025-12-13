@@ -337,12 +337,25 @@ pull_latest_code() {
     CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "main")
     log_info "Current branch: ${CURRENT_BRANCH}"
     
+    # 清理所有本地更改，强制同步远程代码
+    log_info "Cleaning local changes and syncing with remote..."
+    
+    # 清理未跟踪的文件和目录
+    git clean -fd
+    
+    # 重置所有本地更改
+    git reset --hard HEAD
+    
     # 拉取最新代码
     git fetch origin
-    git pull origin "${CURRENT_BRANCH}" || {
-        log_warn "Git pull failed, continuing with existing code..."
+    
+    # 强制重置到远程分支
+    git reset --hard origin/"${CURRENT_BRANCH}" || {
+        log_error "Failed to sync with remote branch: ${CURRENT_BRANCH}"
+        exit 1
     }
-    log_info "✓ Code updated"
+    
+    log_info "✓ Code updated to latest remote version"
 }
 
 # 停止当前服务
