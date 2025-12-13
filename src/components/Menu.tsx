@@ -6,27 +6,9 @@ interface MenuProps {
 }
 
 const links = [
-  {
-    id: 'privacy',
-    title: 'Privacy Policy',
-    desc: 'Data Protection & Usage',
-    color: 'text-tech-blue',
-    icon: Shield,
-  },
-  {
-    id: 'terms',
-    title: 'Terms of Use',
-    desc: 'User Agreement',
-    color: 'text-white',
-    icon: FileText,
-  },
-  {
-    id: 'support',
-    title: 'Support',
-    desc: '24/7 Help Center',
-    color: 'text-blue-400',
-    icon: LifeBuoy,
-  },
+  { id: 'privacy', title: 'Privacy Policy', desc: 'Data Protection & Usage', color: 'text-tech-blue', icon: Shield },
+  { id: 'terms', title: 'Terms of Use', desc: 'User Agreement', color: 'text-white', icon: FileText },
+  { id: 'support', title: 'Support', desc: 'Help Center', color: 'text-blue-400', icon: LifeBuoy },
 ];
 
 export const Menu: React.FC<MenuProps> = ({ onNavigate }) => {

@@ -138,14 +138,16 @@ export const EmotionalSDK: React.FC = () => {
               ))}
             </div>
             <div className="flex flex-wrap gap-3 pt-2">
-              <button
-                onClick={() => setShowModal(true)}
+              <a
+                href="https://developer.tartalabs.io"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="px-5 py-3 bg-tech-blue text-black font-mono text-xs tracking-wider rounded hover:shadow-[0_0_18px_rgba(0,243,255,0.35)] transition"
               >
                 Book Demo
-              </button>
+              </a>
               <a
-                href="https://cal.com"
+                href="https://calendly.com/freya-tartalabs/30min"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-5 py-3 border border-white/20 text-white font-mono text-xs tracking-wider rounded hover:border-tech-blue hover:text-tech-blue transition inline-flex items-center gap-2"
@@ -177,7 +179,7 @@ export const EmotionalSDK: React.FC = () => {
               </div>
               <div className="px-4 py-3 border-t border-white/10 flex items-center justify-between text-[11px] text-gray-400 bg-black/50">
                 <div className="flex items-center gap-2">
-                  <Cpu size={12} /> SDK v2.1.0 Stable · For demo only
+                  <Cpu size={12} /> For demo only
                 </div>
                 <div className="flex items-center gap-2 text-emerald-400">
                   <Terminal size={12} /> System Status: Live
@@ -211,31 +213,29 @@ export const EmotionalSDK: React.FC = () => {
                 title: 'SpotZero Anime Game',
                 desc: 'Real-time empathetic voice dialogue to boost character affinity.',
                 accent: 'from-[#30234f] to-[#192033]',
+                href: 'https://spotzero.tartalabs.io'
               },
               {
                 title: 'OMO AI Companion',
                 desc: 'Real-time emotion recognition to assist therapeutic healing.',
                 accent: 'from-[#103229] to-[#0c1d1a]',
+                href: 'https://apps.apple.com/app/eimi-emotional-ai/id6754891830'
               },
             ].map((card) => (
-              <div
+              <a
                 key={card.title}
-                className={`relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br ${card.accent} p-5 shadow-[0_20px_40px_rgba(0,0,0,0.35)]`}
+                href={card.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br ${card.accent} p-5 shadow-[0_20px_40px_rgba(0,0,0,0.35)] block hover:border-tech-blue/40 transition-colors`}
               >
-                <div
-                  className="absolute inset-0 pointer-events-none opacity-15"
-                  style={{
-                    backgroundImage: 'radial-gradient(circle at 20% 20%, #fff 1px, transparent 0)',
-                    backgroundSize: '20px 20px',
-                  }}
-                />
+                <div className="absolute inset-0 pointer-events-none opacity-15" style={{ backgroundImage: 'radial-gradient(circle at 20% 20%, #fff 1px, transparent 0)', backgroundSize: '20px 20px' }} />
                 <div className="flex items-center gap-2 text-emerald-300 text-[11px] font-mono">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> LIVE
-                  INTEGRATION
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> LIVE INTEGRATION
                 </div>
                 <h4 className="text-lg font-bold text-white brightness-110 mt-2">{card.title}</h4>
                 <p className="text-sm text-gray-200 mt-2 leading-relaxed max-w-md">{card.desc}</p>
-              </div>
+              </a>
             ))}
           </div>
         </div>

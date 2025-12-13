@@ -99,20 +99,11 @@ export default function Main() {
               <span className="font-bold text-lg tracking-tighter text-white">INSIGHT</span>
             </div>
             <div className="hidden md:flex gap-6 text-xs font-mono tracking-widest text-gray-400">
-              <button
-                onClick={() => scrollToSection('vision')}
-                className="hover:text-white transition-colors"
-              >
-                VISION
-              </button>
-              <button
-                onClick={() => scrollToSection('platforms')}
-                className="hover:text-tech-blue transition-colors"
-              >
-                APP
-              </button>
+              <button onClick={() => scrollToSection('vision')} className="hover:text-white transition-colors">VISION</button>
+              <button onClick={() => scrollToSection('platforms')} className="hover:text-tech-blue transition-colors">APP</button>
+              <button onClick={() => scrollToSection('sdk')} className="hover:text-tech-blue transition-colors">SDK</button>
             </div>
-            {/* <button
+            { /*<button
               onClick={() => setCurrentView('webapp')}
               className="px-5 py-2 rounded-full bg-white text-black text-xs font-bold tracking-widest hover:bg-tech-blue transition-colors shadow-[0_0_12px_rgba(255,255,255,0.25)]"
             >

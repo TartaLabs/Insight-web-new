@@ -26,8 +26,7 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
           <span className="text-white">Choose Your Interface</span>
         </h2>
         <p className="text-tech-gray max-w-4xl mx-auto text-lg leading-relaxed">
-          Insight is available wherever you are. Mobile users enjoy seamless onboarding via Sequence
-          AA on Arbitrum, while Web users retain full control via EOA on Mantle.
+          Insight is available wherever you are. Mobile users enjoy seamless onboarding via Sequence AA on BNB Chain, while Web users retain full control via EOA on Mantle.
         </p>
       </div>
 
@@ -41,12 +40,12 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
 
           <div className="p-8 md:p-12 relative z-10">
             <div className="flex items-center justify-between mb-8">
-              <div className="w-16 h-16 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400">
-                <Smartphone size={32} />
-              </div>
-              <div className="px-4 py-1 rounded-full border border-blue-400/30 bg-blue-400/5 text-blue-400 text-xs font-mono tracking-widest">
-                ARBITRUM CHAIN
-              </div>
+               <div className="w-16 h-16 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400">
+                 <Smartphone size={32} />
+               </div>
+               <div className="px-4 py-1 rounded-full border border-blue-400/30 bg-blue-400/5 text-blue-400 text-xs font-mono tracking-widest">
+                 BNB CHAIN
+               </div>
             </div>
 
             <h3 className="text-3xl font-bold text-white mb-2">Insight Mobile</h3>
@@ -56,29 +55,27 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
             </p>
 
             <div className="grid grid-cols-2 gap-4 mb-10 text-sm">
-              <div className="flex items-center gap-3 text-gray-300">
-                <Shield size={16} className="text-blue-400" />
-                <span>Sequence AA Wallet</span>
-              </div>
-              <div className="flex items-center gap-3 text-gray-300">
-                <Zap size={16} className="text-blue-400" />
-                <span>Earn $aEMO</span>
-              </div>
+               <div className="flex items-center gap-3 text-gray-300">
+                  <Shield size={16} className="text-blue-400" />
+                  <span>Sequence AA Wallet</span>
+               </div>
+               <div className="flex items-center gap-3 text-gray-300">
+                  <Zap size={16} className="text-blue-400" />
+                  <span>Earn $bEMO</span>
+               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <a
-                href="https://testflight.apple.com/join/hAEjSyKf"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => alert('Coming Soon')}
                 className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-400 text-white py-4 rounded font-bold hover:opacity-90 transition-opacity shadow-[0_10px_30px_rgba(59,130,246,0.3)]"
               >
                 <AppleLogo height={18} width={18} />
                 <span>Apple Store</span>
-              </a>
-              <a
-                href="https://play.google.com/store/apps/details?id=io.tartalabs.insight"
-                target="_blank"
+              </button>
+              <a 
+                href="https://play.google.com/store/apps/details?id=io.tartalabs.insight" 
+                target="_blank" 
                 rel="noopener noreferrer"
                 className="flex-1 flex items-center justify-center gap-2 border border-white/20 text-white py-4 rounded font-bold hover:bg-white/10 transition-colors"
               >
