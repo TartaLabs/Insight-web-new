@@ -1,6 +1,6 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Smartphone, Monitor, Zap, Shield, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Smartphone, Monitor, Zap, Shield, ChevronRight, X } from 'lucide-react';
 
 const AppleLogo = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 384 512" fill="currentColor" {...props}>
@@ -19,6 +19,8 @@ interface PlatformShowcaseProps {
 }
 
 export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) => {
+  const [showComingSoon, setShowComingSoon] = useState(false);
+
   return (
     <div className="w-full py-12 container mx-auto px-6">
       <div className="text-center mb-16">
@@ -67,7 +69,7 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
 
             <div className="flex flex-col sm:flex-row gap-4">
               <button
-                onClick={() => alert('Coming Soon')}
+                onClick={() => setShowComingSoon(true)}
                 className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-400 text-white py-4 rounded font-bold hover:opacity-90 transition-opacity shadow-[0_10px_30px_rgba(59,130,246,0.3)]"
               >
                 <AppleLogo height={18} width={18} />
@@ -129,6 +131,50 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
           </div>
         </motion.div>
       </div>
+
+      {/* Coming Soon Modal */}
+      <AnimatePresence>
+        {showComingSoon && (
+          <motion.div
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowComingSoon(false)}
+          >
+            <motion.div
+              className="w-full max-w-md bg-[#0a0a0f] border border-white/10 rounded-xl p-8 relative shadow-2xl"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setShowComingSoon(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+                aria-label="Close"
+              >
+                <X size={20} />
+              </button>
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-6 bg-blue-500/10 rounded-full flex items-center justify-center">
+                  <Smartphone size={32} className="text-blue-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">Coming Soon</h3>
+                <p className="text-gray-400 mb-6">
+                  Insight iOS app is currently in development. Stay tuned for updates!
+                </p>
+                <button
+                  onClick={() => setShowComingSoon(false)}
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-400 text-white py-3 rounded-lg font-bold hover:opacity-90 transition-opacity"
+                >
+                  Got it
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

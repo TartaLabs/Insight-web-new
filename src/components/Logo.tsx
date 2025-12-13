@@ -3,52 +3,27 @@ import React from 'react';
 export const Logo: React.FC<{ className?: string }> = ({ className = 'w-8 h-8' }) => {
   return (
     <svg
-      viewBox="0 0 100 100"
+      width="66"
+      height="44"
+      viewBox="0 0 66 44"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={`${className} text-tech-blue`}
     >
-      {/* Outer Ring Segments */}
       <path
-        d="M50 5 A45 45 0 0 1 95 50"
-        stroke="currentColor"
-        strokeWidth="6"
-        strokeLinecap="round"
-        opacity="0.8"
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M55.9021 17.5923C55.4352 15.3331 54.5987 13.1087 53.3703 11.0018C47.2358 0.481158 33.6494 -3.1235 23.0242 2.95062C20.6652 4.29918 18.6506 6.01144 17.0107 7.97457C23.0311 6.3946 28.717 5.20669 32.4748 4.59809C31.778 5.15246 30.9353 5.82953 29.9778 6.59886C25.7852 9.96735 19.3912 15.1046 13.4046 19.4557C12.8696 19.8445 12.3879 20.2482 11.9554 20.6639C11.6955 24.829 12.6279 29.1135 14.893 32.9982C21.0275 43.5188 34.6139 47.1235 45.239 41.0494C49.4162 38.6614 52.5138 35.1331 54.3623 31.0909C46.4904 33.4151 38.3914 35.1746 33.5255 35.9626C34.2223 35.4082 35.065 34.7312 36.0226 33.9618C40.2151 30.5933 46.6092 25.456 52.5957 21.105C54.078 20.0277 55.1515 18.8362 55.9021 17.5923ZM24.7659 21.9856C24.7659 16.8563 28.9653 12.6983 34.1455 12.6983C39.3257 12.6983 43.5251 16.8563 43.5251 21.9856C43.5251 27.1148 39.3257 31.2729 34.1455 31.2729C28.9653 31.2729 24.7659 27.1148 24.7659 21.9856Z"
+        fill="#1D62EC"
       />
       <path
-        d="M95 50 A45 45 0 0 1 50 95"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        opacity="0.3"
-        strokeDasharray="5 5"
+        d="M62.4389 8.6082C75.9768 17.2155 47.6698 30.9094 31.824 36.6805C35.5716 33.6988 44.9054 26.3994 52.2592 21.0545C59.6131 15.7097 56.9044 7.5542 54.6308 4.14454L62.4389 8.6082Z"
+        fill="#1D62EC"
       />
       <path
-        d="M50 95 A45 45 0 0 1 5 50"
-        stroke="currentColor"
-        strokeWidth="6"
-        strokeLinecap="round"
-        opacity="0.8"
+        d="M3.56115 31.952C-9.9768 23.3446 18.3302 9.65075 34.176 3.87972C30.4284 6.86135 21.0946 14.1608 13.7408 19.5056C6.3869 24.8505 9.09563 33.006 11.3692 36.4156L3.56115 31.952Z"
+        fill="#1D62EC"
       />
-      <path
-        d="M5 50 A45 45 0 0 1 50 5"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        opacity="0.3"
-        strokeDasharray="5 5"
-      />
-
-      {/* Inner Iris */}
-      <circle cx="50" cy="50" r="25" stroke="currentColor" strokeWidth="4" opacity="0.9" />
-
-      {/* Pupil / Data Core */}
-      <circle cx="50" cy="50" r="12" fill="currentColor" />
-
-      {/* Decorative Data Points */}
-      <circle cx="85" cy="50" r="3" fill="white" />
-      <circle cx="15" cy="50" r="3" fill="white" />
     </svg>
   );
 };
