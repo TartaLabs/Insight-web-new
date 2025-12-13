@@ -56,11 +56,20 @@ export interface Product {
 
 // PRO相关类型定义
 export interface Pro {
-  // 根据Dart的Pro类定义相应的字段
-  id: string;
-  version: string;
-  isActive: boolean;
-  // 其他PRO版本字段...
+  benefits: {
+    daily_free_points: number;
+    daily_initial_annotation: number;
+    points_per_annotation: number;
+    daily_model_test: number;
+    points_per_model_test: number;
+    ad_free: boolean;
+    future_airdrop_bonus: boolean;
+    price: number;
+    duration: number;
+  };
+  display_name: string;
+  is_pro: boolean;
+  pro_version: string;
 }
 
 // 奖励记录相关类型定义

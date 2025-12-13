@@ -31,7 +31,7 @@ export default function Main() {
   });
 
   // Navigation State: 'home' | 'privacy' | 'terms' | 'support' | 'webapp'
-  const [currentView, setCurrentView] = useState('home');
+  const [currentView, setCurrentView] = useState('webapp');
 
   // Subscription State
   const [email, setEmail] = useState('');

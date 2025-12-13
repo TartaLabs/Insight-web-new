@@ -1,10 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import {
-  InviteCodeInfo,
-  InviteUsageMap,
-  ValidateInviteResult,
-  BindInviteOptions,
-} from '../types';
+import { InviteCodeInfo, InviteUsageMap, ValidateInviteResult, BindInviteOptions } from '../types';
 
 const INVITE_LIMIT = 10;
 
@@ -20,10 +15,7 @@ export interface UseInviteCodeReturn {
   ownInviteCode: string;
   inviteLink: string;
   validateInviteCode: (code: string) => ValidateInviteResult;
-  bindInviteCode: (
-    code: string,
-    options?: BindInviteOptions,
-  ) => ValidateInviteResult;
+  bindInviteCode: (code: string, options?: BindInviteOptions) => ValidateInviteResult;
   initializeOwnInviteCode: (wallet: string, nickname: string) => void;
   setInviteCodeInfo: React.Dispatch<React.SetStateAction<InviteCodeInfo>>;
 }
@@ -36,8 +28,7 @@ export function useInviteCode(): UseInviteCodeReturn {
     persisted: false,
   });
 
-  const [inviteUsage, setInviteUsage] =
-    useState<InviteUsageMap>(INITIAL_INVITE_USAGE);
+  const [inviteUsage, setInviteUsage] = useState<InviteUsageMap>(INITIAL_INVITE_USAGE);
 
   const [ownInviteCode, setOwnInviteCode] = useState('');
   const [inviteLink, setInviteLink] = useState('');
@@ -90,10 +81,7 @@ export function useInviteCode(): UseInviteCodeReturn {
         persisted: prev.persisted || shouldPersist,
       }));
 
-      if (
-        shouldPersist &&
-        (!inviteCodeInfo.persisted || inviteCodeInfo.code !== trimmed)
-      ) {
+      if (shouldPersist && (!inviteCodeInfo.persisted || inviteCodeInfo.code !== trimmed)) {
         setInviteUsage((prev) => {
           const current = prev[trimmed] || { owner, used: 0 };
           const updatedUsed = Math.min(INVITE_LIMIT, current.used + 1);
@@ -111,28 +99,25 @@ export function useInviteCode(): UseInviteCodeReturn {
     [validateInviteCode, inviteCodeInfo.persisted, inviteCodeInfo.code],
   );
 
-  const initializeOwnInviteCode = useCallback(
-    (wallet: string, nickname: string) => {
-      const code = `INV-${
-        wallet
-          .replace(/[^0-9a-zA-Z]/g, '')
-          .slice(-6)
-          .toUpperCase() || 'NODE'
-      }`;
-      setOwnInviteCode(code);
+  const initializeOwnInviteCode = useCallback((wallet: string, nickname: string) => {
+    const code = `INV-${
+      wallet
+        .replace(/[^0-9a-zA-Z]/g, '')
+        .slice(-6)
+        .toUpperCase() || 'NODE'
+    }`;
+    setOwnInviteCode(code);
 
-      if (typeof window !== 'undefined') {
-        const link = `${window.location.origin}${window.location.pathname}?code=${code}&inviter=${encodeURIComponent(nickname || 'user')}`;
-        setInviteLink(link);
-      }
+    if (typeof window !== 'undefined') {
+      const link = `${window.location.origin}${window.location.pathname}?code=${code}&inviter=${encodeURIComponent(nickname || 'user')}`;
+      setInviteLink(link);
+    }
 
-      setInviteUsage((prev) => ({
-        ...prev,
-        [code]: { owner: nickname || 'You', used: prev[code]?.used || 0 },
-      }));
-    },
-    [],
-  );
+    setInviteUsage((prev) => ({
+      ...prev,
+      [code]: { owner: nickname || 'You', used: prev[code]?.used || 0 },
+    }));
+  }, []);
 
   // Prefill invite code from storage or URL on mount
   useEffect(() => {
@@ -158,11 +143,7 @@ export function useInviteCode(): UseInviteCodeReturn {
       if (code) {
         const res = validateInviteCode(code);
         if (res.ok) {
-          const owner =
-            res.invitedBy ||
-            inviteUsage[code]?.owner ||
-            inviter ||
-            'Community Member';
+          const owner = res.invitedBy || inviteUsage[code]?.owner || inviter || 'Community Member';
           setInviteCodeInfo({
             code,
             invitedBy: owner,
@@ -193,4 +174,3 @@ export function useInviteCode(): UseInviteCodeReturn {
     setInviteCodeInfo,
   };
 }
-

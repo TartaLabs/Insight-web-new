@@ -1,13 +1,15 @@
 import { create } from 'zustand';
 import type { User } from '../services/model/types';
-import { apiUser } from '../services/api';
+import { apiTask, apiUser } from '../services/api';
 
 interface UserState {
   user: User | null;
+  pendingRewards: number;
   loading: boolean;
   error: string | null;
   initialized: boolean;
   fetchUserData: () => Promise<void>;
+  fetchPendingRewards: () => Promise<void>;
   setUser: (user: User | null) => void;
   updateUser: (updates: Partial<User>) => void;
   setLoading: (loading: boolean) => void;
@@ -17,6 +19,7 @@ interface UserState {
 
 export const useUserStore = create<UserState>((set, get) => ({
   user: null,
+  pendingRewards: 0,
   loading: false,
   error: null,
   initialized: false,
@@ -35,7 +38,18 @@ export const useUserStore = create<UserState>((set, get) => ({
     }
   },
 
+  fetchPendingRewards: async () => {
+    try {
+      const pendingRewards = await apiTask.getClaimableAmount('DAILY');
+      set({ pendingRewards });
+    } catch (error) {
+      console.error(error);
+    }
+  },
+
   setUser: (user: User | null) => set({ user }),
+
+  setPendingRewards: (pendingRewards: number) => set({ pendingRewards }),
 
   updateUser: (updates: Partial<User>) =>
     set((state) => ({
@@ -46,5 +60,6 @@ export const useUserStore = create<UserState>((set, get) => ({
 
   setError: (error: string | null) => set({ error }),
 
-  reset: () => set({ user: null, loading: false, error: null, initialized: false }),
+  reset: () =>
+    set({ user: null, pendingRewards: 0, loading: false, error: null, initialized: false }),
 }));

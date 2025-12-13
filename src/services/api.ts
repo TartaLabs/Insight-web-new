@@ -225,14 +225,14 @@ export const apiTask = {
   /**
    * 获取可领取金额
    */
-  getClaimableAmount: async (type: string): Promise<string> => {
-    const response = await request.get<ApiResponse<{ claimable_amount: string }>>(
+  getClaimableAmount: async (type: string): Promise<number> => {
+    const response = await request.get<ApiResponse<{ claimable_amount: number }>>(
       '/api/1/user/task/claimable-amount',
       {
         params: { task_type: type },
       },
     );
-    return response.data.claimable_amount || '0';
+    return response.data.claimable_amount || 0;
   },
 };
 

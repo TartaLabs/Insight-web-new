@@ -102,7 +102,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
           <UserInfoCard
             user={user}
             onEditNickname={() => setNicknameModalOpen(true)}
-            onCopyAddress={() => copyToClipboard(user.walletAddress, 'Address copied')}
+            onCopyAddress={() => copyToClipboard('TODO: wallet address', 'Address copied')}
           />
           <WalletCard user={user} onClaimAll={onClaimAll} />
         </div>

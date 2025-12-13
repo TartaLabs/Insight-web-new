@@ -4,6 +4,7 @@ import { Workspace } from './components/Workspace';
 import { TaskFlow } from './components/TaskFlow';
 import { UpgradeModal } from './components/UpgradeModal';
 import { TransactionModal } from './components/TransactionModal';
+import { LoadingScreen } from './components/LoadingScreen';
 import { useWebAppState } from './hooks';
 import { useUserStore } from '../../store/userStore';
 import { useProStore } from '../../store/proStore';
@@ -22,13 +23,14 @@ interface WebAppProps {
  */
 export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
   // Store 初始化
-  const { fetchUserData, initialized: userInitialized } = useUserStore();
+  const { fetchUserData, fetchPendingRewards, initialized: userInitialized, user } = useUserStore();
   const { fetchProVersion, initialized: proInitialized } = useProStore();
   const { fetchDailyTasks, initialized: taskInitialized } = useTaskStore();
 
   useEffect(() => {
     if (!userInitialized) {
       fetchUserData();
+      fetchPendingRewards();
     }
     if (!proInitialized) {
       fetchProVersion();
@@ -36,14 +38,7 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
     if (!taskInitialized) {
       fetchDailyTasks();
     }
-  }, [
-    userInitialized,
-    fetchUserData,
-    proInitialized,
-    fetchProVersion,
-    taskInitialized,
-    fetchDailyTasks,
-  ]);
+  }, []);
 
   // WebApp 核心状态
   const state = useWebAppState();
@@ -51,8 +46,16 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
   // 升级弹窗状态
   const [showUpgrade, setShowUpgrade] = useState(false);
 
+  // 判断是否所有初始化完成
+  const isInitializing = !userInitialized || !proInitialized || !taskInitialized;
+
+  // 阻塞式加载页面
+  if (isInitializing) {
+    return <LoadingScreen />;
+  }
+
   // 登录页面
-  if (!state.isLoggedIn) {
+  if (!user) {
     const { locked, persisted } = state.inviteCode.inviteCodeInfo;
     const inviteLocked = locked || persisted;
 

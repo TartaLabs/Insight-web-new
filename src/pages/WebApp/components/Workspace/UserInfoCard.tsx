@@ -1,10 +1,10 @@
 import React from 'react';
 import { Edit2, Copy, Flame, Shield } from 'lucide-react';
-import { UserProfile } from '../../types';
 import { HudPanel } from '../ui';
+import { useUserStore } from '@/store/userStore';
+import { useProStore } from '@/store/proStore';
 
 interface UserInfoCardProps {
-  user: UserProfile;
   onEditNickname: () => void;
   onCopyAddress: () => void;
 }
@@ -13,13 +13,10 @@ interface UserInfoCardProps {
  * 用户信息卡片组件
  * 显示用户头像、昵称、钱包地址、连续登录天数和角色
  */
-export const UserInfoCard: React.FC<UserInfoCardProps> = ({
-  user,
-  onEditNickname,
-  onCopyAddress,
-}) => {
-  const formatAddress = (addr: string) =>
-    addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '';
+export const UserInfoCard: React.FC<UserInfoCardProps> = ({ onEditNickname, onCopyAddress }) => {
+  const user = useUserStore((state) => state.user);
+  const pro = useProStore((state) => state.pro);
+  const formatAddress = (addr: string) => (addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '');
 
   return (
     <HudPanel className="col-span-1 lg:col-span-2 p-6 flex flex-col md:flex-row justify-between items-center gap-6">
@@ -32,7 +29,7 @@ export const UserInfoCard: React.FC<UserInfoCardProps> = ({
               {user.nickname ? user.nickname.charAt(0).toUpperCase() : '?'}
             </span>
           </div>
-          {user.isPro && (
+          {pro.is_pro && (
             <div className="absolute -bottom-1 -right-1 bg-neon-purple text-white text-[10px] font-bold px-2 py-0.5 rounded border border-white/20">
               PRO
             </div>
@@ -55,7 +52,7 @@ export const UserInfoCard: React.FC<UserInfoCardProps> = ({
           </div>
           <div className="flex items-center gap-2 mt-2">
             <code className="text-xs text-gray-500 bg-black/50 px-2 py-1 rounded border border-white/5">
-              {formatAddress(user.walletAddress)}
+              {formatAddress('TODO: wallet address')}
             </code>
             <button
               onClick={onCopyAddress}
@@ -67,39 +64,28 @@ export const UserInfoCard: React.FC<UserInfoCardProps> = ({
           <div className="mt-3 mb-4 flex gap-4 text-xs">
             <div className="flex items-center gap-1 text-gray-400">
               <Flame size={12} className="text-red-500" />
-              Streak: <span className="text-white">{user.streakDays} Days</span>
+              Streak: <span className="text-white">{user.login_streak} Days</span>
             </div>
             <div className="flex items-center gap-1 text-gray-400">
               <Shield size={12} className="text-tech-blue" />
               Role:{' '}
-              <span className="text-white">
-                {user.isPro ? 'Validating Node' : 'Light Node'}
-              </span>
+              <span className="text-white">{pro.is_pro ? 'Validating Node' : 'Light Node'}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Balance Display */}
-      <div className="flex gap-2 w-full md:w-auto">
+      {/* Balance Display  TODO 暂无相关数据*/}
+      {/* <div className="flex gap-2 w-full md:w-auto">
         <div className="bg-black/40 border border-white/10 p-3 rounded flex-1 min-w-[80px]">
-          <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">
-            MNT
-          </div>
-          <div className="text-sm font-bold text-white">
-            {user.balanceMNT.toFixed(3)}
-          </div>
+          <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">MNT</div>
+          <div className="text-sm font-bold text-white">{'TODO: balanceMNT'}</div>
         </div>
         <div className="bg-black/40 border border-white/10 p-3 rounded flex-1 min-w-[80px]">
-          <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">
-            USDT
-          </div>
-          <div className="text-sm font-bold text-green-400">
-            ${user.balanceUSDT.toFixed(3)}
-          </div>
+          <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">USDT</div>
+          <div className="text-sm font-bold text-green-400">{'TODO: balanceUSDT'}</div>
         </div>
-      </div>
+      </div> */}
     </HudPanel>
   );
 };
-
