@@ -517,7 +517,7 @@ start_service() {
     log_info "✓ PM2 daemon is running"
     
     # 设置环境变量
-    export NODE_ENV=production
+    export NODE_ENV=test
     export PORT=${PORT}
     
     log_info "Environment variables:"
@@ -560,7 +560,7 @@ module.exports = {
     instances: 1,
     exec_mode: 'fork',
     env: {
-      NODE_ENV: 'production',
+      NODE_ENV: 'test',
       PORT: '${PORT}'
     },
     error_file: '${LOG_DIR}/pm2-error.log',
