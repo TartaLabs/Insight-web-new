@@ -7,7 +7,6 @@ import {
   RenameResult,
   SubscriptionRecord,
   TabType,
-  TaskRecord,
   Transaction,
 } from '../../../types';
 import { ContributionsTab } from './ContributionsTab';
@@ -15,7 +14,6 @@ import { LedgerTab } from './LedgerTab';
 import { LeaderboardTab } from './LeaderboardTab';
 import { InvitationTab } from './InvitationTab';
 import { SubscriptionsTab } from './SubscriptionsTab';
-import { User } from '@/services/model/types.ts';
 
 interface BottomTabsProps {
   history: Transaction[];
