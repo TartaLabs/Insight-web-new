@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Wallet, ArrowRight, Check, X, ArrowLeft } from 'lucide-react';
-import { Logo } from '../../../components/Logo';
+import React, { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowLeft, ArrowRight, Check, Wallet, X } from 'lucide-react';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useAccount, useConnect, useDisconnect, useSignMessage } from 'wagmi';
+import { apiUser } from '@/services/api.ts';
+import { Logo } from '@/components/Logo.tsx';
 import { PrivacyPolicyContent } from '../../Privacy';
 import { TermsOfUseContent } from '../../Terms';
+import { User } from '@/services/model/types.ts';
 
 interface LoginProps {
-  onLoginSuccess: (nickname: string) => void;
+  onLoginSuccess: (user: User) => void;
   onBack?: () => void;
   inviteCode: string;
   inviteLocked: boolean;
@@ -28,9 +32,14 @@ export const Login: React.FC<LoginProps> = ({
   onValidateInvite,
   onPersistInvite,
 }) => {
+  const { openConnectModal } = useConnectModal();
+  const { address, isConnected } = useAccount();
+  const { connect, connectors, isPending } = useConnect();
+  const { signMessageAsync } = useSignMessage();
+  const { disconnect } = useDisconnect();
+
   const [step, setStep] = useState<1 | 2>(1); // 1: Wallet Connect, 2: Onboarding
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [walletAddress, setWalletAddress] = useState('');
+  const [isSigning, setIsSigning] = useState(false);
   const [nickname, setNickname] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [inviteInput, setInviteInput] = useState(inviteCode || '');
@@ -46,52 +55,69 @@ export const Login: React.FC<LoginProps> = ({
   const prevInvitedBy = React.useRef(invitedBy);
   useEffect(() => {
     if (prevInviteCode.current !== inviteCode) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setInviteInput(inviteCode || '');
       prevInviteCode.current = inviteCode;
     }
     if (prevInvitedBy.current !== invitedBy) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setInviteOwner(invitedBy || '');
       prevInvitedBy.current = invitedBy;
     }
   }, [inviteCode, invitedBy]);
   const [legalView, setLegalView] = useState<null | 'privacy' | 'terms'>(null);
 
-  const handleConnect = () => {
-    setIsConnecting(true);
-    // Simulate connection delay
-    setTimeout(() => {
-      setWalletAddress('0x71C...9A23');
-      setIsConnecting(false);
-      setStep(2);
+  // Handle wallet connection via RainbowKit
+  useEffect(() => {
+    if (isConnected && address) {
+      // 连接成功后执行签名
+      handleSignMessage(address).catch(console.error);
+    }
+  }, [isConnected, address]);
 
-      // Load existing profile for this wallet
-      const stored = localStorage.getItem(`insight_profile_0x71C...9A23`);
-      if (stored) {
-        try {
-          const data = JSON.parse(stored) as {
-            nickname?: string;
-            inviteCode?: string;
-            invitedBy?: string;
-          };
-          if (data.nickname) {
-            setNickname(data.nickname);
-            setProfileLocked(true);
-            setNicknameError('');
-          }
-          if (data.inviteCode) {
-            setInviteInput(data.inviteCode);
-            setInviteOwner(data.invitedBy || 'Community Member');
-            setInviteError('');
-            onInviteChange(data.inviteCode);
-            onPersistInvite(data.inviteCode, data.invitedBy);
-          }
-        } catch {
-          // ignore parse errors
-        }
+  // 签名并调用登录接口
+  const handleSignMessage = async (walletAddress: string) => {
+    try {
+      setIsSigning(true);
+
+      // 签名消息
+      const message = 'Sign in Insight Web';
+      const signature = await signMessageAsync({
+        account: walletAddress as `0x${string}`,
+        message,
+      });
+
+      // 调用登录接口
+      const userLoginRes = await apiUser.login(address, signature, message);
+      localStorage.setItem('auth_token', userLoginRes.session);
+      if (userLoginRes.is_new) {
+        // 新用户登录后, 弹出编辑资料弹框
+        setStep(2);
+      } else {
+        console.log('Login success:', userLoginRes);
+        onLoginSuccess(userLoginRes.user);
       }
-    }, 1500);
+    } catch (error) {
+      console.error('Sign message or login failed:', error);
+      disconnect();
+    } finally {
+      setIsSigning(false);
+    }
+  };
+
+  const handleConnectMetaMask = () => {
+    // 尝试直接连接 MetaMask (injected connector)
+    const metaMaskConnector = connectors.find((c) => c.id === 'injected' || c.name === 'MetaMask');
+    if (metaMaskConnector) {
+      connect({ connector: metaMaskConnector });
+    } else if (openConnectModal) {
+      // 如果找不到 MetaMask connector，则打开通用连接弹窗
+      openConnectModal();
+    }
+  };
+
+  const handleConnect = () => {
+    if (openConnectModal) {
+      openConnectModal();
+    }
   };
 
   const handleEnterApp = () => {
@@ -129,9 +155,9 @@ export const Login: React.FC<LoginProps> = ({
       }
     }
     const finalInvite = inviteLocked || inviteInput.trim() ? inviteInput.trim() : '';
-    if (walletAddress) {
+    if (address) {
       localStorage.setItem(
-        `insight_profile_${walletAddress}`,
+        `insight_profile_${address}`,
         JSON.stringify({
           nickname: nick,
           inviteCode: finalInvite,
@@ -175,17 +201,17 @@ export const Login: React.FC<LoginProps> = ({
 
             <div className="space-y-3">
               <button
-                onClick={handleConnect}
-                disabled={isConnecting}
-                className="w-full bg-white/5 border border-white/10 hover:border-tech-blue/50 p-4 rounded-lg flex items-center justify-between group transition-all"
+                onClick={handleConnectMetaMask}
+                disabled={isPending || isSigning}
+                className="w-full bg-white/5 border border-white/10 hover:border-tech-blue/50 p-4 rounded-lg flex items-center justify-between group transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
                     <Wallet size={16} className="text-orange-500" />
                   </div>
-                  <span className="font-bold">MetaMask</span>
+                  <span className="font-bold">{isSigning ? 'Signing...' : 'MetaMask'}</span>
                 </div>
-                {isConnecting ? (
+                {isPending || isSigning ? (
                   <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                 ) : (
                   <ArrowRight
@@ -196,15 +222,20 @@ export const Login: React.FC<LoginProps> = ({
               </button>
 
               <button
-                disabled
-                className="w-full bg-white/5 border border-white/10 p-4 rounded-lg flex items-center justify-between opacity-50 cursor-not-allowed"
+                onClick={handleConnect}
+                disabled={isSigning}
+                className="w-full bg-white/5 border border-white/10 hover:border-tech-blue/50 p-4 rounded-lg flex items-center justify-between group transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
-                    <Shield size={16} className="text-blue-500" />
+                  <div className="w-8 h-8 rounded-full bg-tech-blue/20 flex items-center justify-center">
+                    <Wallet size={16} className="text-tech-blue" />
                   </div>
-                  <span className="font-bold">OKX Wallet</span>
+                  <span className="font-bold">Other Wallets</span>
                 </div>
+                <ArrowRight
+                  size={16}
+                  className="text-gray-500 group-hover:text-tech-blue group-hover:translate-x-1 transition-all"
+                />
               </button>
             </div>
           </>
@@ -212,7 +243,7 @@ export const Login: React.FC<LoginProps> = ({
           <>
             <h2 className="text-2xl font-bold text-center mb-2">Welcome, Contributor</h2>
             <p className="text-gray-400 text-center mb-8 text-sm font-mono text-tech-blue bg-tech-blue/5 py-1 rounded">
-              {walletAddress}
+              {address}
             </p>
 
             <div className="space-y-6">

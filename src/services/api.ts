@@ -14,10 +14,21 @@ import type {
   RewardRecord,
   RewardResponese,
   DailyTasksResponse,
+  UserLoginRes,
 } from './model/types';
 
 // 用户相关接口
 export const apiUser = {
+  /**
+   * 用户登录
+   */
+  login: async (address: string, signature: string, message: string): Promise<UserLoginRes> => {
+    const response = await request.post<ApiResponse<UserLoginRes>>('/api/1/user/sign_wallet', {
+      data: { address, signature, message },
+    });
+    return response.data;
+  },
+
   /**
    * 获取用户数据
    */

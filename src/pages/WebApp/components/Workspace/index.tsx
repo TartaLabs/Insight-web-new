@@ -7,20 +7,20 @@ import { TaskListCard } from './TaskListCard';
 import { BottomTabs } from './BottomTabs';
 import { NicknameEditModal } from '../modals/NicknameEditModal';
 import {
-  UserProfile,
+  EmotionType,
+  InviteCodeInfo,
+  Invitee,
+  LeaderboardEntry,
+  RenameResult,
+  SubscriptionRecord,
   TaskCounts,
   TaskRecord,
   Transaction,
-  LeaderboardEntry,
-  Invitee,
-  SubscriptionRecord,
-  EmotionType,
-  InviteCodeInfo,
-  RenameResult,
 } from '../../types';
+import { User } from '@/services/model/types.ts';
 
 interface WorkspaceProps {
-  user: UserProfile;
+  user: User;
   tasks: TaskRecord[];
   taskCounts: TaskCounts;
   dailyLimit: number;
@@ -100,11 +100,10 @@ export const Workspace: React.FC<WorkspaceProps> = ({
         {/* TOP ROW: User Profile & Wallet */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <UserInfoCard
-            user={user}
             onEditNickname={() => setNicknameModalOpen(true)}
             onCopyAddress={() => copyToClipboard(user.wallet_address || '', 'Address copied')}
           />
-          <WalletCard user={user} onClaimAll={onClaimAll} />
+          <WalletCard onClaimAll={onClaimAll} />
         </div>
 
         {/* MIDDLE ROW: Membership & Tasks */}

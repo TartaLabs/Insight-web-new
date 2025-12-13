@@ -1,18 +1,18 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  UserProfile,
-  TaskCounts,
-  Transaction,
-  LeaderboardEntry,
-  TaskRecord,
-  Invitee,
-  SubscriptionRecord,
   EmotionType,
+  Invitee,
+  LeaderboardEntry,
   PricingPlan,
   RenameResult,
+  SubscriptionRecord,
+  TaskCounts,
+  TaskRecord,
+  Transaction,
 } from '../types';
 import { useInviteCode } from './useInviteCode';
 import { useTransaction } from './useTransaction';
+import { User } from '@/services/model/types.ts';
 
 const getTodayUTC = () => new Date().toISOString().split('T')[0];
 
@@ -75,31 +75,14 @@ const INITIAL_INVITEES: Invitee[] = [
   },
 ];
 
-const INITIAL_USER: UserProfile = {
-  walletAddress: '',
-  nickname: '',
-  isPro: false,
-  balanceMEMO: 0,
-  pendingRewards: 0,
-  invitationRewards: 15.5,
-  balanceMNT: 0,
-  balanceUSDT: 0,
-  streakDays: 1,
-  inviteCount: 3,
-  lastResetDate: getTodayUTC(),
-  inviteCodeApplied: '',
-  invitedBy: '',
-  inviteLocked: false,
-};
-
 export interface UseWebAppStateReturn {
   // Login state
   isLoggedIn: boolean;
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
 
   // User data
-  user: UserProfile;
-  setUser: React.Dispatch<React.SetStateAction<UserProfile>>;
+  user: User;
+  setUser: React.Dispatch<React.SetStateAction<User>>;
 
   // Task data
   tasks: TaskRecord[];
@@ -120,7 +103,7 @@ export interface UseWebAppStateReturn {
   transaction: ReturnType<typeof useTransaction>;
 
   // Handlers
-  handleLogin: (nickname: string) => void;
+  handleLogin: (user: User) => void;
   handleSaveDraft: (record: TaskRecord) => void;
   handleSubmitTask: (record: TaskRecord) => void;
   handleDeleteTask: (id: string) => void;
@@ -146,7 +129,7 @@ export interface UseWebAppStateReturn {
 
 export function useWebAppState(): UseWebAppStateReturn {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
-  const [user, setUser] = useState<UserProfile>(INITIAL_USER);
+  const [user, setUser] = useState<User>();
   const [taskCounts, setTaskCounts] = useState<TaskCounts>({});
   const [history, setHistory] = useState<Transaction[]>([]);
   const [tasks, setTasks] = useState<TaskRecord[]>([]);
@@ -181,10 +164,10 @@ export function useWebAppState(): UseWebAppStateReturn {
           return newInvitees;
         });
 
-        setUser((prev) => ({
-          ...prev,
-          invitationRewards: prev.invitationRewards + amount,
-        }));
+        // setUser((prev) => ({
+        //   ...prev,
+        //   invitationRewards: prev.invitationRewards + amount,
+        // }));
 
         setHistory((prev) => [
           {
@@ -203,58 +186,12 @@ export function useWebAppState(): UseWebAppStateReturn {
     return () => clearInterval(interval);
   }, [invitees]);
 
-  // Daily reset check
-  useEffect(() => {
-    const checkReset = () => {
-      const todayISO = getTodayUTC();
-      if (todayISO !== user.lastResetDate) {
-        setTaskCounts({});
-        setUser((prev) => ({ ...prev, lastResetDate: todayISO }));
-      }
-    };
-    const interval = setInterval(checkReset, 60000);
-    checkReset();
-    return () => clearInterval(interval);
-  }, [user.lastResetDate]);
-
   // --- Handlers ---
 
-  const handleLogin = useCallback(
-    (nickname: string) => {
-      if (inviteCode.inviteCodeInfo.code) {
-        const bindResult = inviteCode.bindInviteCode(inviteCode.inviteCodeInfo.code, {
-          lock: true,
-          persist: !inviteCode.inviteCodeInfo.persisted,
-        });
-        if (!bindResult.ok) return;
-      }
-
-      const wallet = '0x71c1234567890abcdef1234567890abcd9a23';
-      setUser((prev) => ({
-        ...prev,
-        nickname,
-        walletAddress: wallet,
-        balanceMNT: 5.0,
-        balanceUSDT: 100.0,
-        balanceMEMO: 100,
-        inviteCodeApplied: inviteCode.inviteCodeInfo.code || prev.inviteCodeApplied,
-        invitedBy: inviteCode.inviteCodeInfo.invitedBy || prev.invitedBy,
-        inviteLocked: inviteCode.inviteCodeInfo.code ? true : prev.inviteLocked,
-      }));
-
-      inviteCode.initializeOwnInviteCode(wallet, nickname);
-
-      if (inviteCode.inviteCodeInfo.code && !inviteCode.inviteCodeInfo.persisted) {
-        inviteCode.setInviteCodeInfo((prev) => ({
-          ...prev,
-          locked: true,
-          persisted: true,
-        }));
-      }
-      setIsLoggedIn(true);
-    },
-    [inviteCode],
-  );
+  const handleLogin = useCallback((user: User) => {
+    setUser(user);
+    setIsLoggedIn(true);
+  }, []);
 
   const handleSaveDraft = useCallback((record: TaskRecord) => {
     setTasks((prev) => {
@@ -284,13 +221,13 @@ export function useWebAppState(): UseWebAppStateReturn {
       setUser((prev) => ({ ...prev, nickname: trimmed }));
 
       if (inviteCode.ownInviteCode && typeof window !== 'undefined') {
-        const link = `${window.location.origin}${window.location.pathname}?code=${inviteCode.ownInviteCode}&inviter=${encodeURIComponent(trimmed)}`;
+        // const link = `${window.location.origin}${window.location.pathname}?code=${inviteCode.ownInviteCode}&inviter=${encodeURIComponent(trimmed)}`;
         // Update invite link in inviteCode hook would need additional method
       }
 
       return { ok: true };
     },
-    [existingNicknames, user.nickname, inviteCode.ownInviteCode],
+    [existingNicknames],
   );
 
   const handleSubmitTask = useCallback((record: TaskRecord) => {
@@ -324,10 +261,10 @@ export function useWebAppState(): UseWebAppStateReturn {
       );
 
       if (passed) {
-        setUser((u) => ({
-          ...u,
-          pendingRewards: u.pendingRewards + record.reward,
-        }));
+        // setUser((u) => ({
+        //   ...u,
+        //   pendingRewards: u.pendingRewards + record.reward,
+        // }));
 
         setHistory((h) => [
           {
@@ -367,269 +304,268 @@ export function useWebAppState(): UseWebAppStateReturn {
   // --- Claim handlers ---
 
   const handleClaimAll = useCallback(() => {
-    const gasCost = 0.005;
-    if (user.balanceMNT < gasCost) {
-      alert('Insufficient MNT for Gas!');
-      return;
-    }
-    if (user.pendingRewards <= 0) return;
-
-    transaction.openTransaction(
-      'CLAIM',
-      'Claim Task Rewards',
-      `+${user.pendingRewards} $mEMO`,
-      `~${gasCost} MNT`,
-      () => {
-        const amount = user.pendingRewards;
-        setUser((prev) => ({
-          ...prev,
-          balanceMNT: prev.balanceMNT - gasCost,
-          balanceMEMO: prev.balanceMEMO + amount,
-          pendingRewards: 0,
-        }));
-
-        setHistory((prev) => [
-          {
-            id: Date.now().toString(),
-            category: 'CLAIM',
-            source: 'Label Task',
-            amount: amount,
-            cost: `-${gasCost} MNT`,
-            timestamp: Date.now(),
-            status: 'SUCCESS',
-            txHash: '0xabc...123',
-            desc: 'Batch Claim Tasks',
-          },
-          ...prev,
-        ]);
-      },
-    );
-  }, [user.balanceMNT, user.pendingRewards, transaction]);
+    // const gasCost = 0.005;
+    // if (user.balanceMNT < gasCost) {
+    //   alert('Insufficient MNT for Gas!');
+    //   return;
+    // }
+    // if (user.pendingRewards <= 0) return;
+    // transaction.openTransaction(
+    //   'CLAIM',
+    //   'Claim Task Rewards',
+    //   `+${user.pendingRewards} $mEMO`,
+    //   `~${gasCost} MNT`,
+    //   () => {
+    //     const amount = user.pendingRewards;
+    //     setUser((prev) => ({
+    //       ...prev,
+    //       balanceMNT: prev.balanceMNT - gasCost,
+    //       balanceMEMO: prev.balanceMEMO + amount,
+    //       pendingRewards: 0,
+    //     }));
+    //
+    //     setHistory((prev) => [
+    //       {
+    //         id: Date.now().toString(),
+    //         category: 'CLAIM',
+    //         source: 'Label Task',
+    //         amount: amount,
+    //         cost: `-${gasCost} MNT`,
+    //         timestamp: Date.now(),
+    //         status: 'SUCCESS',
+    //         txHash: '0xabc...123',
+    //         desc: 'Batch Claim Tasks',
+    //       },
+    //       ...prev,
+    //     ]);
+    //   },
+    // );
+  }, [user, transaction]);
 
   const handleClaimInvitationRewards = useCallback(() => {
-    const gasCost = 0.005;
-    if (user.balanceMNT < gasCost) {
-      alert('Insufficient MNT for Gas!');
-      return;
-    }
-    if (user.invitationRewards <= 0) return;
-
-    transaction.openTransaction(
-      'CLAIM',
-      'Claim Commissions',
-      `+${user.invitationRewards.toFixed(1)} $mEMO`,
-      `~${gasCost} MNT`,
-      () => {
-        const amount = user.invitationRewards;
-        setUser((prev) => ({
-          ...prev,
-          balanceMNT: prev.balanceMNT - gasCost,
-          balanceMEMO: prev.balanceMEMO + amount,
-          invitationRewards: 0,
-        }));
-
-        setInvitees((prev) =>
-          prev.map((inv) => ({
-            ...inv,
-            claimedReward: inv.claimedReward + inv.pendingReward,
-            pendingReward: 0,
-          })),
-        );
-
-        setHistory((prev) => [
-          {
-            id: Date.now().toString(),
-            category: 'CLAIM',
-            source: 'Invitation',
-            amount: amount,
-            cost: `-${gasCost} MNT`,
-            timestamp: Date.now(),
-            status: 'SUCCESS',
-            txHash: '0xdef...456',
-            desc: 'Claimed Commissions',
-          },
-          ...prev,
-        ]);
-      },
-    );
-  }, [user.balanceMNT, user.invitationRewards, transaction]);
+    // const gasCost = 0.005;
+    // if (user.balanceMNT < gasCost) {
+    //   alert('Insufficient MNT for Gas!');
+    //   return;
+    // }
+    // if (user.invitationRewards <= 0) return;
+    //
+    // transaction.openTransaction(
+    //   'CLAIM',
+    //   'Claim Commissions',
+    //   `+${user.invitationRewards.toFixed(1)} $mEMO`,
+    //   `~${gasCost} MNT`,
+    //   () => {
+    //     const amount = user.invitationRewards;
+    //     setUser((prev) => ({
+    //       ...prev,
+    //       balanceMNT: prev.balanceMNT - gasCost,
+    //       balanceMEMO: prev.balanceMEMO + amount,
+    //       invitationRewards: 0,
+    //     }));
+    //
+    //     setInvitees((prev) =>
+    //       prev.map((inv) => ({
+    //         ...inv,
+    //         claimedReward: inv.claimedReward + inv.pendingReward,
+    //         pendingReward: 0,
+    //       })),
+    //     );
+    //
+    //     setHistory((prev) => [
+    //       {
+    //         id: Date.now().toString(),
+    //         category: 'CLAIM',
+    //         source: 'Invitation',
+    //         amount: amount,
+    //         cost: `-${gasCost} MNT`,
+    //         timestamp: Date.now(),
+    //         status: 'SUCCESS',
+    //         txHash: '0xdef...456',
+    //         desc: 'Claimed Commissions',
+    //       },
+    //       ...prev,
+    //     ]);
+    //   },
+    // );
+  }, [user, transaction]);
 
   const handleClaimDailyBonus = useCallback(() => {
-    const gasCost = 0.002;
-    if (user.balanceMNT < gasCost) {
-      alert('Insufficient MNT for Gas!');
-      return;
-    }
-
-    let amount = 0;
-    if (user.proPlanId === 'monthly') amount = 5;
-    if (user.proPlanId === 'quarterly') amount = 10;
-    if (user.proPlanId === 'yearly') amount = 30;
-
-    transaction.openTransaction(
-      'CLAIM',
-      'Claim Daily Bonus',
-      `+${amount} $mEMO`,
-      `~${gasCost} MNT`,
-      () => {
-        const today = getTodayUTC();
-        setUser((prev) => ({
-          ...prev,
-          balanceMNT: prev.balanceMNT - gasCost,
-          balanceMEMO: prev.balanceMEMO + amount,
-          lastDailyBonusDate: today,
-        }));
-
-        setHistory((prev) => [
-          {
-            id: Date.now().toString(),
-            category: 'ISSUANCE',
-            source: 'Pro Daily',
-            amount: amount,
-            timestamp: Date.now(),
-            status: 'SUCCESS',
-            desc: 'Daily Bonus Issued',
-          },
-          ...prev,
-        ]);
-
-        setHistory((prev) => [
-          {
-            id: Date.now().toString() + '_claim',
-            category: 'CLAIM',
-            source: 'Pro Daily',
-            amount: amount,
-            cost: `-${gasCost} MNT`,
-            timestamp: Date.now(),
-            status: 'SUCCESS',
-            txHash: '0xghi...789',
-            desc: 'Claimed Bonus',
-          },
-          ...prev,
-        ]);
-      },
-    );
-  }, [user.balanceMNT, user.proPlanId, transaction]);
+    // const gasCost = 0.002;
+    // if (user.balanceMNT < gasCost) {
+    //   alert('Insufficient MNT for Gas!');
+    //   return;
+    // }
+    //
+    // let amount = 0;
+    // if (user.proPlanId === 'monthly') amount = 5;
+    // if (user.proPlanId === 'quarterly') amount = 10;
+    // if (user.proPlanId === 'yearly') amount = 30;
+    //
+    // transaction.openTransaction(
+    //   'CLAIM',
+    //   'Claim Daily Bonus',
+    //   `+${amount} $mEMO`,
+    //   `~${gasCost} MNT`,
+    //   () => {
+    //     const today = getTodayUTC();
+    //     setUser((prev) => ({
+    //       ...prev,
+    //       balanceMNT: prev.balanceMNT - gasCost,
+    //       balanceMEMO: prev.balanceMEMO + amount,
+    //       lastDailyBonusDate: today,
+    //     }));
+    //
+    //     setHistory((prev) => [
+    //       {
+    //         id: Date.now().toString(),
+    //         category: 'ISSUANCE',
+    //         source: 'Pro Daily',
+    //         amount: amount,
+    //         timestamp: Date.now(),
+    //         status: 'SUCCESS',
+    //         desc: 'Daily Bonus Issued',
+    //       },
+    //       ...prev,
+    //     ]);
+    //
+    //     setHistory((prev) => [
+    //       {
+    //         id: Date.now().toString() + '_claim',
+    //         category: 'CLAIM',
+    //         source: 'Pro Daily',
+    //         amount: amount,
+    //         cost: `-${gasCost} MNT`,
+    //         timestamp: Date.now(),
+    //         status: 'SUCCESS',
+    //         txHash: '0xghi...789',
+    //         desc: 'Claimed Bonus',
+    //       },
+    //       ...prev,
+    //     ]);
+    //   },
+    // );
+  }, [user, transaction]);
 
   const handleRetryClaim = useCallback(
     (tx: Transaction) => {
-      const gasCost = 0.005;
-      if (user.balanceMNT < gasCost) {
-        alert('Insufficient MNT for Gas!');
-        return;
-      }
-
-      transaction.openTransaction(
-        'CLAIM',
-        'Retry Claim',
-        `+${tx.amount} $mEMO`,
-        `~${gasCost} MNT`,
-        () => {
-          setUser((prev) => ({
-            ...prev,
-            balanceMNT: prev.balanceMNT - gasCost,
-          }));
-
-          setHistory((prev) =>
-            prev.map((t) => {
-              if (t.id === tx.id) {
-                return {
-                  ...t,
-                  status: 'SUCCESS',
-                  txHash: '0xretry...999',
-                  timestamp: Date.now(),
-                };
-              }
-              return t;
-            }),
-          );
-        },
-      );
+      // const gasCost = 0.005;
+      // if (user.balanceMNT < gasCost) {
+      //   alert('Insufficient MNT for Gas!');
+      //   return;
+      // }
+      //
+      // transaction.openTransaction(
+      //   'CLAIM',
+      //   'Retry Claim',
+      //   `+${tx.amount} $mEMO`,
+      //   `~${gasCost} MNT`,
+      //   () => {
+      //     setUser((prev) => ({
+      //       ...prev,
+      //       balanceMNT: prev.balanceMNT - gasCost,
+      //     }));
+      //
+      //     setHistory((prev) =>
+      //       prev.map((t) => {
+      //         if (t.id === tx.id) {
+      //           return {
+      //             ...t,
+      //             status: 'SUCCESS',
+      //             txHash: '0xretry...999',
+      //             timestamp: Date.now(),
+      //           };
+      //         }
+      //         return t;
+      //       }),
+      //     );
+      //   },
+      // );
     },
-    [user.balanceMNT, transaction],
+    [user, transaction],
   );
 
   const handleUpgrade = useCallback(
     (plan: PricingPlan) => {
-      if (user.balanceUSDT < plan.usdtPrice) {
-        alert('Insufficient USDT');
-        return;
-      }
-      const gasCost = 0.01;
-      if (user.balanceMNT < gasCost) {
-        alert('Insufficient MNT for Gas');
-        return;
-      }
-
-      transaction.openTransaction(
-        'UPGRADE',
-        `Upgrade to ${plan.name}`,
-        undefined,
-        `-${plan.usdtPrice} USDT`,
-        () => {
-          const now = new Date();
-          let daysToAdd = 30;
-          if (plan.id === 'quarterly') daysToAdd = 90;
-          if (plan.id === 'yearly') daysToAdd = 365;
-          now.setDate(now.getDate() + daysToAdd);
-
-          setUser((prev) => ({
-            ...prev,
-            isPro: true,
-            proPlanId: plan.id,
-            proExpiryDate: now.toISOString(),
-            balanceUSDT: prev.balanceUSDT - plan.usdtPrice,
-            balanceMNT: prev.balanceMNT - gasCost,
-          }));
-
-          const record: SubscriptionRecord = {
-            id: `sub-${Date.now()}`,
-            planId: plan.id,
-            planName: plan.name,
-            amountUSDT: plan.usdtPrice,
-            chain: 'Mantle',
-            wallet: user.walletAddress || '0x71C...9A23',
-            txHash: `0x${Date.now().toString(16)}DEMO`,
-            createdAt: Date.now(),
-            status: 'SUCCESS',
-            expiry: now.toISOString(),
-          };
-          setSubscriptions((prev) => [record, ...prev]);
-
-          setHistory((prev) => [
-            {
-              id: Date.now().toString(),
-              category: 'SPEND',
-              amount: 0,
-              cost: `-${plan.usdtPrice} USDT`,
-              timestamp: Date.now(),
-              desc: `Upgraded to ${plan.name}`,
-              status: 'SUCCESS',
-              txHash: '0xplan...buy',
-            },
-            ...prev,
-          ]);
-        },
-      );
+      // if (user.balanceUSDT < plan.usdtPrice) {
+      //   alert('Insufficient USDT');
+      //   return;
+      // }
+      // const gasCost = 0.01;
+      // if (user.balanceMNT < gasCost) {
+      //   alert('Insufficient MNT for Gas');
+      //   return;
+      // }
+      //
+      // transaction.openTransaction(
+      //   'UPGRADE',
+      //   `Upgrade to ${plan.name}`,
+      //   undefined,
+      //   `-${plan.usdtPrice} USDT`,
+      //   () => {
+      //     const now = new Date();
+      //     let daysToAdd = 30;
+      //     if (plan.id === 'quarterly') daysToAdd = 90;
+      //     if (plan.id === 'yearly') daysToAdd = 365;
+      //     now.setDate(now.getDate() + daysToAdd);
+      //
+      //     setUser((prev) => ({
+      //       ...prev,
+      //       isPro: true,
+      //       proPlanId: plan.id,
+      //       proExpiryDate: now.toISOString(),
+      //       balanceUSDT: prev.balanceUSDT - plan.usdtPrice,
+      //       balanceMNT: prev.balanceMNT - gasCost,
+      //     }));
+      //
+      //     const record: SubscriptionRecord = {
+      //       id: `sub-${Date.now()}`,
+      //       planId: plan.id,
+      //       planName: plan.name,
+      //       amountUSDT: plan.usdtPrice,
+      //       chain: 'Mantle',
+      //       wallet: user.walletAddress || '0x71C...9A23',
+      //       txHash: `0x${Date.now().toString(16)}DEMO`,
+      //       createdAt: Date.now(),
+      //       status: 'SUCCESS',
+      //       expiry: now.toISOString(),
+      //     };
+      //     setSubscriptions((prev) => [record, ...prev]);
+      //
+      //     setHistory((prev) => [
+      //       {
+      //         id: Date.now().toString(),
+      //         category: 'SPEND',
+      //         amount: 0,
+      //         cost: `-${plan.usdtPrice} USDT`,
+      //         timestamp: Date.now(),
+      //         desc: `Upgraded to ${plan.name}`,
+      //         status: 'SUCCESS',
+      //         txHash: '0xplan...buy',
+      //       },
+      //       ...prev,
+      //     ]);
+      //   },
+      // );
     },
-    [user.balanceUSDT, user.balanceMNT, user.walletAddress, transaction],
+    [user, transaction],
   );
 
   // --- Computed values ---
 
   const getDailyLimit = useCallback(() => {
-    if (!user.isPro) return 2;
-    if (user.proPlanId === 'monthly') return 3;
-    if (user.proPlanId === 'quarterly') return 4;
+    // if (!user.isPro) return 2;
+    // if (user.proPlanId === 'monthly') return 3;
+    // if (user.proPlanId === 'quarterly') return 4;
     return 5;
-  }, [user.isPro, user.proPlanId]);
+  }, [user]);
 
   const getRewardPerTask = useCallback(() => {
-    if (!user.isPro) return 2;
-    if (user.proPlanId === 'monthly') return 3;
-    if (user.proPlanId === 'quarterly') return 4;
+    // if (!user.isPro) return 2;
+    // if (user.proPlanId === 'monthly') return 3;
+    // if (user.proPlanId === 'quarterly') return 4;
     return 5;
-  }, [user.isPro, user.proPlanId]);
+  }, [user]);
 
   return {
     isLoggedIn,

@@ -85,7 +85,7 @@ export interface Invitee {
   lastActive: string;
 }
 
-export interface UserProfile {
+export interface User {
   walletAddress: string;
   nickname: string;
   isPro: boolean;

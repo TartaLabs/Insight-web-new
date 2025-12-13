@@ -112,8 +112,7 @@ class Request {
 
   // 获取Token（模拟从存储中获取）
   private _getToken(): string | null {
-    return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOWU0YzdlMjUxZDg4IiwiaXNzIjoiU3BvdFplcm8tcHJvZCIsImV4cCI6MTc2NzMxOTc2NywiaWF0IjoxNzY0NzI3NzY3fQ.PzSjVkbYB1NKPss41vhRfTLIIyPr383Eo43EbFLaoAE';
-    // return localStorage.getItem('auth_token');
+    return localStorage.getItem('auth_token');
   }
 
   // 清除Token

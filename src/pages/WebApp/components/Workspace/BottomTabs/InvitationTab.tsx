@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Share2, Coins, Calendar, Activity } from 'lucide-react';
-import { UserProfile, Invitee, InviteCodeInfo, RenameResult } from '../../../types';
+import { User, Invitee, InviteCodeInfo, RenameResult } from '../../../types';
 import { HudPanel, GameButton } from '../../ui';
 
 interface InvitationTabProps {
-  user: UserProfile;
+  user: User;
   invitees: Invitee[];
   inviteCodeInfo: InviteCodeInfo;
   ownInviteCode: string;

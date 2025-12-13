@@ -23,7 +23,13 @@ interface WebAppProps {
  */
 export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
   // Store 初始化
-  const { fetchUserData, fetchPendingRewards, initialized: userInitialized, user } = useUserStore();
+  const {
+    fetchUserData,
+    fetchPendingRewards,
+    initialized: userInitialized,
+    user,
+    setUser,
+  } = useUserStore();
   const { fetchProVersion, fetchProVersionList, initialized: proInitialized } = useProStore();
   const { fetchDailyTasks, initialized: taskInitialized } = useTaskStore();
 
@@ -62,7 +68,7 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
 
     return (
       <Login
-        onLoginSuccess={state.handleLogin}
+        onLoginSuccess={(u) => setUser(u)}
         onBack={onExit}
         inviteCode={state.inviteCode.inviteCodeInfo.code}
         inviteLocked={inviteLocked}

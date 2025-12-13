@@ -19,6 +19,12 @@ export interface User {
   wallet_address?: string;
 }
 
+export interface UserLoginRes {
+  user: User;
+  is_new: boolean;
+  session: string;
+}
+
 // 广告相关类型定义
 export interface AdInfo {
   // 根据Dart的AdInfo类定义相应的字段

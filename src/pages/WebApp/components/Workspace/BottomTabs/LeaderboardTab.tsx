@@ -1,9 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Crown } from 'lucide-react';
-import { UserProfile, LeaderboardEntry } from '../../../types';
+import { LeaderboardEntry } from '@/types.ts';
+import { User } from '@/services/model/types.ts';
 
 interface LeaderboardTabProps {
-  user: UserProfile;
+  user: User;
   leaderboard: LeaderboardEntry[];
 }
 
@@ -12,10 +13,7 @@ const PAGE_SIZE = 10;
 /**
  * 排行榜 Tab 组件
  */
-export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({
-  user,
-  leaderboard,
-}) => {
+export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ user, leaderboard }) => {
   const [page, setPage] = useState(1);
 
   const computedLeaderboard = useMemo(() => {
@@ -23,7 +21,7 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({
     const hasSelf = list.some(
       (e) =>
         e.nickname.toLowerCase() === (user.nickname || '').toLowerCase() ||
-        e.address === user.walletAddress,
+        e.address === user.wallet_address,
     );
     if (!hasSelf && user.balanceMEMO > 0 && user.nickname) {
       list.push({
@@ -80,9 +78,7 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({
                 <div
                   className={`w-16 h-16 rounded-full border-2 flex items-center justify-center bg-black ring-4 ${isFirst ? 'border-yellow-500' : 'border-white/20'} ${ringColor} ${glow}`}
                 >
-                  <span className="text-xl font-bold text-white">
-                    {entry.address.slice(2, 4)}
-                  </span>
+                  <span className="text-xl font-bold text-white">{entry.address.slice(2, 4)}</span>
                 </div>
                 <div
                   className={`absolute -bottom-3 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded text-[10px] font-bold ${isFirst ? 'bg-yellow-500 text-black' : 'bg-white/20 text-white'}`}
@@ -97,12 +93,8 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({
                 </div>
               </div>
               <div className="mt-4 text-center">
-                <div className="text-sm font-bold text-white">
-                  {entry.nickname}
-                </div>
-                <div className="text-[10px] font-mono text-gray-500">
-                  {entry.address}
-                </div>
+                <div className="text-sm font-bold text-white">{entry.nickname}</div>
+                <div className="text-[10px] font-mono text-gray-500">{entry.address}</div>
                 <div className="text-sm font-bold text-tech-blue mt-1">
                   {entry.totalEarned.toLocaleString()}{' '}
                   <span className="text-[10px] text-gray-400">$mEMO</span>
@@ -122,49 +114,43 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({
               <span className="text-white text-sm">#{selfRank}</span>
             </div>
             <div className="text-[10px] text-gray-400">{user.nickname}</div>
-            <div className="text-[10px] text-tech-blue">
-              {user.walletAddress}
-            </div>
+            <div className="text-[10px] text-tech-blue">{user.walletAddress}</div>
             <div className="text-white font-bold text-sm">
               {user.balanceMEMO.toLocaleString()}{' '}
               <span className="text-[10px] text-gray-500">$mEMO</span>
             </div>
           </div>
         </div>
-        {otherEntries
-          .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-          .map((entry) => {
-            const isSelf = selfEntry && entry.rank === selfEntry.rank;
-            return (
-              <div
-                key={entry.rank}
-                className={`flex items-center justify-between p-4 border-b border-white/5 hover:bg-white/5 transition-colors ${isSelf ? 'bg-white/5 border border-tech-blue/30 rounded' : ''}`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-8 h-8 flex items-center justify-center font-bold font-mono text-gray-500">
-                    #{entry.rank}
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-white flex items-center gap-2">
-                      {entry.nickname}
-                      {isSelf && (
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-tech-blue/20 text-tech-blue font-mono">
-                          YOU
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-[10px] font-mono text-gray-500">
-                      {entry.address}
-                    </div>
-                  </div>
+        {otherEntries.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((entry) => {
+          const isSelf = selfEntry && entry.rank === selfEntry.rank;
+          return (
+            <div
+              key={entry.rank}
+              className={`flex items-center justify-between p-4 border-b border-white/5 hover:bg-white/5 transition-colors ${isSelf ? 'bg-white/5 border border-tech-blue/30 rounded' : ''}`}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-8 h-8 flex items-center justify-center font-bold font-mono text-gray-500">
+                  #{entry.rank}
                 </div>
-                <div className="font-mono text-sm text-white font-bold">
-                  {entry.totalEarned.toLocaleString()}{' '}
-                  <span className="text-[10px] text-gray-500">$mEMO</span>
+                <div>
+                  <div className="text-sm font-bold text-white flex items-center gap-2">
+                    {entry.nickname}
+                    {isSelf && (
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-tech-blue/20 text-tech-blue font-mono">
+                        YOU
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[10px] font-mono text-gray-500">{entry.address}</div>
                 </div>
               </div>
-            );
-          })}
+              <div className="font-mono text-sm text-white font-bold">
+                {entry.totalEarned.toLocaleString()}{' '}
+                <span className="text-[10px] text-gray-500">$mEMO</span>
+              </div>
+            </div>
+          );
+        })}
         <div className="flex justify-center items-center gap-3 pt-2">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -189,4 +175,3 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({
     </div>
   );
 };
-

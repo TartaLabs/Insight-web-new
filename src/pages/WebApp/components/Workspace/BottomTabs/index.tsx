@@ -1,24 +1,24 @@
 import React, { useState } from 'react';
-import { Clock, Wallet, Crown, Share2, CreditCard } from 'lucide-react';
+import { Clock, CreditCard, Crown, Share2, Wallet } from 'lucide-react';
 import {
-  UserProfile,
+  InviteCodeInfo,
+  Invitee,
+  LeaderboardEntry,
+  RenameResult,
+  SubscriptionRecord,
+  TabType,
   TaskRecord,
   Transaction,
-  LeaderboardEntry,
-  Invitee,
-  SubscriptionRecord,
-  InviteCodeInfo,
-  TabType,
-  RenameResult,
 } from '../../../types';
 import { ContributionsTab } from './ContributionsTab';
 import { LedgerTab } from './LedgerTab';
 import { LeaderboardTab } from './LeaderboardTab';
 import { InvitationTab } from './InvitationTab';
 import { SubscriptionsTab } from './SubscriptionsTab';
+import { User } from '@/services/model/types.ts';
 
 interface BottomTabsProps {
-  user: UserProfile;
+  user: User;
   tasks: TaskRecord[];
   history: Transaction[];
   leaderboard: LeaderboardEntry[];
@@ -91,20 +91,14 @@ export const BottomTabs: React.FC<BottomTabsProps> = ({
       {/* Tab Content */}
       <div className="p-6">
         {activeTab === 'contributions' && (
-          <ContributionsTab
-            tasks={tasks}
-            onResumeTask={onResumeTask}
-            onDeleteTask={onDeleteTask}
-          />
+          <ContributionsTab tasks={tasks} onResumeTask={onResumeTask} onDeleteTask={onDeleteTask} />
         )}
 
         {activeTab === 'memo_history' && (
           <LedgerTab history={history} onRetryClaim={onRetryClaim} />
         )}
 
-        {activeTab === 'leaderboard' && (
-          <LeaderboardTab user={user} leaderboard={leaderboard} />
-        )}
+        {activeTab === 'leaderboard' && <LeaderboardTab user={user} leaderboard={leaderboard} />}
 
         {activeTab === 'invitation' && (
           <InvitationTab
@@ -119,9 +113,7 @@ export const BottomTabs: React.FC<BottomTabsProps> = ({
           />
         )}
 
-        {activeTab === 'subscriptions' && (
-          <SubscriptionsTab subscriptions={subscriptions} />
-        )}
+        {activeTab === 'subscriptions' && <SubscriptionsTab subscriptions={subscriptions} />}
       </div>
     </div>
   );
@@ -132,4 +124,3 @@ export { LedgerTab } from './LedgerTab';
 export { LeaderboardTab } from './LeaderboardTab';
 export { InvitationTab } from './InvitationTab';
 export { SubscriptionsTab } from './SubscriptionsTab';
-

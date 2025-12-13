@@ -5,7 +5,7 @@
 
 // Re-export common types from global types
 export type {
-  UserProfile,
+  User,
   TaskCounts,
   Transaction,
   LeaderboardEntry,
