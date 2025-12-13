@@ -37,20 +37,22 @@ export const ContributionsTab: React.FC = () => {
           <div className="space-y-3">
             {drafts.map((draft) => (
               <div
-                key={draft.id}
+                key={draft.task_id}
                 className="bg-white/5 border border-white/10 p-3 flex gap-3 group hover:border-tech-blue/30 transition-colors"
               >
                 <div className="w-12 h-12 bg-black border border-white/10 overflow-hidden relative">
-                  <img
-                    src={draft.imageUrl}
-                    className="w-full h-full object-cover opacity-50 grayscale"
-                    alt="Draft"
-                  />
+                  {draft.draft.imageUrl && (
+                    <img
+                      src={draft.draft.imageUrl}
+                      className="w-full h-full object-cover opacity-50 grayscale"
+                      alt="Draft"
+                    />
+                  )}
                   <div className="absolute inset-0 bg-tech-blue/10" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-xs font-bold text-white mb-1 truncate">
-                    {draft.emotion} Sequence
+                    {draft.task.emotion_type} Sequence
                   </div>
                   <div className="text-[10px] text-gray-500 font-mono">
                     {new Date(draft.timestamp).toLocaleTimeString()}
@@ -64,7 +66,7 @@ export const ContributionsTab: React.FC = () => {
                     <Edit2 size={10} />
                   </button>
                   <button
-                    onClick={() => deleteTaskRecord(draft.id)}
+                    onClick={() => deleteTaskRecord(draft.task_id)}
                     className="p-1.5 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white"
                   >
                     <Trash2 size={10} />
@@ -98,14 +100,14 @@ export const ContributionsTab: React.FC = () => {
               .slice((uploadPage - 1) * UPLOAD_PAGE_SIZE, uploadPage * UPLOAD_PAGE_SIZE)
               .map((task) => (
                 <div
-                  key={task.id}
+                  key={task.task_id}
                   className="grid grid-cols-12 items-center text-xs px-4 py-3 bg-white/5 border border-white/5 hover:bg-white/10 transition-colors"
                 >
                   <div className="col-span-2 font-mono text-gray-400">
                     {new Date(task.timestamp).toLocaleTimeString()}
                   </div>
-                  <div className="col-span-3 font-bold text-white">{task.emotion}</div>
-                  <div className="col-span-3 font-mono text-gray-500 truncate">{task.id}</div>
+                  <div className="col-span-3 font-bold text-white">{task.task.emotion_type}</div>
+                  <div className="col-span-3 font-mono text-gray-500 truncate">{task.task_id}</div>
                   <div className="col-span-2 flex justify-center">
                     <button
                       onClick={() => setSelectedTask(task)}

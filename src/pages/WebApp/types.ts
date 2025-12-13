@@ -12,6 +12,7 @@ export type {
   EmotionType,
   PricingPlan,
   TaskRecord,
+  TaskDraftData,
   Invitee,
   SubscriptionRecord,
   TaskStatus,

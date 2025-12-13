@@ -59,25 +59,32 @@ export type EmotionType = 'HAPPY' | 'SAD' | 'ANGRY' | 'FEAR' | 'SURPRISE' | 'DIS
 
 // --- Web App Types ---
 
+import type { Task } from './services/model/types';
+
 export type TaskStatus = 'DRAFT' | 'AUDITING' | 'LABELED' | 'REJECTED';
 
+/**
+ * 本地草稿数据，存放用户未提交的本地状态
+ */
+export interface TaskDraftData {
+  imageUrl?: string; // 用户拍摄的图片
+  answers?: Record<number, string | number>; // question_id -> answer
+}
+
+/**
+ * 任务记录
+ * - task_id: 服务端任务ID，作为唯一标识
+ * - task: 服务端任务实例，包含 emotion_type, questions, reward_amount 等
+ * - draft: 用户本地未提交的数据（图片、答案等）
+ * - status: 本地状态（DRAFT 表示未提交，其他状态从服务端同步）
+ */
 export interface TaskRecord {
-  id: string;
-  emotion: EmotionType;
-  imageUrl: string;
-  status: TaskStatus;
-  reward: number;
-  timestamp: number;
+  task_id: string; // 服务端任务ID，作为唯一标识
+  task: Task; // 持有服务端任务实例
+  draft: TaskDraftData; // 用户本地未提交的数据
+  status: TaskStatus; // 本地状态
+  timestamp: number; // 创建/更新时间
   failReason?: string;
-  draftData?: {
-    // 新格式：动态问题答案
-    answers?: Record<number, string | number>; // question_id -> answer
-    // 旧格式（保留向后兼容）
-    isClear?: boolean;
-    intensity?: number;
-    isStaged?: boolean;
-    arousal?: number;
-  };
 }
 
 export interface Invitee {

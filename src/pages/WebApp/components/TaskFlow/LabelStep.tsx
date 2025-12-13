@@ -5,6 +5,7 @@ import { Button } from '../Button';
 import type { Question, QuestionAnswer } from '../../../../services/model/types';
 
 interface LabelStepProps {
+  submitLoading: boolean;
   emotion: EmotionType;
   questions: Question[];
   answers: Record<number, string | number>; // question_id -> answer
@@ -18,6 +19,7 @@ interface LabelStepProps {
  * 根据 API 返回的 questions 动态渲染表单
  */
 export const LabelStep: React.FC<LabelStepProps> = ({
+  submitLoading,
   emotion,
   questions,
   answers,
@@ -135,7 +137,12 @@ export const LabelStep: React.FC<LabelStepProps> = ({
         </div>
       ))}
 
-      <Button onClick={handleSubmit} disabled={!canSubmit} className="w-full mt-8">
+      <Button
+        loading={submitLoading}
+        onClick={handleSubmit}
+        disabled={!canSubmit}
+        className="w-full mt-8"
+      >
         Submit to Consensus
       </Button>
     </div>

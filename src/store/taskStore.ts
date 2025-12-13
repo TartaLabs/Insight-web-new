@@ -1,21 +1,33 @@
 import { create } from 'zustand';
-import type { Task } from '../services/model/types';
-import type { TaskRecord, EmotionType } from '../types';
+import type { Task, QuestionAnswer } from '../services/model/types';
+import type { TaskRecord, TaskDraftData, EmotionType } from '../types';
 import { apiTask } from '../services/api';
+import { dataUrlToFile } from '@/utils';
+import toast from 'react-hot-toast';
 
-// 统一的任务流状态：当用户正在进行任务时，此对象存在
-// apiTask 和 draft 互斥：新任务时只有 apiTask，恢复草稿时只有 draft
+/**
+ * 统一的任务流状态：当用户正在进行任务时，此对象存在
+ * - task: 服务端任务实例（始终存在）
+ * - draft: 用户本地未提交的数据（图片、答案等）
+ */
 export interface ActiveTaskFlow {
-  apiTask?: Task; // 新任务时存在
-  draft?: TaskRecord; // 恢复草稿时存在
+  task: Task; // 服务端任务实例，始终存在
+  draft: TaskDraftData; // 用户本地未提交的数据
 }
 
-// 从 activeTaskFlow 获取 emotion（供组件使用）
-// 现在 EmotionType 与 API 类型统一，无需映射
+// 从 activeTaskFlow 获取 emotion
 export const getEmotionFromTaskFlow = (flow: ActiveTaskFlow): EmotionType => {
-  if (flow.draft) return flow.draft.emotion;
-  if (flow.apiTask) return flow.apiTask.emotion_type;
-  throw new Error('Invalid ActiveTaskFlow: neither draft nor apiTask exists');
+  return flow.task.emotion_type;
+};
+
+// 从 activeTaskFlow 获取 questions
+export const getQuestionsFromTaskFlow = (flow: ActiveTaskFlow) => {
+  return flow.task.questions;
+};
+
+// 从 activeTaskFlow 获取 rewardAmount
+export const getRewardAmountFromTaskFlow = (flow: ActiveTaskFlow): number => {
+  return flow.task.reward_amount;
 };
 
 interface TaskState {
@@ -24,13 +36,15 @@ interface TaskState {
   claimedAt: number;
 
   // Local Task Records (drafts, submitted, etc.)
+  // 以 task_id 作为唯一标识
   taskRecords: TaskRecord[];
 
-  // Active task flow state (简化为单一状态)
+  // Active task flow state
   activeTaskFlow: ActiveTaskFlow | null;
 
   // Loading state
   loading: boolean;
+  submitLoading: boolean;
   error: string | null;
   initialized: boolean;
 
@@ -46,11 +60,14 @@ interface TaskState {
 
   // Task flow handlers
   startTask: (task: Task) => void;
-  resumeTask: (task: TaskRecord) => void;
+  resumeTask: (record: TaskRecord) => void;
   cancelTask: () => void;
-  saveDraft: (record: TaskRecord) => void;
-  submitTask: (record: TaskRecord, onRewardIssued?: (amount: number) => void) => void;
-  deleteTaskRecord: (id: string) => void;
+  saveDraft: (draft: TaskDraftData) => void;
+  submitTask: (
+    answers: QuestionAnswer[],
+    onRewardIssued?: (amount: number) => void,
+  ) => Promise<void>;
+  deleteTaskRecord: (taskId: string) => void;
 }
 
 export const useTaskStore = create<TaskState>((set, get) => ({
@@ -68,6 +85,8 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   loading: false,
   error: null,
   initialized: false,
+
+  submitLoading: false,
 
   fetchDailyTasks: async () => {
     // 避免重复请求
@@ -122,20 +141,42 @@ export const useTaskStore = create<TaskState>((set, get) => ({
 
   // Task flow handlers
   startTask: (task: Task) => {
-    set({ activeTaskFlow: { apiTask: task } });
+    set({
+      activeTaskFlow: {
+        task,
+        draft: {},
+      },
+    });
   },
 
-  resumeTask: (draft: TaskRecord) => {
-    set({ activeTaskFlow: { draft } });
+  resumeTask: (record: TaskRecord) => {
+    set({
+      activeTaskFlow: {
+        task: record.task,
+        draft: record.draft,
+      },
+    });
   },
 
   cancelTask: () => {
     set({ activeTaskFlow: null });
   },
 
-  saveDraft: (record: TaskRecord) => {
+  saveDraft: (draft: TaskDraftData) => {
+    const { activeTaskFlow } = get();
+    if (!activeTaskFlow) return;
+
+    const taskId = activeTaskFlow.task.id;
+    const record: TaskRecord = {
+      task_id: taskId,
+      task: activeTaskFlow.task,
+      draft,
+      status: 'DRAFT',
+      timestamp: Date.now(),
+    };
+
     set((state) => {
-      const existing = state.taskRecords.findIndex((t) => t.id === record.id);
+      const existing = state.taskRecords.findIndex((t) => t.task_id === taskId);
       if (existing !== -1) {
         const updated = [...state.taskRecords];
         updated[existing] = record;
@@ -151,44 +192,37 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     });
   },
 
-  submitTask: (record: TaskRecord, onRewardIssued?: (amount: number) => void) => {
-    set((state) => {
-      // Update task records
-      const filtered = state.taskRecords.filter((t) => t.id !== record.id);
-      const updatedRecords = [{ ...record, status: 'AUDITING' as const }, ...filtered];
+  submitTask: async (answers: QuestionAnswer[], onRewardIssued?: (amount: number) => void) => {
+    const { activeTaskFlow } = get();
+    if (!activeTaskFlow || !activeTaskFlow.draft.imageUrl) return;
 
-      return {
-        taskRecords: updatedRecords,
-        activeTaskFlow: null,
-      };
-    });
+    const task = activeTaskFlow.task;
+    const apiTaskId = task.task_id; // 任务类型 ID，用于 API 调用 (number)
+    const imageUrl = activeTaskFlow.draft.imageUrl;
 
-    // Simulate audit process
-    setTimeout(() => {
-      const passed = Math.random() > 0.2;
+    try {
+      set({ submitLoading: true });
+      // 将 imageUrl 转为 File 结构，并上传到服务器
+      const file = dataUrlToFile(imageUrl, 'image.png');
+      const mediaUrl = await apiTask.uploadTaskImage(apiTaskId, file);
 
-      set((state) => ({
-        taskRecords: state.taskRecords.map((t) => {
-          if (t.id === record.id) {
-            return {
-              ...t,
-              status: passed ? ('LABELED' as const) : ('REJECTED' as const),
-              failReason: passed ? undefined : 'Blurry or Incorrect Emotion',
-            };
-          }
-          return t;
-        }),
-      }));
-
-      if (passed && onRewardIssued) {
-        onRewardIssued(record.reward);
+      if (mediaUrl) {
+        await apiTask.submissionTask(apiTaskId, [{ url: mediaUrl, answers }]);
+        onRewardIssued?.(task.reward_amount);
       }
-    }, 5000);
+      toast.success('Task submitted successfully');
+    } catch (error) {
+      toast.error('Failed to submit task');
+      console.error('Failed to submit task:', error);
+      // 保持 activeTaskFlow 状态，让用户可以重试
+    } finally {
+      set({ submitLoading: false });
+    }
   },
 
-  deleteTaskRecord: (id: string) => {
+  deleteTaskRecord: (taskId: string) => {
     set((state) => ({
-      taskRecords: state.taskRecords.filter((t) => t.id !== id),
+      taskRecords: state.taskRecords.filter((t) => t.task_id !== taskId),
     }));
   },
 }));

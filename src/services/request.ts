@@ -177,42 +177,25 @@ class Request {
   // 上传图片方法
   public async uploadImage(uploadUrl: string, file: File): Promise<void> {
     try {
-      // 使用fetch API替代axios，避免axios默认配置导致的CORS问题
-      // fetch API更底层，更容易控制请求头和配置
-      const controller = new AbortController();
-      const signal = controller.signal;
+      // 创建独立的axios实例，避免主实例的拦截器和默认配置导致的CORS问题
+      const uploadAxios = axios.create({
+        timeout: 60000, // 上传超时时间设置长一些
+        // 不设置baseURL，使用完整的uploadUrl
+        // 不添加任何拦截器
+      });
 
-      // 配置上传取消token
-      if (this._cancelToken.token.reason) {
-        controller.abort();
-      }
-
-      // 仅使用最基本的配置，避免任何可能导致CORS问题的头信息
-      const options: RequestInit = {
-        method: 'PUT',
-        body: file,
-        signal,
-        // 不设置任何自定义头，让浏览器自动处理
-        // 只设置Content-Type，如果不设置，浏览器会自动添加
+      // 使用PUT请求上传图片到预签名URL
+      await uploadAxios.put(uploadUrl, file, {
         headers: {
           'Content-Type': 'image/jpg',
-          'Content-Length': file.size.toString(),
           'Content-Disposition': 'inline',
           'Cache-Control': 'max-age=3600',
           'x-amz-acl': 'public-read',
         },
-        // 禁用凭证，避免CORS凭证问题
-        credentials: 'include',
-      };
-
-      console.log('options', options);
-      // 发送上传请求
-      const response = await fetch(uploadUrl, options);
-
-      // 检查响应状态
-      if (!response.ok) {
-        throw new Error(`Upload failed with status: ${response.status}`);
-      }
+        // 不发送凭证，避免CORS凭证问题
+        withCredentials: false,
+        cancelToken: this._cancelToken.token,
+      });
     } catch (e) {
       this._handleError(e as AxiosError);
       throw e;

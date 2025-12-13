@@ -17,13 +17,13 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   const [photoRevealed, setPhotoRevealed] = useState(false);
 
   // Reset photo reveal when task changes
-  const prevTaskId = useRef(task.id);
+  const prevTaskId = useRef(task.task_id);
   useEffect(() => {
-    if (prevTaskId.current !== task.id) {
+    if (prevTaskId.current !== task.task_id) {
       setPhotoRevealed(false);
-      prevTaskId.current = task.id;
+      prevTaskId.current = task.task_id;
     }
-  }, [task.id]);
+  }, [task.task_id]);
 
   return (
     <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center px-4">
@@ -44,7 +44,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 Submission Details
               </div>
               <div className="text-[11px] text-gray-400 font-mono mt-1">
-                ID: {task.id}
+                ID: {task.task_id}
               </div>
             </div>
             <div className="text-[11px] text-gray-500 font-mono">
@@ -82,7 +82,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   <div className="text-[10px] text-gray-500 uppercase mb-1">
                     Emotion
                   </div>
-                  <div className="font-bold text-lg">{task.emotion}</div>
+                  <div className="font-bold text-lg">{task.task.emotion_type}</div>
                 </div>
                 <div>
                   <div className="text-[10px] text-gray-500 uppercase mb-1">
@@ -111,38 +111,16 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   User Labels
                 </div>
                 <div className="grid grid-cols-2 gap-y-2 text-xs text-gray-300">
-                  <div>
-                    Face Clear:{' '}
-                    <span className="text-white font-bold">
-                      {task.draftData?.isClear === true
-                        ? 'Yes'
-                        : task.draftData?.isClear === false
-                          ? 'No'
-                          : 'N/A'}
-                    </span>
-                  </div>
-                  <div>
-                    Emotion Intensity:{' '}
-                    <span className="text-white font-bold">
-                      {task.draftData?.intensity ?? 'N/A'}
-                    </span>
-                  </div>
-                  <div>
-                    Natural or Pose:{' '}
-                    <span className="text-white font-bold">
-                      {task.draftData?.isStaged === true
-                        ? 'Pose'
-                        : task.draftData?.isStaged === false
-                          ? 'Natural'
-                          : 'N/A'}
-                    </span>
-                  </div>
-                  <div>
-                    Continuity:{' '}
-                    <span className="text-white font-bold">
-                      {task.draftData?.arousal ?? 'N/A'}
-                    </span>
-                  </div>
+                  {task.draft.answers && Object.entries(task.draft.answers).length > 0 ? (
+                    Object.entries(task.draft.answers).map(([questionId, answer]) => (
+                      <div key={questionId}>
+                        Q{questionId}:{' '}
+                        <span className="text-white font-bold">{String(answer)}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-2 text-gray-500">No answers recorded</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -153,13 +131,13 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 Photo Preview
               </div>
               <div
-                className={`flex-1 border border-dashed border-white/15 bg-black/40 rounded-md flex items-center justify-center min-h-[280px] text-gray-500 text-xs overflow-hidden relative ${task.imageUrl ? 'cursor-pointer' : ''}`}
+                className={`flex-1 border border-dashed border-white/15 bg-black/40 rounded-md flex items-center justify-center min-h-[280px] text-gray-500 text-xs overflow-hidden relative ${task.draft.imageUrl ? 'cursor-pointer' : ''}`}
                 onClick={() => setPhotoRevealed(true)}
               >
-                {task.imageUrl ? (
+                {task.draft.imageUrl ? (
                   <>
                     <img
-                      src={task.imageUrl}
+                      src={task.draft.imageUrl}
                       alt="Captured"
                       className={`w-full h-full object-contain rounded-md transition-all duration-300 ${photoRevealed ? 'blur-0 opacity-100' : 'blur-sm scale-105 opacity-80'}`}
                     />
@@ -181,7 +159,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   </div>
                 )}
               </div>
-              {task.imageUrl && !photoRevealed && (
+              {task.draft.imageUrl && !photoRevealed && (
                 <button
                   onClick={() => setPhotoRevealed(true)}
                   className="text-[11px] text-tech-blue underline hover:text-white text-left"

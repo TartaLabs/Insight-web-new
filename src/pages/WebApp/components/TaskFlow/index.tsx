@@ -1,54 +1,50 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
-import { EmotionType, TaskRecord } from '../../types';
 import { ExampleStep } from './ExampleStep';
 import { CaptureStep } from './CaptureStep';
 import { ReviewStep } from './ReviewStep';
 import { LabelStep } from './LabelStep';
-import type { Question, QuestionAnswer } from '../../../../services/model/types';
-
-interface TaskFlowProps {
-  emotion: EmotionType;
-  questions: Question[];
-  initialTask?: TaskRecord;
-  rewardAmount: number;
-  onSave: (task: TaskRecord) => void;
-  onSubmit: (task: TaskRecord, answers: QuestionAnswer[]) => void;
-  onCancel: () => void;
-}
+import type { QuestionAnswer } from '../../../../services/model/types';
+import {
+  useTaskStore,
+  getEmotionFromTaskFlow,
+  getQuestionsFromTaskFlow,
+  getRewardAmountFromTaskFlow,
+  type ActiveTaskFlow,
+} from '../../../../store/taskStore';
 
 type Step = 'example' | 'capture' | 'review' | 'label';
 
 /**
- * 任务流程容器组件
- * 管理任务执行的各个步骤
+ * 任务流程内部组件
+ * 接收确定存在的 activeTaskFlow，处理所有 hooks 和渲染逻辑
  */
-export const TaskFlow: React.FC<TaskFlowProps> = ({
-  emotion,
-  questions,
-  initialTask,
-  rewardAmount,
-  onSave,
-  onSubmit,
-  onCancel,
-}) => {
+const TaskFlowContent: React.FC<{ flow: ActiveTaskFlow }> = ({ flow }) => {
+  const { saveDraft, submitTask, cancelTask, submitLoading } = useTaskStore();
+
+  // 从 activeTaskFlow 获取数据
+  const emotion = getEmotionFromTaskFlow(flow);
+  const questions = getQuestionsFromTaskFlow(flow);
+  const rewardAmount = getRewardAmountFromTaskFlow(flow);
+  const initialDraft = flow.draft;
+
   const [currentStep, setCurrentStep] = useState<Step>(
-    initialTask?.imageUrl ? 'review' : 'example',
+    initialDraft?.imageUrl ? 'review' : 'example',
   );
 
   // Data State
-  const [photo, setPhoto] = useState<string | null>(initialTask?.imageUrl || null);
+  const [photo, setPhoto] = useState<string | null>(initialDraft?.imageUrl || null);
 
   // 问题答案状态: question_id -> answer
   const [answers, setAnswers] = useState<Record<number, string | number>>(() => {
+    // 如果有草稿数据，尝试恢复答案
+    if (initialDraft?.answers) {
+      return initialDraft.answers;
+    }
+
     // 初始化答案状态
     const initialAnswers: Record<number, string | number> = {};
-
-    // 如果有草稿数据，尝试恢复答案
-    if (initialTask?.draftData?.answers) {
-      return initialTask.draftData.answers;
-    }
 
     // 为 RATING 类型问题设置默认值 50
     questions.forEach((q) => {
@@ -82,18 +78,10 @@ export const TaskFlow: React.FC<TaskFlowProps> = ({
   const handleSaveDraft = () => {
     if (!photo) return;
 
-    const task: TaskRecord = {
-      id: initialTask?.id || Date.now().toString(),
-      emotion,
+    saveDraft({
       imageUrl: photo,
-      status: 'DRAFT',
-      reward: rewardAmount,
-      timestamp: Date.now(),
-      draftData: {
-        answers,
-      },
-    };
-    onSave(task);
+      answers,
+    });
   };
 
   const handleConfirmPhoto = () => {
@@ -106,18 +94,16 @@ export const TaskFlow: React.FC<TaskFlowProps> = ({
 
   const handleSubmit = (answerList: QuestionAnswer[]) => {
     if (photo) {
-      const task: TaskRecord = {
-        id: initialTask?.id || Date.now().toString(),
-        emotion,
-        imageUrl: photo,
-        status: 'AUDITING',
-        reward: rewardAmount,
-        timestamp: Date.now(),
-        draftData: {
-          answers,
-        },
-      };
-      onSubmit(task, answerList);
+      // 先更新 draft 中的数据，然后提交
+      useTaskStore.setState((state) => ({
+        activeTaskFlow: state.activeTaskFlow
+          ? {
+              ...state.activeTaskFlow,
+              draft: { imageUrl: photo, answers },
+            }
+          : null,
+      }));
+      submitTask(answerList);
     }
   };
 
@@ -132,7 +118,10 @@ export const TaskFlow: React.FC<TaskFlowProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-tech-blue/20 bg-tech-blue/5">
           <div className="flex items-center gap-4">
-            <button onClick={onCancel} className="text-gray-400 hover:text-white transition-colors">
+            <button
+              onClick={cancelTask}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
               <ArrowLeft size={20} />
             </button>
             <div>
@@ -173,6 +162,7 @@ export const TaskFlow: React.FC<TaskFlowProps> = ({
 
           {currentStep === 'label' && (
             <LabelStep
+              submitLoading={submitLoading}
               emotion={emotion}
               questions={questions}
               answers={answers}
@@ -185,6 +175,20 @@ export const TaskFlow: React.FC<TaskFlowProps> = ({
       </div>
     </motion.div>
   );
+};
+
+/**
+ * 任务流程容器组件
+ * 管理任务执行的各个步骤
+ * 所有数据从 store 的 activeTaskFlow 中获取
+ */
+export const TaskFlow: React.FC = () => {
+  const { activeTaskFlow } = useTaskStore();
+
+  // 如果没有 activeTaskFlow，不渲染
+  if (!activeTaskFlow) return null;
+
+  return <TaskFlowContent flow={activeTaskFlow} />;
 };
 
 export { ExampleStep } from './ExampleStep';

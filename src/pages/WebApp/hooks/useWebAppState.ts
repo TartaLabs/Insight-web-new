@@ -1,14 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  EmotionType,
-  Invitee,
-  LeaderboardEntry,
-  PricingPlan,
-  RenameResult,
-  SubscriptionRecord,
-  TaskRecord,
-  Transaction,
-} from '../types';
+import { Invitee, LeaderboardEntry, SubscriptionRecord, Transaction } from '../types';
 import { useInviteCode } from './useInviteCode';
 import { useTransaction } from './useTransaction';
 import { User } from '@/services/model/types.ts';
@@ -104,7 +95,7 @@ export interface UseWebAppStateReturn {
   handleRetryClaim: (tx: Transaction) => void;
 
   // Upgrade handler
-  handleUpgrade: (plan: PricingPlan) => void;
+  handleUpgrade: (proVersion: string) => void;
 
   // Computed values
   getDailyLimit: () => number;
@@ -359,7 +350,7 @@ export function useWebAppState(): UseWebAppStateReturn {
   );
 
   const handleUpgrade = useCallback(
-    (plan: PricingPlan) => {
+    (proVersion: string) => {
       // if (user.balanceUSDT < plan.usdtPrice) {
       //   alert('Insufficient USDT');
       //   return;

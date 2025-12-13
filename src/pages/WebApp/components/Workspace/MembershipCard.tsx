@@ -5,7 +5,6 @@ import { useProStore } from '@/store/proStore';
 import { useUserStore } from '@/store/userStore';
 
 interface MembershipCardProps {
-  hasClaimedBonus: boolean;
   onClaimBonus: () => void;
   onUpgradeClick: () => void;
 }
@@ -14,13 +13,12 @@ interface MembershipCardProps {
  * 会员等级卡片组件
  * 显示会员状态、每日奖励和升级按钮
  */
-export const MembershipCard: React.FC<MembershipCardProps> = ({
-  hasClaimedBonus,
-  onClaimBonus,
-  onUpgradeClick,
-}) => {
+export const MembershipCard: React.FC<MembershipCardProps> = ({ onClaimBonus, onUpgradeClick }) => {
   const pro = useProStore((state) => state.pro);
   const user = useUserStore((state) => state.user);
+  const pendingReward = useUserStore((state) => state.pendingRewards);
+
+  const hasClaimedBonus = pendingReward > 0;
 
   return (
     <HudPanel className="col-span-1 lg:col-span-1 p-5 flex flex-col gap-4">

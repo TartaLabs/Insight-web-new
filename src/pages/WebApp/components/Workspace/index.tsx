@@ -11,18 +11,10 @@ import {
   LeaderboardEntry,
   RenameResult,
   SubscriptionRecord,
-  TaskCounts,
-  TaskRecord,
   Transaction,
 } from '../../types';
-import { User } from '@/services/model/types.ts';
 
 interface WorkspaceProps {
-  user: User;
-  tasks: TaskRecord[];
-  taskCounts: TaskCounts;
-  dailyLimit: number;
-  rewardPerTask: number;
   history: Transaction[];
   leaderboard: LeaderboardEntry[];
   invitees: Invitee[];
