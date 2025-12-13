@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Smartphone, Monitor, Zap, Shield, ChevronRight, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Smartphone, Monitor, Zap, Shield, ChevronRight } from 'lucide-react';
+import { ComingSoonModal } from './ComingSoonModal';
 
 const AppleLogo = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 384 512" fill="currentColor" {...props}>
@@ -20,6 +21,7 @@ interface PlatformShowcaseProps {
 
 export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) => {
   const [showComingSoon, setShowComingSoon] = useState(false);
+  const [comingSoonType, setComingSoonType] = useState<'mobile' | 'web'>('mobile');
 
   return (
     <div className="w-full py-12 container mx-auto px-6">
@@ -28,7 +30,8 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
           <span className="text-white">Choose Your Interface</span>
         </h2>
         <p className="text-tech-gray max-w-4xl mx-auto text-lg leading-relaxed">
-          Insight is available wherever you are. Mobile users enjoy seamless onboarding via Sequence AA on BNB Chain, while Web users retain full control via EOA on Mantle.
+          Insight is available wherever you are. Mobile users enjoy seamless onboarding via Sequence
+          AA on BNB Chain, while Web users retain full control via EOA on Mantle.
         </p>
       </div>
 
@@ -42,12 +45,12 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
 
           <div className="p-8 md:p-12 relative z-10">
             <div className="flex items-center justify-between mb-8">
-               <div className="w-16 h-16 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400">
-                 <Smartphone size={32} />
-               </div>
-               <div className="px-4 py-1 rounded-full border border-blue-400/30 bg-blue-400/5 text-blue-400 text-xs font-mono tracking-widest">
-                 BNB CHAIN
-               </div>
+              <div className="w-16 h-16 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400">
+                <Smartphone size={32} />
+              </div>
+              <div className="px-4 py-1 rounded-full border border-blue-400/30 bg-blue-400/5 text-blue-400 text-xs font-mono tracking-widest">
+                BNB CHAIN
+              </div>
             </div>
 
             <h3 className="text-3xl font-bold text-white mb-2">Insight Mobile</h3>
@@ -57,27 +60,30 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
             </p>
 
             <div className="grid grid-cols-2 gap-4 mb-10 text-sm">
-               <div className="flex items-center gap-3 text-gray-300">
-                  <Shield size={16} className="text-blue-400" />
-                  <span>Sequence AA Wallet</span>
-               </div>
-               <div className="flex items-center gap-3 text-gray-300">
-                  <Zap size={16} className="text-blue-400" />
-                  <span>Earn $bEMO</span>
-               </div>
+              <div className="flex items-center gap-3 text-gray-300">
+                <Shield size={16} className="text-blue-400" />
+                <span>Sequence AA Wallet</span>
+              </div>
+              <div className="flex items-center gap-3 text-gray-300">
+                <Zap size={16} className="text-blue-400" />
+                <span>Earn $bEMO</span>
+              </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
               <button
-                onClick={() => setShowComingSoon(true)}
+                onClick={() => {
+                  setComingSoonType('mobile');
+                  setShowComingSoon(true);
+                }}
                 className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-400 text-white py-4 rounded font-bold hover:opacity-90 transition-opacity shadow-[0_10px_30px_rgba(59,130,246,0.3)]"
               >
                 <AppleLogo height={18} width={18} />
                 <span>Apple Store</span>
               </button>
-              <a 
-                href="https://play.google.com/store/apps/details?id=io.tartalabs.insight" 
-                target="_blank" 
+              <a
+                href="https://play.google.com/store/apps/details?id=io.tartalabs.insight"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 flex items-center justify-center gap-2 border border-white/20 text-white py-4 rounded font-bold hover:bg-white/10 transition-colors"
               >
@@ -122,7 +128,14 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
             </div>
 
             <button
-              onClick={onLaunch}
+              onClick={() => {
+                if (process.env.NODE_ENV !== 'production') {
+                  onLaunch?.();
+                } else {
+                  setComingSoonType('web');
+                  setShowComingSoon(true);
+                }
+              }}
               className="w-full flex items-center justify-center gap-2 bg-white text-black py-4 rounded font-bold hover:bg-tech-blue hover:text-black transition-colors border border-white/20"
             >
               <span>Launch Web App</span>
@@ -133,48 +146,11 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
       </div>
 
       {/* Coming Soon Modal */}
-      <AnimatePresence>
-        {showComingSoon && (
-          <motion.div
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowComingSoon(false)}
-          >
-            <motion.div
-              className="w-full max-w-md bg-[#0a0a0f] border border-white/10 rounded-xl p-8 relative shadow-2xl"
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={() => setShowComingSoon(false)}
-                className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
-                aria-label="Close"
-              >
-                <X size={20} />
-              </button>
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-6 bg-blue-500/10 rounded-full flex items-center justify-center">
-                  <Smartphone size={32} className="text-blue-400" />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-3">Coming Soon</h3>
-                <p className="text-gray-400 mb-6">
-                  Insight iOS app is currently in development. Stay tuned for updates!
-                </p>
-                <button
-                  onClick={() => setShowComingSoon(false)}
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-400 text-white py-3 rounded-lg font-bold hover:opacity-90 transition-opacity"
-                >
-                  Got it
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <ComingSoonModal
+        isOpen={showComingSoon}
+        onClose={() => setShowComingSoon(false)}
+        type={comingSoonType}
+      />
     </div>
   );
 };

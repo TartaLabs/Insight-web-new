@@ -12,6 +12,7 @@ import { Logo } from '../../components/Logo';
 import { SectionWrapper } from '../../components/SectionWrapper';
 import { GlobalScrollEffects } from '../../components/GlobalScrollEffects';
 import { EmotionalSDK } from '../../components/EmotionalSDK';
+import { ComingSoonModal } from '../../components/ComingSoonModal';
 
 // Secondary Pages
 import { PrivacyPolicy } from '../Privacy';
@@ -31,6 +32,9 @@ export default function Main() {
 
   // Navigation State: 'home' | 'privacy' | 'terms' | 'support' | 'webapp'
   const [currentView, setCurrentView] = useState('home');
+
+  // Coming Soon Modal State
+  const [showComingSoon, setShowComingSoon] = useState(false);
 
   // Subscription State
   const [email, setEmail] = useState('');
@@ -118,7 +122,13 @@ export default function Main() {
               </button>
             </div>
             <button
-              onClick={() => setCurrentView('webapp')}
+              onClick={() => {
+                if (process.env.NODE_ENV !== 'production') {
+                  setCurrentView('webapp');
+                } else {
+                  setShowComingSoon(true);
+                }
+              }}
               className="px-5 py-2 rounded-full bg-white text-black text-xs font-bold tracking-widest hover:bg-tech-blue transition-colors shadow-[0_0_12px_rgba(255,255,255,0.25)]"
             >
               LAUNCH APP
@@ -365,6 +375,13 @@ export default function Main() {
             </div>
           </div>
         </footer>
+
+        {/* Coming Soon Modal */}
+        <ComingSoonModal
+          isOpen={showComingSoon}
+          onClose={() => setShowComingSoon(false)}
+          type="web"
+        />
       </>
     );
   };
