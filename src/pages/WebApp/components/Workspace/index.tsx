@@ -102,7 +102,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
           <UserInfoCard
             user={user}
             onEditNickname={() => setNicknameModalOpen(true)}
-            onCopyAddress={() => copyToClipboard('TODO: wallet address', 'Address copied')}
+            onCopyAddress={() => copyToClipboard(user.wallet_address || '', 'Address copied')}
           />
           <WalletCard user={user} onClaimAll={onClaimAll} />
         </div>
@@ -110,7 +110,6 @@ export const Workspace: React.FC<WorkspaceProps> = ({
         {/* MIDDLE ROW: Membership & Tasks */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-12">
           <MembershipCard
-            user={user}
             hasClaimedBonus={hasClaimedBonus}
             onClaimBonus={onClaimBonus}
             onUpgradeClick={onUpgradeClick}

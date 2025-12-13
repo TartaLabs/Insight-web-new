@@ -1,19 +1,37 @@
 {
   "status": 0,
   "data": {
-      "benefits": {
-          "daily_free_points": 0,
-          "daily_initial_annotation": 2,
-          "points_per_annotation": 2,
-          "daily_model_test": 2,
-          "points_per_model_test": 2,
-          "ad_free": false,
-          "future_airdrop_bonus": false,
-          "price": 0,
-          "duration": 0
+      "user": {
+          "uid": "9e4c7e251d88",
+          "created_at": 1764421707,
+          "nickname": "Doris",
+          "avatar": "",
+          "referral_code": "27A04EPC",
+          "pro_version": "BASIC",
+          "pro_version_expires_at": 0,
+          "token_amount": 0,
+          "oauth_info": {
+              "apple": {
+                  "oauth_user": {
+                      "id": "",
+                      "email": "13277250082@163.com"
+                  },
+                  "oauth_account": null
+              },
+              "sequence": {
+                  "oauth_user": {
+                      "id": "0x10E5D9E67A2492ae9bE11E34c5d9deADB5106409"
+                  },
+                  "oauth_account": null
+              }
+          },
+          "login_streak": 1,
+          "last_login_at": 1765611485,
+          "provider": "apple"
       },
-      "display_name": "Basic",
-      "is_pro": false,
-      "pro_version": "BASIC"
+      "refer_user": null,
+      "refer_count": 0,
+      "is_complete_common": false,
+      "unread_mail_num": 0
   }
 }

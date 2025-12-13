@@ -52,7 +52,7 @@ export const UserInfoCard: React.FC<UserInfoCardProps> = ({ onEditNickname, onCo
           </div>
           <div className="flex items-center gap-2 mt-2">
             <code className="text-xs text-gray-500 bg-black/50 px-2 py-1 rounded border border-white/5">
-              {formatAddress('TODO: wallet address')}
+              {formatAddress(user.wallet_address || '')}
             </code>
             <button
               onClick={onCopyAddress}

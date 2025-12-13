@@ -24,7 +24,7 @@ interface WebAppProps {
 export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
   // Store 初始化
   const { fetchUserData, fetchPendingRewards, initialized: userInitialized, user } = useUserStore();
-  const { fetchProVersion, initialized: proInitialized } = useProStore();
+  const { fetchProVersion, fetchProVersionList, initialized: proInitialized } = useProStore();
   const { fetchDailyTasks, initialized: taskInitialized } = useTaskStore();
 
   useEffect(() => {
@@ -34,6 +34,7 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
     }
     if (!proInitialized) {
       fetchProVersion();
+      fetchProVersionList();
     }
     if (!taskInitialized) {
       fetchDailyTasks();
