@@ -449,8 +449,14 @@ build_project() {
     rm -rf dist-ssr
     rm -rf node_modules/.vite
     
-    # 构建
-    npm run build
+    # 设置构建环境变量（在构建时注入）
+    export MODE=test
+    
+    log_info "Building with environment:"
+    log_info "  MODE=${MODE}"
+    
+    # 构建（使用 MODE=test 而不是 production）
+    npm run build -- --mode test
     
     # 验证构建结果
     if [ ! -d "dist" ]; then
