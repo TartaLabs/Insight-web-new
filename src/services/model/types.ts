@@ -17,6 +17,8 @@ export interface User {
   referral_code?: string;
   token_amount?: number;
   wallet_address?: string;
+  refer_user?: string;
+  refer_count?: number;
 }
 
 export interface UserLoginRes {
@@ -103,6 +105,12 @@ export interface Question {
   options: string[] | null;
   required: boolean;
   order: number;
+}
+
+// 问题答案类型
+export interface QuestionAnswer {
+  question_id: number;
+  answer: string | number; // SINGLE_CHOICE 为 string，RATING 为 number
 }
 
 export interface Task {

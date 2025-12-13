@@ -2,12 +2,7 @@ import React, { useState } from 'react';
 import { Edit2, Trash2, CheckCircle2, XCircle, Timer } from 'lucide-react';
 import { TaskRecord } from '../../../types';
 import { TaskDetailModal } from '../../modals/TaskDetailModal';
-
-interface ContributionsTabProps {
-  tasks: TaskRecord[];
-  onResumeTask: (task: TaskRecord) => void;
-  onDeleteTask: (id: string) => void;
-}
+import { useTaskStore } from '@/store/taskStore';
 
 const UPLOAD_PAGE_SIZE = 10;
 
@@ -15,20 +10,17 @@ const UPLOAD_PAGE_SIZE = 10;
  * 贡献记录 Tab 组件
  * 显示草稿和已提交任务列表
  */
-export const ContributionsTab: React.FC<ContributionsTabProps> = ({
-  tasks,
-  onResumeTask,
-  onDeleteTask,
-}) => {
+export const ContributionsTab: React.FC = () => {
+  const taskRecords = useTaskStore((state) => state.taskRecords);
+  const resumeTask = useTaskStore((state) => state.resumeTask);
+  const deleteTaskRecord = useTaskStore((state) => state.deleteTaskRecord);
+
   const [uploadPage, setUploadPage] = useState(1);
   const [selectedTask, setSelectedTask] = useState<TaskRecord | null>(null);
 
-  const drafts = tasks.filter((t) => t.status === 'DRAFT');
-  const submittedTasks = tasks.filter((t) => t.status !== 'DRAFT');
-  const uploadTotalPages = Math.max(
-    1,
-    Math.ceil(submittedTasks.length / UPLOAD_PAGE_SIZE),
-  );
+  const drafts = taskRecords.filter((t) => t.status === 'DRAFT');
+  const submittedTasks = taskRecords.filter((t) => t.status !== 'DRAFT');
+  const uploadTotalPages = Math.max(1, Math.ceil(submittedTasks.length / UPLOAD_PAGE_SIZE));
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -66,13 +58,13 @@ export const ContributionsTab: React.FC<ContributionsTabProps> = ({
                 </div>
                 <div className="flex flex-col gap-1">
                   <button
-                    onClick={() => onResumeTask(draft)}
+                    onClick={() => resumeTask(draft)}
                     className="p-1.5 bg-tech-blue/10 text-tech-blue hover:bg-tech-blue hover:text-black"
                   >
                     <Edit2 size={10} />
                   </button>
                   <button
-                    onClick={() => onDeleteTask(draft.id)}
+                    onClick={() => deleteTaskRecord(draft.id)}
                     className="p-1.5 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white"
                   >
                     <Trash2 size={10} />
@@ -103,10 +95,7 @@ export const ContributionsTab: React.FC<ContributionsTabProps> = ({
             </div>
           ) : (
             submittedTasks
-              .slice(
-                (uploadPage - 1) * UPLOAD_PAGE_SIZE,
-                uploadPage * UPLOAD_PAGE_SIZE,
-              )
+              .slice((uploadPage - 1) * UPLOAD_PAGE_SIZE, uploadPage * UPLOAD_PAGE_SIZE)
               .map((task) => (
                 <div
                   key={task.id}
@@ -115,12 +104,8 @@ export const ContributionsTab: React.FC<ContributionsTabProps> = ({
                   <div className="col-span-2 font-mono text-gray-400">
                     {new Date(task.timestamp).toLocaleTimeString()}
                   </div>
-                  <div className="col-span-3 font-bold text-white">
-                    {task.emotion}
-                  </div>
-                  <div className="col-span-3 font-mono text-gray-500 truncate">
-                    {task.id}
-                  </div>
+                  <div className="col-span-3 font-bold text-white">{task.emotion}</div>
+                  <div className="col-span-3 font-mono text-gray-500 truncate">{task.id}</div>
                   <div className="col-span-2 flex justify-center">
                     <button
                       onClick={() => setSelectedTask(task)}
@@ -163,9 +148,7 @@ export const ContributionsTab: React.FC<ContributionsTabProps> = ({
                 <span className="text-white">{uploadTotalPages}</span>
               </div>
               <button
-                onClick={() =>
-                  setUploadPage((p) => Math.min(uploadTotalPages, p + 1))
-                }
+                onClick={() => setUploadPage((p) => Math.min(uploadTotalPages, p + 1))}
                 disabled={uploadPage === uploadTotalPages}
                 className={`px-3 py-1 text-[11px] font-mono rounded border border-white/10 ${uploadPage === uploadTotalPages ? 'text-gray-600 cursor-not-allowed' : 'text-white hover:border-tech-blue/50 hover:text-tech-blue'}`}
               >
@@ -178,12 +161,8 @@ export const ContributionsTab: React.FC<ContributionsTabProps> = ({
 
       {/* Task Detail Modal */}
       {selectedTask && (
-        <TaskDetailModal
-          task={selectedTask}
-          onClose={() => setSelectedTask(null)}
-        />
+        <TaskDetailModal task={selectedTask} onClose={() => setSelectedTask(null)} />
       )}
     </div>
   );
 };
-

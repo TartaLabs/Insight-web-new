@@ -18,8 +18,6 @@ import { SubscriptionsTab } from './SubscriptionsTab';
 import { User } from '@/services/model/types.ts';
 
 interface BottomTabsProps {
-  user: User;
-  tasks: TaskRecord[];
   history: Transaction[];
   leaderboard: LeaderboardEntry[];
   invitees: Invitee[];
@@ -27,13 +25,9 @@ interface BottomTabsProps {
   ownInviteCode: string;
   inviteLink: string;
   subscriptions: SubscriptionRecord[];
-  onRenameNickname: (nickname: string) => RenameResult;
   onApplyInviteCode: (code: string) => RenameResult;
-  onResumeTask: (task: TaskRecord) => void;
-  onDeleteTask: (id: string) => void;
   onRetryClaim: (tx: Transaction) => void;
   onClaimInvitationRewards: () => void;
-  copyToClipboard: (text: string, successMsg: string) => void;
 }
 
 const tabs = [
@@ -48,8 +42,6 @@ const tabs = [
  * 底部多 Tab 面板容器
  */
 export const BottomTabs: React.FC<BottomTabsProps> = ({
-  user,
-  tasks,
   history,
   leaderboard,
   invitees,
@@ -58,11 +50,8 @@ export const BottomTabs: React.FC<BottomTabsProps> = ({
   inviteLink,
   subscriptions,
   onApplyInviteCode,
-  onResumeTask,
-  onDeleteTask,
   onRetryClaim,
   onClaimInvitationRewards,
-  copyToClipboard,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('contributions');
 
@@ -90,26 +79,22 @@ export const BottomTabs: React.FC<BottomTabsProps> = ({
 
       {/* Tab Content */}
       <div className="p-6">
-        {activeTab === 'contributions' && (
-          <ContributionsTab tasks={tasks} onResumeTask={onResumeTask} onDeleteTask={onDeleteTask} />
-        )}
+        {activeTab === 'contributions' && <ContributionsTab />}
 
         {activeTab === 'memo_history' && (
           <LedgerTab history={history} onRetryClaim={onRetryClaim} />
         )}
 
-        {activeTab === 'leaderboard' && <LeaderboardTab user={user} leaderboard={leaderboard} />}
+        {activeTab === 'leaderboard' && <LeaderboardTab leaderboard={leaderboard} />}
 
         {activeTab === 'invitation' && (
           <InvitationTab
-            user={user}
             invitees={invitees}
             inviteCodeInfo={inviteCodeInfo}
             ownInviteCode={ownInviteCode}
             inviteLink={inviteLink}
             onApplyInviteCode={onApplyInviteCode}
             onClaimInvitationRewards={onClaimInvitationRewards}
-            copyToClipboard={copyToClipboard}
           />
         )}
 

@@ -6,13 +6,15 @@ import { ExampleStep } from './ExampleStep';
 import { CaptureStep } from './CaptureStep';
 import { ReviewStep } from './ReviewStep';
 import { LabelStep } from './LabelStep';
+import type { Question, QuestionAnswer } from '../../../../services/model/types';
 
 interface TaskFlowProps {
   emotion: EmotionType;
+  questions: Question[];
   initialTask?: TaskRecord;
   rewardAmount: number;
   onSave: (task: TaskRecord) => void;
-  onSubmit: (task: TaskRecord) => void;
+  onSubmit: (task: TaskRecord, answers: QuestionAnswer[]) => void;
   onCancel: () => void;
 }
 
@@ -24,6 +26,7 @@ type Step = 'example' | 'capture' | 'review' | 'label';
  */
 export const TaskFlow: React.FC<TaskFlowProps> = ({
   emotion,
+  questions,
   initialTask,
   rewardAmount,
   onSave,
@@ -37,12 +40,28 @@ export const TaskFlow: React.FC<TaskFlowProps> = ({
   // Data State
   const [photo, setPhoto] = useState<string | null>(initialTask?.imageUrl || null);
 
-  // Label Form State
-  const [labelData, setLabelData] = useState({
-    isClear: initialTask?.draftData?.isClear ?? null,
-    intensity: initialTask?.draftData?.intensity ?? 50,
-    isStaged: initialTask?.draftData?.isStaged ?? null,
-    arousal: initialTask?.draftData?.arousal ?? 50,
+  // 问题答案状态: question_id -> answer
+  const [answers, setAnswers] = useState<Record<number, string | number>>(() => {
+    // 初始化答案状态
+    const initialAnswers: Record<number, string | number> = {};
+
+    // 如果有草稿数据，尝试恢复答案
+    if (initialTask?.draftData?.answers) {
+      return initialTask.draftData.answers;
+    }
+
+    // 为 RATING 类型问题设置默认值 50
+    questions.forEach((q) => {
+      if (q.type === 'RATING') {
+        initialAnswers[q.id] = 50;
+      }
+      // 自动锁定情绪类型问题
+      if (q.type === 'SINGLE_CHOICE' && q.title.toLowerCase().includes('type of emotion')) {
+        initialAnswers[q.id] = emotion;
+      }
+    });
+
+    return initialAnswers;
   });
 
   // Handlers
@@ -71,10 +90,7 @@ export const TaskFlow: React.FC<TaskFlowProps> = ({
       reward: rewardAmount,
       timestamp: Date.now(),
       draftData: {
-        isClear: labelData.isClear ?? undefined,
-        intensity: labelData.intensity,
-        isStaged: labelData.isStaged ?? undefined,
-        arousal: labelData.arousal,
+        answers,
       },
     };
     onSave(task);
@@ -84,12 +100,12 @@ export const TaskFlow: React.FC<TaskFlowProps> = ({
     setCurrentStep('label');
   };
 
-  const handleLabelChange = (data: Partial<typeof labelData>) => {
-    setLabelData((prev) => ({ ...prev, ...data }));
+  const handleAnswerChange = (questionId: number, answer: string | number) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: answer }));
   };
 
-  const handleSubmit = () => {
-    if (labelData.isClear !== null && labelData.isStaged !== null && photo) {
+  const handleSubmit = (answerList: QuestionAnswer[]) => {
+    if (photo) {
       const task: TaskRecord = {
         id: initialTask?.id || Date.now().toString(),
         emotion,
@@ -98,13 +114,10 @@ export const TaskFlow: React.FC<TaskFlowProps> = ({
         reward: rewardAmount,
         timestamp: Date.now(),
         draftData: {
-          isClear: labelData.isClear,
-          intensity: labelData.intensity,
-          isStaged: labelData.isStaged,
-          arousal: labelData.arousal,
+          answers,
         },
       };
-      onSubmit(task);
+      onSubmit(task, answerList);
     }
   };
 
@@ -161,8 +174,9 @@ export const TaskFlow: React.FC<TaskFlowProps> = ({
           {currentStep === 'label' && (
             <LabelStep
               emotion={emotion}
-              labelData={labelData}
-              onLabelChange={handleLabelChange}
+              questions={questions}
+              answers={answers}
+              onAnswerChange={handleAnswerChange}
               onSaveDraft={handleSaveDraft}
               onSubmit={handleSubmit}
             />

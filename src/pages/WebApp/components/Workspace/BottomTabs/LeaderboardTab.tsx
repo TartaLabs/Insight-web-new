@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Crown } from 'lucide-react';
-import { LeaderboardEntry } from '@/types.ts';
-import { User } from '@/services/model/types.ts';
+import { LeaderboardEntry } from '../../../types';
+import { useUserStore } from '@/store/userStore';
 
 interface LeaderboardTabProps {
-  user: User;
   leaderboard: LeaderboardEntry[];
 }
 
@@ -13,7 +12,8 @@ const PAGE_SIZE = 10;
 /**
  * 排行榜 Tab 组件
  */
-export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ user, leaderboard }) => {
+export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ leaderboard }) => {
+  const user = useUserStore((state) => state.user);
   const [page, setPage] = useState(1);
 
   const computedLeaderboard = useMemo(() => {
@@ -23,24 +23,24 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ user, leaderboar
         e.nickname.toLowerCase() === (user.nickname || '').toLowerCase() ||
         e.address === user.wallet_address,
     );
-    if (!hasSelf && user.balanceMEMO > 0 && user.nickname) {
+    if (!hasSelf && user.token_amount > 0 && user.nickname) {
       list.push({
         rank: list.length + 1,
         nickname: user.nickname,
-        address: user.walletAddress || '0xUser',
-        totalEarned: user.balanceMEMO,
+        address: user.wallet_address || '0xUser',
+        totalEarned: user.token_amount,
       });
     }
     list = list
       .sort((a, b) => b.totalEarned - a.totalEarned)
       .map((e, idx) => ({ ...e, rank: idx + 1 }));
     return list;
-  }, [leaderboard, user.balanceMEMO, user.nickname, user.walletAddress]);
+  }, [leaderboard, user.token_amount, user.nickname, user.wallet_address]);
 
   const selfEntry = computedLeaderboard.find(
     (e) =>
       e.nickname.toLowerCase() === (user.nickname || '').toLowerCase() ||
-      e.address === user.walletAddress,
+      e.address === user.wallet_address,
   );
   const selfRank = selfEntry?.rank ?? '—';
   const otherEntries = computedLeaderboard.slice(3);
@@ -48,7 +48,9 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ user, leaderboar
 
   // Page bounds correction
   useEffect(() => {
-    if (page > totalPages && totalPages > 0) setPage(totalPages);
+    if (page > totalPages && totalPages > 0) {
+      setPage(totalPages);
+    }
   }, [page, totalPages]);
 
   return (
@@ -114,9 +116,9 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ user, leaderboar
               <span className="text-white text-sm">#{selfRank}</span>
             </div>
             <div className="text-[10px] text-gray-400">{user.nickname}</div>
-            <div className="text-[10px] text-tech-blue">{user.walletAddress}</div>
+            <div className="text-[10px] text-tech-blue">{user.wallet_address}</div>
             <div className="text-white font-bold text-sm">
-              {user.balanceMEMO.toLocaleString()}{' '}
+              {user.token_amount?.toLocaleString()}{' '}
               <span className="text-[10px] text-gray-500">$mEMO</span>
             </div>
           </div>

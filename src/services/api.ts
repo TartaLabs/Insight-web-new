@@ -33,8 +33,16 @@ export const apiUser = {
    * 获取用户数据
    */
   getUserData: async (): Promise<User> => {
-    const response = await request.get<ApiResponse<{ user: User }>>('/api/1/user/data');
-    return response.data.user;
+    const response =
+      await request.get<ApiResponse<{ user: User; refer_user: string; refer_count: number }>>(
+        '/api/1/user/data',
+      );
+
+    return {
+      ...response.data.user,
+      refer_user: response.data.refer_user,
+      refer_count: response.data.refer_count,
+    };
   },
 
   /**
@@ -50,8 +58,8 @@ export const apiUser = {
   /**
    * 更新用户数据
    */
-  updateUserData: async (nickname: string, refCode?: string): Promise<unknown> => {
-    const response = await request.post<ApiResponse<unknown>>('/api/1/user/update', {
+  updateUserData: async (nickname: string, refCode?: string): Promise<User> => {
+    const response = await request.post<ApiResponse<User>>('/api/1/user/update', {
       data: { nickname, referral: refCode },
     });
     return response.data;

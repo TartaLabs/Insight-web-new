@@ -9,23 +9,20 @@ interface ExampleStepProps {
 }
 
 const emotionEmojis: Record<EmotionType, string> = {
-  Happy: '😊',
-  Anger: '😡',
-  Sad: '😢',
-  Fear: '😱',
-  Disgust: '🤢',
-  Surprise: '😲',
-  Neutral: '😐',
+  HAPPY: '😊',
+  ANGRY: '😡',
+  SAD: '😢',
+  FEAR: '😱',
+  DISGUST: '🤢',
+  SURPRISE: '😲',
+  NEUTRAL: '😐',
 };
 
 /**
  * 任务流程 - 示例步骤
  * 显示目标情绪和启动相机按钮
  */
-export const ExampleStep: React.FC<ExampleStepProps> = ({
-  emotion,
-  onStartCapture,
-}) => {
+export const ExampleStep: React.FC<ExampleStepProps> = ({ emotion, onStartCapture }) => {
   return (
     <div className="flex flex-col items-center text-center max-w-md z-10">
       <div className="w-48 h-48 bg-tech-blue/10 border border-tech-blue/30 rounded-lg flex items-center justify-center mb-8 relative group">
@@ -36,8 +33,8 @@ export const ExampleStep: React.FC<ExampleStepProps> = ({
       </div>
       <p className="text-gray-300 mb-8 leading-relaxed">
         Initialize facial capture sequence. Replicate the target emotion{' '}
-        <span className="text-tech-blue font-bold">{emotion.toUpperCase()}</span>
-        . Ensure optimal lighting conditions.
+        <span className="text-tech-blue font-bold">{emotion.toUpperCase()}</span>. Ensure optimal
+        lighting conditions.
       </p>
       <Button onClick={onStartCapture} className="mt-2">
         Activate Camera
@@ -45,4 +42,3 @@ export const ExampleStep: React.FC<ExampleStepProps> = ({
     </div>
   );
 };
-

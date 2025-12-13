@@ -8,7 +8,9 @@ import { LoadingScreen } from './components/LoadingScreen';
 import { useWebAppState } from './hooks';
 import { useUserStore } from '../../store/userStore';
 import { useProStore } from '../../store/proStore';
-import { useTaskStore } from '../../store/taskStore';
+import { useTaskStore, getEmotionFromTaskFlow } from '../../store/taskStore';
+import type { QuestionAnswer } from '../../services/model/types';
+import type { TaskRecord } from '../../types';
 
 interface WebAppProps {
   onExit: () => void;
@@ -31,7 +33,15 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
     setUser,
   } = useUserStore();
   const { fetchProVersion, fetchProVersionList, initialized: proInitialized } = useProStore();
-  const { fetchDailyTasks, initialized: taskInitialized } = useTaskStore();
+  const {
+    fetchDailyTasks,
+    initialized: taskInitialized,
+    activeTaskFlow,
+    saveDraft,
+    submitTask,
+    cancelTask,
+    tasks,
+  } = useTaskStore();
 
   useEffect(() => {
     if (!userInitialized) {
@@ -55,6 +65,45 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
 
   // 判断是否所有初始化完成
   const isInitializing = !userInitialized || !proInitialized || !taskInitialized;
+
+  // Handle reward issued from task submission
+  const handleTaskSubmit = (record: TaskRecord, answers: QuestionAnswer[]) => {
+    // TODO: 在实际提交时，可以将 answers 发送到后端
+    console.log('Submitting answers:', answers);
+
+    submitTask(record, (amount) => {
+      // Update user pending rewards and add history record
+      state.setUser((prev) => ({
+        ...prev,
+        pendingRewards: prev.pendingRewards + amount,
+      }));
+
+      state.setHistory((prev) => [
+        {
+          id: Date.now().toString(),
+          category: 'ISSUANCE',
+          source: 'Label Task',
+          amount: amount,
+          timestamp: Date.now(),
+          status: 'SUCCESS',
+          desc: 'Reward Issued',
+        },
+        ...prev,
+      ]);
+    });
+  };
+
+  // 获取当前任务的 questions
+  const getQuestionsFromTaskFlow = () => {
+    if (!activeTaskFlow) return [];
+    if (activeTaskFlow.apiTask) return activeTaskFlow.apiTask.questions;
+    // 如果是从草稿恢复，根据 draft.emotion 从 tasks 中找到对应任务的 questions
+    if (activeTaskFlow.draft) {
+      const matchingTask = tasks.find((t) => t.emotion_type === activeTaskFlow.draft?.emotion);
+      return matchingTask?.questions || [];
+    }
+    return [];
+  };
 
   // 阻塞式加载页面
   if (isInitializing) {
@@ -96,9 +145,6 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
     <div className="relative min-h-screen bg-[#020205] text-white">
       <Workspace
         user={state.user}
-        tasks={state.tasks}
-        taskCounts={state.taskCounts}
-        dailyLimit={state.getDailyLimit()}
         rewardPerTask={state.getRewardPerTask()}
         history={state.history}
         leaderboard={state.leaderboard}
@@ -107,13 +153,9 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
         ownInviteCode={state.inviteCode.ownInviteCode}
         inviteLink={state.inviteCode.inviteLink}
         subscriptions={state.subscriptions}
-        onRenameNickname={state.handleRenameNickname}
         onApplyInviteCode={(code) =>
           state.inviteCode.bindInviteCode(code, { lock: true, persist: true })
         }
-        onStartTask={state.handleStartTask}
-        onResumeTask={state.handleResumeTask}
-        onDeleteTask={state.handleDeleteTask}
         onUpgradeClick={() => setShowUpgrade(true)}
         onClaimAll={state.handleClaimAll}
         onClaimBonus={state.handleClaimDailyBonus}
@@ -123,14 +165,15 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
       />
 
       {/* 任务流程弹窗 */}
-      {state.activeTaskEmotion && (
+      {activeTaskFlow && (
         <TaskFlow
-          emotion={state.activeTaskEmotion}
-          initialTask={state.activeDraftTask}
+          emotion={getEmotionFromTaskFlow(activeTaskFlow)}
+          questions={getQuestionsFromTaskFlow()}
+          initialTask={activeTaskFlow.draft}
           rewardAmount={state.getRewardPerTask()}
-          onSave={state.handleSaveDraft}
-          onSubmit={state.handleSubmitTask}
-          onCancel={state.handleCancelTask}
+          onSave={saveDraft}
+          onSubmit={handleTaskSubmit}
+          onCancel={cancelTask}
         />
       )}
 

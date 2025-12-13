@@ -6,15 +6,12 @@ import {
   PricingPlan,
   RenameResult,
   SubscriptionRecord,
-  TaskCounts,
   TaskRecord,
   Transaction,
 } from '../types';
 import { useInviteCode } from './useInviteCode';
 import { useTransaction } from './useTransaction';
 import { User } from '@/services/model/types.ts';
-
-const getTodayUTC = () => new Date().toISOString().split('T')[0];
 
 // Mock data generators
 const generateLeaderboard = (): LeaderboardEntry[] => {
@@ -84,14 +81,9 @@ export interface UseWebAppStateReturn {
   user: User;
   setUser: React.Dispatch<React.SetStateAction<User>>;
 
-  // Task data
-  tasks: TaskRecord[];
-  taskCounts: TaskCounts;
-  activeTaskEmotion: EmotionType | null;
-  activeDraftTask: TaskRecord | undefined;
-
   // Other data
   history: Transaction[];
+  setHistory: React.Dispatch<React.SetStateAction<Transaction[]>>;
   leaderboard: LeaderboardEntry[];
   invitees: Invitee[];
   subscriptions: SubscriptionRecord[];
@@ -104,13 +96,6 @@ export interface UseWebAppStateReturn {
 
   // Handlers
   handleLogin: (user: User) => void;
-  handleSaveDraft: (record: TaskRecord) => void;
-  handleSubmitTask: (record: TaskRecord) => void;
-  handleDeleteTask: (id: string) => void;
-  handleResumeTask: (task: TaskRecord) => void;
-  handleRenameNickname: (nextName: string) => RenameResult;
-  handleStartTask: (emotion: EmotionType) => void;
-  handleCancelTask: () => void;
 
   // Claim handlers
   handleClaimAll: () => void;
@@ -130,13 +115,9 @@ export interface UseWebAppStateReturn {
 export function useWebAppState(): UseWebAppStateReturn {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [user, setUser] = useState<User>();
-  const [taskCounts, setTaskCounts] = useState<TaskCounts>({});
   const [history, setHistory] = useState<Transaction[]>([]);
-  const [tasks, setTasks] = useState<TaskRecord[]>([]);
   const [invitees, setInvitees] = useState<Invitee[]>(INITIAL_INVITEES);
   const [subscriptions, setSubscriptions] = useState<SubscriptionRecord[]>([]);
-  const [activeTaskEmotion, setActiveTaskEmotion] = useState<EmotionType | null>(null);
-  const [activeDraftTask, setActiveDraftTask] = useState<TaskRecord | undefined>(undefined);
 
   const inviteCode = useInviteCode();
   const transaction = useTransaction();
@@ -191,114 +172,6 @@ export function useWebAppState(): UseWebAppStateReturn {
   const handleLogin = useCallback((user: User) => {
     setUser(user);
     setIsLoggedIn(true);
-  }, []);
-
-  const handleSaveDraft = useCallback((record: TaskRecord) => {
-    setTasks((prev) => {
-      const existing = prev.findIndex((t) => t.id === record.id);
-      if (existing !== -1) {
-        const updated = [...prev];
-        updated[existing] = record;
-        return updated;
-      }
-      return [record, ...prev];
-    });
-    setActiveTaskEmotion(null);
-    setActiveDraftTask(undefined);
-  }, []);
-
-  const handleRenameNickname = useCallback(
-    (nextName: string): RenameResult => {
-      const trimmed = nextName.trim();
-      const valid = /^[A-Za-z0-9]{1,15}$/.test(trimmed);
-      if (!valid) return { ok: false, message: 'Use 1-15 letters or numbers.' };
-
-      const taken = existingNicknames.some((n) => n.toLowerCase() === trimmed.toLowerCase());
-      if (taken && trimmed.toLowerCase() !== (user.nickname || '').toLowerCase()) {
-        return { ok: false, message: 'Nickname already taken.' };
-      }
-
-      setUser((prev) => ({ ...prev, nickname: trimmed }));
-
-      if (inviteCode.ownInviteCode && typeof window !== 'undefined') {
-        // const link = `${window.location.origin}${window.location.pathname}?code=${inviteCode.ownInviteCode}&inviter=${encodeURIComponent(trimmed)}`;
-        // Update invite link in inviteCode hook would need additional method
-      }
-
-      return { ok: true };
-    },
-    [existingNicknames],
-  );
-
-  const handleSubmitTask = useCallback((record: TaskRecord) => {
-    setTaskCounts((c) => ({
-      ...c,
-      [record.emotion]: (c[record.emotion] || 0) + 1,
-    }));
-
-    setTasks((prev) => {
-      const filtered = prev.filter((t) => t.id !== record.id);
-      return [{ ...record, status: 'AUDITING' }, ...filtered];
-    });
-
-    setActiveTaskEmotion(null);
-    setActiveDraftTask(undefined);
-
-    setTimeout(() => {
-      const passed = Math.random() > 0.2;
-
-      setTasks((prev) =>
-        prev.map((t) => {
-          if (t.id === record.id) {
-            return {
-              ...t,
-              status: passed ? 'LABELED' : 'REJECTED',
-              failReason: passed ? undefined : 'Blurry or Incorrect Emotion',
-            };
-          }
-          return t;
-        }),
-      );
-
-      if (passed) {
-        // setUser((u) => ({
-        //   ...u,
-        //   pendingRewards: u.pendingRewards + record.reward,
-        // }));
-
-        setHistory((h) => [
-          {
-            id: Date.now().toString(),
-            category: 'ISSUANCE',
-            source: 'Label Task',
-            amount: record.reward,
-            timestamp: Date.now(),
-            status: 'SUCCESS',
-            desc: 'Reward Issued',
-          },
-          ...h,
-        ]);
-      }
-    }, 5000);
-  }, []);
-
-  const handleDeleteTask = useCallback((id: string) => {
-    setTasks((prev) => prev.filter((t) => t.id !== id));
-  }, []);
-
-  const handleResumeTask = useCallback((task: TaskRecord) => {
-    setActiveDraftTask(task);
-    setActiveTaskEmotion(task.emotion);
-  }, []);
-
-  const handleStartTask = useCallback((emotion: EmotionType) => {
-    setActiveDraftTask(undefined);
-    setActiveTaskEmotion(emotion);
-  }, []);
-
-  const handleCancelTask = useCallback(() => {
-    setActiveTaskEmotion(null);
-    setActiveDraftTask(undefined);
   }, []);
 
   // --- Claim handlers ---
@@ -572,24 +445,14 @@ export function useWebAppState(): UseWebAppStateReturn {
     setIsLoggedIn,
     user,
     setUser,
-    tasks,
-    taskCounts,
-    activeTaskEmotion,
-    activeDraftTask,
     history,
+    setHistory,
     leaderboard,
     invitees,
     subscriptions,
     inviteCode,
     transaction,
     handleLogin,
-    handleSaveDraft,
-    handleSubmitTask,
-    handleDeleteTask,
-    handleResumeTask,
-    handleRenameNickname,
-    handleStartTask,
-    handleCancelTask,
     handleClaimAll,
     handleClaimInvitationRewards,
     handleClaimDailyBonus,

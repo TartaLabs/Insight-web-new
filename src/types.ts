@@ -54,7 +54,8 @@ export interface SubscriptionRecord {
   expiry?: string;
 }
 
-export type EmotionType = 'Happy' | 'Anger' | 'Sad' | 'Fear' | 'Disgust' | 'Surprise' | 'Neutral';
+// 使用 API 定义的情绪类型，统一数据源
+export type EmotionType = 'HAPPY' | 'SAD' | 'ANGRY' | 'FEAR' | 'SURPRISE' | 'DISGUST' | 'NEUTRAL';
 
 // --- Web App Types ---
 
@@ -69,6 +70,9 @@ export interface TaskRecord {
   timestamp: number;
   failReason?: string;
   draftData?: {
+    // 新格式：动态问题答案
+    answers?: Record<number, string | number>; // question_id -> answer
+    // 旧格式（保留向后兼容）
     isClear?: boolean;
     intensity?: number;
     isStaged?: boolean;

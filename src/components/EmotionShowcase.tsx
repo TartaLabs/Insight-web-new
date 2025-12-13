@@ -3,13 +3,13 @@ import { motion } from 'framer-motion';
 import { EmotionType } from '../types';
 
 const emotions: { type: EmotionType; hex: string; icon: string }[] = [
-  { type: 'Happy', hex: '#E6D48A', icon: '😊' },
-  { type: 'Anger', hex: '#FF6666', icon: '😡' },
-  { type: 'Sad', hex: '#7373F7', icon: '😢' },
-  { type: 'Fear', hex: '#7AC47A', icon: '😱' },
-  { type: 'Disgust', hex: '#FF9CFF', icon: '🤢' },
-  { type: 'Surprise', hex: '#7AB8FF', icon: '😲' },
-  { type: 'Neutral', hex: '#D1D1D1', icon: '😐' },
+  { type: 'HAPPY', hex: '#E6D48A', icon: '😊' },
+  { type: 'ANGRY', hex: '#FF6666', icon: '😡' },
+  { type: 'SAD', hex: '#7373F7', icon: '😢' },
+  { type: 'FEAR', hex: '#7AC47A', icon: '😱' },
+  { type: 'DISGUST', hex: '#FF9CFF', icon: '🤢' },
+  { type: 'SURPRISE', hex: '#7AB8FF', icon: '😲' },
+  { type: 'NEUTRAL', hex: '#D1D1D1', icon: '😐' },
 ];
 
 export const EmotionShowcase: React.FC = () => {

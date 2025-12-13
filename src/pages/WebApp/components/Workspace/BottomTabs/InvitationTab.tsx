@@ -1,34 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Share2, Coins, Calendar, Activity } from 'lucide-react';
-import { User, Invitee, InviteCodeInfo, RenameResult } from '../../../types';
+import { Invitee, InviteCodeInfo, RenameResult } from '../../../types';
 import { HudPanel, GameButton } from '../../ui';
+import { copyToClipboard } from '@/utils';
+import { useUserStore } from '@/store/userStore';
+import { apiTask } from '@/services/api';
 
 interface InvitationTabProps {
-  user: User;
   invitees: Invitee[];
   inviteCodeInfo: InviteCodeInfo;
   ownInviteCode: string;
   inviteLink: string;
   onApplyInviteCode: (code: string) => RenameResult;
   onClaimInvitationRewards: () => void;
-  copyToClipboard: (text: string, successMsg: string) => void;
 }
 
 /**
  * 邀请 Tab 组件
  */
 export const InvitationTab: React.FC<InvitationTabProps> = ({
-  user,
   invitees,
   inviteCodeInfo,
   ownInviteCode,
   inviteLink,
   onApplyInviteCode,
   onClaimInvitationRewards,
-  copyToClipboard,
 }) => {
+  const user = useUserStore((state) => state.user);
   const [inviteInput, setInviteInput] = useState(inviteCodeInfo.code || '');
   const [inviteMessage, setInviteMessage] = useState('');
+  const [invitationRewards, setInvitationRewards] = useState(0);
+
+  useEffect(() => {
+    const fetchInvitationRewards = async () => {
+      const rewards = await apiTask.getClaimableAmount('INVITE');
+      setInvitationRewards(rewards);
+    };
+    fetchInvitationRewards();
+  }, []);
 
   // Sync invite input with prop changes
   const prevInviteCode = React.useRef(inviteCodeInfo.code);
@@ -53,16 +62,10 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({
         <HudPanel className="p-6">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <div className="text-[10px] text-tech-blue uppercase tracking-widest">
-                Invitation
-              </div>
-              <div className="text-xl font-bold text-white">
-                Bind Invite Code
-              </div>
-              {user.invitedBy && (
-                <div className="text-xs text-gray-500 mt-1">
-                  Invited by {user.invitedBy}
-                </div>
+              <div className="text-[10px] text-tech-blue uppercase tracking-widest">Invitation</div>
+              <div className="text-xl font-bold text-white">Bind Invite Code</div>
+              {user.refer_user && (
+                <div className="text-xs text-gray-500 mt-1">Invited by {user.refer_user}</div>
               )}
             </div>
             {(inviteCodeInfo.locked || inviteCodeInfo.persisted) && (
@@ -93,19 +96,13 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({
                   setInviteMessage(`Bound. Inviter: Community Member`);
                 }
               }}
-              disabled={
-                inviteCodeInfo.locked ||
-                inviteCodeInfo.persisted ||
-                !inviteInput.trim()
-              }
+              disabled={inviteCodeInfo.locked || inviteCodeInfo.persisted || !inviteInput.trim()}
               className="sm:w-40"
             >
               APPLY
             </GameButton>
           </div>
-          {inviteMessage && (
-            <div className="text-xs text-tech-blue mt-2">{inviteMessage}</div>
-          )}
+          {inviteMessage && <div className="text-xs text-tech-blue mt-2">{inviteMessage}</div>}
         </HudPanel>
 
         {/* Network Size */}
@@ -116,18 +113,14 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({
               <div className="text-[10px] text-gray-500 uppercase tracking-widest">
                 Network Size
               </div>
-              <div className="text-3xl font-bold text-white font-mono">
-                {user.inviteCount} / 10
-              </div>
+              <div className="text-3xl font-bold text-white font-mono">{user.refer_count} / 10</div>
             </div>
           </div>
           <div className="space-y-3">
             <div className="text-sm font-bold text-white flex items-center justify-between">
               <span>Your Invite Code</span>
               <button
-                onClick={() =>
-                  copyToClipboard(inviteCodeDisplay, 'Invite code copied')
-                }
+                onClick={() => copyToClipboard(inviteCodeDisplay, 'Invite code copied')}
                 className="text-tech-blue text-[11px] hover:underline"
               >
                 Copy
@@ -139,9 +132,7 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({
             <div className="text-sm font-bold text-white flex items-center justify-between">
               <span>Invite Link</span>
               <button
-                onClick={() =>
-                  copyToClipboard(inviteLinkDisplay, 'Invite link copied')
-                }
+                onClick={() => copyToClipboard(inviteLinkDisplay, 'Invite link copied')}
                 className="text-tech-blue text-[11px] hover:underline"
               >
                 Copy
@@ -162,13 +153,13 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({
                 Commission Pool
               </div>
               <div className="text-3xl font-bold text-white font-mono">
-                +{user.invitationRewards.toFixed(1)} $mEMO
+                +{invitationRewards.toFixed(1)} $mEMO
               </div>
             </div>
           </div>
           <GameButton
             onClick={onClaimInvitationRewards}
-            disabled={user.invitationRewards <= 0}
+            disabled={invitationRewards <= 0}
             className="w-full flex items-center justify-center gap-2"
           >
             <Coins size={14} /> EXTRACT COMMISSION
@@ -188,9 +179,7 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({
               className="bg-white/5 border border-white/5 p-4 flex justify-between items-center hover:border-white/20 transition-colors"
             >
               <div>
-                <div className="font-bold text-white text-sm mb-1">
-                  {invitee.nickname}
-                </div>
+                <div className="font-bold text-white text-sm mb-1">{invitee.nickname}</div>
                 <div className="text-[10px] text-gray-500 font-mono flex gap-3">
                   <span className="flex items-center gap-1">
                     <Calendar size={8} /> {invitee.inviteDate}
@@ -206,10 +195,7 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({
                   <span className="text-gray-500 font-normal">Pending</span>
                 </div>
                 <div className="text-[10px] text-gray-500">
-                  Claimed:{' '}
-                  <span className="text-white">
-                    {invitee.claimedReward.toFixed(1)}
-                  </span>
+                  Claimed: <span className="text-white">{invitee.claimedReward.toFixed(1)}</span>
                 </div>
               </div>
             </div>
@@ -219,4 +205,3 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({
     </div>
   );
 };
-
