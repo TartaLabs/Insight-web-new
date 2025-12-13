@@ -26,7 +26,7 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
           <span className="text-white">Choose Your Interface</span>
         </h2>
         <p className="text-tech-gray max-w-4xl mx-auto text-lg leading-relaxed">
-          Insight is available wherever you are. Mobile users enjoy seamless onboarding via Sequence AA on Arbitrum, while Web users retain full control via EOA on Mantle.
+          Insight is available wherever you are. Mobile users enjoy seamless onboarding via Sequence AA on BNB Chain, while Web users retain full control via EOA on Mantle.
         </p>
       </div>
 
@@ -44,7 +44,7 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
                  <Smartphone size={32} />
                </div>
                <div className="px-4 py-1 rounded-full border border-blue-400/30 bg-blue-400/5 text-blue-400 text-xs font-mono tracking-widest">
-                 ARBITRUM CHAIN
+                 BNB CHAIN
                </div>
             </div>
 
@@ -58,20 +58,18 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
                </div>
                <div className="flex items-center gap-3 text-gray-300">
                   <Zap size={16} className="text-blue-400" />
-                  <span>Earn $aEMO</span>
+                  <span>Earn $bEMO</span>
                </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <a 
-                href="https://testflight.apple.com/join/hAEjSyKf" 
-                target="_blank" 
-                rel="noopener noreferrer"
+              <button
+                onClick={() => alert('Coming Soon')}
                 className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-400 text-white py-4 rounded font-bold hover:opacity-90 transition-opacity shadow-[0_10px_30px_rgba(59,130,246,0.3)]"
               >
-                 <AppleLogo height={18} width={18} />
-                 <span>Apple Store</span>
-              </a>
+                <AppleLogo height={18} width={18} />
+                <span>Apple Store</span>
+              </button>
               <a 
                 href="https://play.google.com/store/apps/details?id=io.tartalabs.insight" 
                 target="_blank" 

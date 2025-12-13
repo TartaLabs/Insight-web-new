@@ -277,7 +277,7 @@ export const EmotionOrb: React.FC = () => {
              <div className="bg-black/60 backdrop-blur-md border-r-2 p-4 rounded-l-lg" style={{ borderColor: 'var(--active-color)' }}>
                 <h4 className="text-[10px] font-mono tracking-widest text-gray-400 mb-1">REWARD PROTOCOL</h4>
                 <div className="text-xs font-bold text-white mb-1">
-                   ARBITRUM <span style={{ color: 'var(--active-color)' }}>$aEMO</span>
+                   BNB Chain <span style={{ color: 'var(--active-color)' }}>$bEMO</span>
                 </div>
                 <div className="text-xs font-bold text-white">
                   MANTLE <span style={{ color: 'var(--active-color)' }}>$mEMO</span>

@@ -97,6 +97,7 @@ export default function App() {
             <div className="hidden md:flex gap-6 text-xs font-mono tracking-widest text-gray-400">
               <button onClick={() => scrollToSection('vision')} className="hover:text-white transition-colors">VISION</button>
               <button onClick={() => scrollToSection('platforms')} className="hover:text-tech-blue transition-colors">APP</button>
+              <button onClick={() => scrollToSection('sdk')} className="hover:text-tech-blue transition-colors">SDK</button>
             </div>
             <button 
               onClick={() => setCurrentView('webapp')}

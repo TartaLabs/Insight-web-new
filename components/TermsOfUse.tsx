@@ -71,7 +71,7 @@ export const TermsOfUseContent: React.FC = () => (
               <h3 className="text-lg font-bold text-white mb-2">2.3 On-Chain Reward System</h3>
               <p className="mb-2">Insight uses <strong>non-transferable</strong> blockchain reward tokens:</p>
               <ul className="list-disc pl-5 space-y-1 text-gray-400">
-                 <li><strong>iOS / Android (Sequence AA, Arbitrum chain):</strong> $aEMO</li>
+                <li><strong>iOS / Android (Sequence AA, BNB Chain):</strong> $bEMO</li>
                  <li><strong>Web (Metamask / OKX, Mantle chain):</strong> $mEMO</li>
               </ul>
            </div>
@@ -104,7 +104,7 @@ export const TermsOfUseContent: React.FC = () => (
                   <li>Sequence AA account (automatically created)</li>
                   <li>Shared identity across iOS & Android</li>
                </ul>
-               <p className="text-gray-300">Reward tracking wallet: <strong>Sequence Smart Account on Arbitrum.</strong></p>
+              <p className="text-gray-300">Reward tracking wallet: <strong>Sequence Smart Account on BNB Chain.</strong></p>
             </div>
             <div>
                <h3 className="text-lg font-bold text-white mb-2">3.2 Web Version</h3>
@@ -191,14 +191,14 @@ export const TermsOfUseContent: React.FC = () => (
       <section>
          <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 text-white text-sm">5</span>
-           Rewards: $aEMO & $mEMO
+          Rewards: $bEMO & $mEMO
          </h2>
          <div className="pl-4 md:pl-11 space-y-6">
             <div>
                <h3 className="text-lg font-bold text-white mb-2">5.1 Reward Tokens</h3>
                <p className="mb-2">Insight rewards users with <strong>non-transferable participation tokens</strong>:</p>
                <ul className="list-disc pl-5 space-y-1 text-gray-400 mb-2">
-                  <li><strong>$aEMO on Arbitrum</strong> (iOS & Android)</li>
+                 <li><strong>$bEMO on BNB Chain</strong> (iOS & Android)</li>
                   <li><strong>$mEMO on Mantle</strong> (Web)</li>
                </ul>
                <p className="mb-1">These tokens:</p>
@@ -382,7 +382,7 @@ export const TermsOfUseContent: React.FC = () => (
               <li>Apple</li>
               <li>Google</li>
               <li>Sequence</li>
-              <li>Mantle & Arbitrum blockchains</li>
+              <li>Mantle & BNB Chain blockchains</li>
               <li>Analytics providers</li>
            </ul>
            <p className="text-gray-400 mb-2">Their terms also apply.</p>

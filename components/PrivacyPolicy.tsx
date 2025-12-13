@@ -88,7 +88,7 @@ export const PrivacyPolicyContent: React.FC = () => (
              <div className="space-y-4">
                 <div>
                    <span className="text-white font-bold block">Mobile (iOS/Android)</span>
-                   <p className="text-gray-400 text-sm">A Sequence AA smart account is automatically generated on Arbitrum to store your reward balance ($aEMO).</p>
+                  <p className="text-gray-400 text-sm">A Sequence AA smart account is automatically generated on BNB Chain to store your reward balance ($bEMO).</p>
                 </div>
                 <div>
                    <span className="text-white font-bold block">Web</span>
@@ -125,7 +125,7 @@ export const PrivacyPolicyContent: React.FC = () => (
                <li>Provide core features of Insight</li>
                <li>Allow emotion data labeling and AI model testing</li>
                <li>Improve and train our multi-modal emotion AI model</li>
-               <li>Verify reward eligibility ($aEMO/$mEMO)</li>
+                <li>Verify reward eligibility ($bEMO/$mEMO)</li>
                <li>Maintain fraud prevention and security</li>
                <li>Communicate updates, support, or important notices</li>
                <li>Improve user experience and product performance</li>
