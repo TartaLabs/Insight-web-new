@@ -5,11 +5,13 @@ import { TaskFlow } from './components/TaskFlow';
 import { UpgradeModal } from './components/UpgradeModal';
 import { TransactionModal } from './components/TransactionModal';
 import { LoadingScreen } from './components/LoadingScreen';
+import { DisconnectModal } from './components/modals/DisconnectModal';
 import { useTransaction } from './hooks';
 import { useUserStore } from '../../store/userStore';
 import { useProStore } from '../../store/proStore';
 import { useTaskStore } from '../../store/taskStore';
 import type { User } from '../../services/model/types';
+import { useAccount, useDisconnect } from 'wagmi';
 
 interface WebAppProps {
   onExit: () => void;
@@ -31,6 +33,7 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
     user,
     setUser,
     reset,
+    reset: resetUserStore,
   } = useUserStore();
   const {
     fetchProVersion,
@@ -46,6 +49,10 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
   } = useTaskStore();
 
   const [showLogin, setShowLogin] = useState(false);
+  const [showDisconnectModal, setShowDisconnectModal] = useState(false);
+
+  const { isDisconnected } = useAccount();
+  const { disconnect } = useDisconnect();
 
   // 并行初始化所有需要认证的数据
   const initializeAuthenticatedData = useCallback(async () => {
@@ -84,6 +91,25 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
     }
   }, [user, userInitialized, proInitialized, taskInitialized, initializeAuthenticatedData]);
 
+  // 监听钱包断开连接
+  useEffect(() => {
+    // 只有在用户已登录且钱包断开时才显示弹窗
+    if (isDisconnected && user && userInitialized && !showLogin) {
+      setShowDisconnectModal(true);
+    }
+  }, [isDisconnected, user, userInitialized, showLogin]);
+
+  // 处理断连弹窗确认
+  const handleDisconnectConfirm = useCallback(() => {
+    setShowDisconnectModal(false);
+    // 清空本地登录态
+    reset();
+    resetProStore();
+    resetTaskStore();
+    // 回到首页
+    onExit();
+  }, [reset, resetProStore, resetTaskStore, onExit]);
+
   // 登录成功回调：设置用户并触发数据重新加载
   const handleLoginSuccess = useCallback(
     async (loggedInUser: User) => {
@@ -107,11 +133,18 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
   // 升级弹窗状态
   const [showUpgrade, setShowUpgrade] = useState(false);
 
-  // 判断是否所有初始化完成
+  // 判断是否仍在初始化中（任一 store 未完成初始化）
   const isInitializing = !userInitialized || !proInitialized || !taskInitialized;
 
   const handleExit = () => {
-    reset();
+    onExit();
+    // 断开钱包
+    disconnect();
+    // 清空本地缓存
+    resetUserStore();
+    resetProStore();
+    resetTaskStore();
+    // 重制登录状态
     setShowLogin(true);
   };
 
@@ -161,6 +194,9 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
           onSuccess={transaction.handleTransactionSuccess}
         />
       )}
+
+      {/* 钱包断连阻塞性弹窗 */}
+      {showDisconnectModal && <DisconnectModal onConfirm={handleDisconnectConfirm} />}
     </div>
   );
 };

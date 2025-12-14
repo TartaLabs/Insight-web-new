@@ -30,6 +30,9 @@ export const useUserStore = create<UserState>((set, get) => ({
     set({ loading: true });
     try {
       const user = await apiUser.getUserData();
+      if (!user) {
+        throw new Error('User not found');
+      }
       set({ user, loading: false, initialized: true });
     } catch (error) {
       set({ loading: false, initialized: true });
@@ -50,13 +53,14 @@ export const useUserStore = create<UserState>((set, get) => ({
     return get().user?.oauth_info?.wallet?.oauth_user?.id || '';
   },
 
-  setUser: (user: User | null) => set({ user }),
+  setUser: (user: User | null) => set({ user, initialized: true }),
 
   setPendingRewards: (pendingRewards: number) => set({ pendingRewards }),
 
   updateUser: (updates: Partial<User>) =>
     set((state) => ({
       user: state.user ? { ...state.user, ...updates } : null,
+      initialized: true,
     })),
 
   setLoading: (loading: boolean) => set({ loading }),

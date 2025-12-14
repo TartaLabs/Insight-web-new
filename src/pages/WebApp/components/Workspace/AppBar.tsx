@@ -15,9 +15,7 @@ export const AppBar: React.FC<AppBarProps> = ({ onExit }) => {
       <div className="flex items-center gap-3">
         <Logo className="w-8 h-8" />
         <div className="hidden md:block">
-          <div className="font-bold tracking-tight font-mono text-tech-blue">
-            INSIGHT WEB
-          </div>
+          <div className="font-bold tracking-tight font-mono text-tech-blue">INSIGHT WEB</div>
         </div>
       </div>
       <div className="flex items-center gap-4">
@@ -32,14 +30,10 @@ export const AppBar: React.FC<AppBarProps> = ({ onExit }) => {
           onClick={onExit}
           className="flex items-center gap-2 text-gray-500 hover:text-red-500 transition-colors text-[10px] font-bold uppercase tracking-widest group"
         >
-          <LogOut
-            size={12}
-            className="group-hover:-translate-x-0.5 transition-transform"
-          />
+          <LogOut size={12} className="group-hover:-translate-x-0.5 transition-transform" />
           <span>Disconnect</span>
         </button>
       </div>
     </div>
   );
 };
-
