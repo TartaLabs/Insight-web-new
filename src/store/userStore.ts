@@ -6,15 +6,14 @@ interface UserState {
   user: User | null;
   pendingRewards: number;
   loading: boolean;
-  error: string | null;
   initialized: boolean;
   fetchUserData: () => Promise<void>;
   fetchPendingRewards: () => Promise<void>;
   setUser: (user: User | null) => void;
   updateUser: (updates: Partial<User>) => void;
   setLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
   reset: () => void;
+  getWalletAddress: () => string;
 }
 
 export const useUserStore = create<UserState>((set, get) => ({
@@ -28,13 +27,13 @@ export const useUserStore = create<UserState>((set, get) => ({
     // 避免重复请求
     if (get().loading) return;
 
-    set({ loading: true, error: null });
+    set({ loading: true });
     try {
       const user = await apiUser.getUserData();
       set({ user, loading: false, initialized: true });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch user data';
-      set({ error: errorMessage, loading: false, initialized: true });
+      set({ loading: false, initialized: true });
+      throw error;
     }
   },
 
@@ -45,6 +44,10 @@ export const useUserStore = create<UserState>((set, get) => ({
     } catch (error) {
       console.error(error);
     }
+  },
+
+  getWalletAddress: () => {
+    return get().user?.oauth_info?.wallet?.oauth_user?.id || '';
   },
 
   setUser: (user: User | null) => set({ user }),
@@ -58,8 +61,8 @@ export const useUserStore = create<UserState>((set, get) => ({
 
   setLoading: (loading: boolean) => set({ loading }),
 
-  setError: (error: string | null) => set({ error }),
-
-  reset: () =>
-    set({ user: null, pendingRewards: 0, loading: false, error: null, initialized: false }),
+  reset: () => {
+    set({ user: null, pendingRewards: 0, loading: false, initialized: false });
+    localStorage.removeItem('auth_token');
+  },
 }));

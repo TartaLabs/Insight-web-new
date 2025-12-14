@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Clock, CreditCard, Crown, Share2, Wallet } from 'lucide-react';
-import { InviteCodeInfo, Invitee, RenameResult, TabType } from '../../../types';
+import { TabType } from '../../../types';
 import { ContributionsTab } from './ContributionsTab';
 import { LedgerTab } from './LedgerTab';
 import { LeaderboardTab } from './LeaderboardTab';
@@ -8,11 +8,6 @@ import { InvitationTab } from './InvitationTab';
 import { SubscriptionsTab } from './SubscriptionsTab';
 
 interface BottomTabsProps {
-  invitees: Invitee[];
-  inviteCodeInfo: InviteCodeInfo;
-  ownInviteCode: string;
-  inviteLink: string;
-  onApplyInviteCode: (code: string) => RenameResult;
   onClaimInvitationRewards: () => void;
 }
 
@@ -27,14 +22,7 @@ const tabs = [
 /**
  * 底部多 Tab 面板容器
  */
-export const BottomTabs: React.FC<BottomTabsProps> = ({
-  invitees,
-  inviteCodeInfo,
-  ownInviteCode,
-  inviteLink,
-  onApplyInviteCode,
-  onClaimInvitationRewards,
-}) => {
+export const BottomTabs: React.FC<BottomTabsProps> = ({ onClaimInvitationRewards }) => {
   const [activeTab, setActiveTab] = useState<TabType>('contributions');
 
   return (
@@ -68,14 +56,7 @@ export const BottomTabs: React.FC<BottomTabsProps> = ({
         {activeTab === 'leaderboard' && <LeaderboardTab />}
 
         {activeTab === 'invitation' && (
-          <InvitationTab
-            invitees={invitees}
-            inviteCodeInfo={inviteCodeInfo}
-            ownInviteCode={ownInviteCode}
-            inviteLink={inviteLink}
-            onApplyInviteCode={onApplyInviteCode}
-            onClaimInvitationRewards={onClaimInvitationRewards}
-          />
+          <InvitationTab onClaimInvitationRewards={onClaimInvitationRewards} />
         )}
 
         {activeTab === 'subscriptions' && <SubscriptionsTab />}

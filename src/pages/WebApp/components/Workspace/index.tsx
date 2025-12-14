@@ -5,14 +5,8 @@ import { WalletCard } from './WalletCard';
 import { MembershipCard } from './MembershipCard';
 import { TaskListCard } from './TaskListCard';
 import { BottomTabs } from './BottomTabs';
-import { InviteCodeInfo, Invitee, RenameResult } from '../../types';
 
 interface WorkspaceProps {
-  invitees: Invitee[];
-  inviteCodeInfo: InviteCodeInfo;
-  ownInviteCode: string;
-  inviteLink: string;
-  onApplyInviteCode: (code: string) => RenameResult;
   onUpgradeClick: () => void;
   onClaimAll: () => void;
   onClaimBonus: () => void;
@@ -25,11 +19,6 @@ interface WorkspaceProps {
  * 组合各个卡片组件和底部 Tab 面板
  */
 export const Workspace: React.FC<WorkspaceProps> = ({
-  invitees,
-  inviteCodeInfo,
-  ownInviteCode,
-  inviteLink,
-  onApplyInviteCode,
   onUpgradeClick,
   onClaimAll,
   onClaimBonus,
@@ -54,14 +43,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
         </div>
 
         {/* BOTTOM ROW: Multi-Tab Panel */}
-        <BottomTabs
-          invitees={invitees}
-          inviteCodeInfo={inviteCodeInfo}
-          ownInviteCode={ownInviteCode}
-          inviteLink={inviteLink}
-          onApplyInviteCode={onApplyInviteCode}
-          onClaimInvitationRewards={onClaimInvitationRewards}
-        />
+        <BottomTabs onClaimInvitationRewards={onClaimInvitationRewards} />
       </div>
     </div>
   );

@@ -41,7 +41,7 @@ export const LabelStep: React.FC<LabelStepProps> = ({
   const handleSubmit = () => {
     const answerList: QuestionAnswer[] = Object.entries(answers).map(([questionId, answer]) => ({
       question_id: Number(questionId),
-      answer: answer as string | number,
+      answer: answer.toString(),
     }));
     onSubmit(answerList);
   };

@@ -15,9 +15,15 @@ export interface User {
   pro_version_expires_at?: number;
   referral_code?: string;
   token_amount?: number;
-  wallet_address?: string;
   refer_user?: string;
   refer_count?: number;
+  oauth_info?: {
+    wallet?: {
+      oauth_user: {
+        id?: string;
+      };
+    };
+  };
 }
 
 export interface UserLoginRes {

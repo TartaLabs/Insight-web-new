@@ -12,6 +12,7 @@ const PAGE_SIZE = 10;
  */
 export const LeaderboardTab: React.FC = () => {
   const user = useUserStore((state) => state.user);
+  const getWalletAddress = useUserStore((state) => state.getWalletAddress);
   const [page, setPage] = useState(1);
   const [leaderboardUsers, setLeaderboardUsers] = useState<LeaderboardUser[]>([]);
   const [myRank, setMyRank] = useState<number>(0);
@@ -122,7 +123,7 @@ export const LeaderboardTab: React.FC = () => {
               <span className="text-white text-sm">#{myRank || '—'}</span>
             </div>
             <div className="text-[10px] text-gray-400">{user.nickname}</div>
-            <div className="text-[10px] text-tech-blue">{user.wallet_address}</div>
+            <div className="text-[10px] text-tech-blue">{getWalletAddress()}</div>
             <div className="text-white font-bold text-sm">
               {formatTokenAmount(myAmount).toLocaleString()}{' '}
               <span className="text-[10px] text-gray-500">$mEMO</span>

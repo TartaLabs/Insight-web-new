@@ -63,11 +63,9 @@ interface TaskState {
   resumeTask: (record: TaskRecord) => void;
   cancelTask: () => void;
   saveDraft: (draft: TaskDraftData) => void;
-  submitTask: (
-    answers: QuestionAnswer[],
-    onRewardIssued?: (amount: number) => void,
-  ) => Promise<void>;
+  submitTask: (answers: QuestionAnswer[], onSubmitSuccess?: () => void) => Promise<void>;
   deleteTaskRecord: (taskId: string) => void;
+  refreshList: () => Promise<void>;
 }
 
 export const useTaskStore = create<TaskState>((set, get) => ({
@@ -104,6 +102,17 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch daily tasks';
       set({ error: errorMessage, loading: false, initialized: true });
+    }
+  },
+
+  refreshList: async () => {
+    try {
+      const response = await apiTask.getDailyTasks();
+      set({
+        tasks: response.data.tasks,
+      });
+    } catch (error) {
+      console.error('Failed to refresh task list:', error);
     }
   },
 
@@ -192,11 +201,12 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     });
   },
 
-  submitTask: async (answers: QuestionAnswer[], onRewardIssued?: (amount: number) => void) => {
-    const { activeTaskFlow } = get();
+  submitTask: async (answers: QuestionAnswer[], onSubmitSuccess?: () => void) => {
+    const { activeTaskFlow, refreshList, deleteTaskRecord } = get();
     if (!activeTaskFlow || !activeTaskFlow.draft.imageUrl) return;
 
     const task = activeTaskFlow.task;
+    const taskId = task.id; // 任务唯一 ID，用于删除草稿
     const apiTaskId = task.task_id; // 任务类型 ID，用于 API 调用 (number)
     const imageUrl = activeTaskFlow.draft.imageUrl;
 
@@ -208,7 +218,11 @@ export const useTaskStore = create<TaskState>((set, get) => ({
 
       if (mediaUrl) {
         await apiTask.submissionTask(apiTaskId, [{ url: mediaUrl, answers }]);
-        onRewardIssued?.(task.reward_amount);
+        await refreshList();
+        // 删除对应的草稿记录（如果是从草稿恢复的）
+        deleteTaskRecord(taskId);
+        set({ activeTaskFlow: null });
+        onSubmitSuccess?.();
       }
       toast.success('Task submitted successfully');
     } catch (error) {

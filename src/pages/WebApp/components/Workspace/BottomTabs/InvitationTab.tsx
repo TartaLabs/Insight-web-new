@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Users, Share2, Coins, Calendar, Loader2 } from 'lucide-react';
-import { InviteCodeInfo, RenameResult } from '../../../types';
 import { HudPanel, GameButton } from '../../ui';
 import { copyToClipboard, formatTimestamp } from '@/utils';
 import { useUserStore } from '@/store/userStore';
@@ -9,20 +8,13 @@ import { InviteRecord } from '@/services/model/types';
 import toast from 'react-hot-toast';
 
 interface InvitationTabProps {
-  inviteCodeInfo?: InviteCodeInfo;
-  ownInviteCode?: string;
-  inviteLink?: string;
-  onApplyInviteCode?: (code: string) => RenameResult;
   onClaimInvitationRewards: () => void;
 }
 
 /**
  * 邀请 Tab 组件
  */
-export const InvitationTab: React.FC<InvitationTabProps> = ({
-  inviteLink,
-  onClaimInvitationRewards,
-}) => {
+export const InvitationTab: React.FC<InvitationTabProps> = ({ onClaimInvitationRewards }) => {
   const { user, setUser } = useUserStore();
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [inviteInput, setInviteInput] = useState('');
@@ -58,11 +50,7 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({
   }, []);
 
   const inviteCodeDisplay = user.referral_code || '';
-  const inviteLinkDisplay =
-    inviteLink ||
-    (typeof window !== 'undefined'
-      ? `${window.location.origin}${window.location.pathname}?code=${inviteCodeDisplay}&inviter=${encodeURIComponent(user.nickname || '')}`
-      : '');
+  const inviteLinkDisplay = `${window.location.origin}${window.location.pathname}?code=${inviteCodeDisplay}&inviter=${encodeURIComponent(user.nickname || '')}`;
 
   const verifyCode = useCallback(async () => {
     if (verifyLoading) return;

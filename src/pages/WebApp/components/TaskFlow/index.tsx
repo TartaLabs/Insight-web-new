@@ -10,9 +10,9 @@ import {
   useTaskStore,
   getEmotionFromTaskFlow,
   getQuestionsFromTaskFlow,
-  getRewardAmountFromTaskFlow,
   type ActiveTaskFlow,
 } from '../../../../store/taskStore';
+import { useProStore } from '@/store/proStore';
 
 type Step = 'example' | 'capture' | 'review' | 'label';
 
@@ -20,13 +20,17 @@ type Step = 'example' | 'capture' | 'review' | 'label';
  * 任务流程内部组件
  * 接收确定存在的 activeTaskFlow，处理所有 hooks 和渲染逻辑
  */
-const TaskFlowContent: React.FC<{ flow: ActiveTaskFlow }> = ({ flow }) => {
+const TaskFlowContent: React.FC<{ flow: ActiveTaskFlow; onSubmitSuccess?: () => void }> = ({
+  flow,
+  onSubmitSuccess,
+}) => {
   const { saveDraft, submitTask, cancelTask, submitLoading } = useTaskStore();
+  const pro = useProStore((state) => state.pro);
 
   // 从 activeTaskFlow 获取数据
   const emotion = getEmotionFromTaskFlow(flow);
   const questions = getQuestionsFromTaskFlow(flow);
-  const rewardAmount = getRewardAmountFromTaskFlow(flow);
+  const rewardAmount = pro.benefits.points_per_annotation;
   const initialDraft = flow.draft;
 
   const [currentStep, setCurrentStep] = useState<Step>(
@@ -103,7 +107,7 @@ const TaskFlowContent: React.FC<{ flow: ActiveTaskFlow }> = ({ flow }) => {
             }
           : null,
       }));
-      submitTask(answerList);
+      submitTask(answerList, onSubmitSuccess);
     }
   };
 

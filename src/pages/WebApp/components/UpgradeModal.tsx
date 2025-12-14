@@ -25,7 +25,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onUpgrade }
   const [step, setStep] = useState<'select' | 'approve' | 'pay' | 'done'>('select');
   const [error, setError] = useState<string | null>(null);
   const proVersionList = useProStore((state) => state.proVersionList);
-  const user = useUserStore((state) => state.user);
+  const getWalletAddress = useUserStore((state) => state.getWalletAddress);
 
   const proList = proVersionList.filter((p) => p.is_pro);
   const resetState = () => {
@@ -83,7 +83,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onUpgrade }
                 Pay with <span className="text-green-400 font-bold">USDT</span> on Mantle Network
               </p>
               <div className="text-[11px] text-gray-500 font-mono mt-1">
-                Wallet: {user.wallet_address || 'Connected'}
+                Wallet: {getWalletAddress() || 'Connected'}
               </div>
             </div>
             <div className="flex items-start gap-3">

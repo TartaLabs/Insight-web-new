@@ -43,7 +43,7 @@ class Request {
   private _initAxios() {
     // 创建axios实例
     this.axios = axios.create({
-      baseURL: 'https://insightweb.tartalabs.io',
+      // baseURL: 'https://insightweb.tartalabs.io',
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',

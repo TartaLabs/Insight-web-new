@@ -8,28 +8,14 @@ import { Logo } from '@/components/Logo.tsx';
 import { PrivacyPolicyContent } from '../../Privacy';
 import { TermsOfUseContent } from '../../Terms';
 import { User } from '@/services/model/types.ts';
+import toast from 'react-hot-toast';
 
 interface LoginProps {
   onLoginSuccess: (user: User) => void;
   onBack?: () => void;
-  inviteCode: string;
-  inviteLocked: boolean;
-  invitedBy?: string;
-  onInviteChange: (code: string) => void;
-  onValidateInvite: (code: string) => { ok: boolean; message?: string; invitedBy?: string };
-  onPersistInvite: (code: string, invitedBy?: string) => { ok: boolean; message?: string };
 }
 
-export const Login: React.FC<LoginProps> = ({
-  onLoginSuccess,
-  onBack,
-  inviteCode,
-  inviteLocked,
-  invitedBy,
-  onInviteChange,
-  onValidateInvite,
-  onPersistInvite,
-}) => {
+export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
   const { openConnectModal } = useConnectModal();
   const { address, isConnected } = useAccount();
   const { connect, connectors, isPending } = useConnect();
@@ -41,26 +27,12 @@ export const Login: React.FC<LoginProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [nickname, setNickname] = useState('');
   const [agreed, setAgreed] = useState(false);
-  const [inviteInput, setInviteInput] = useState(inviteCode || '');
+  const [inviteInput, setInviteInput] = useState('');
   const [inviteError, setInviteError] = useState('');
-  const [inviteOwner, setInviteOwner] = useState(invitedBy || '');
   const [nicknameError, setNicknameError] = useState('');
   const nickPattern = /^[A-Za-z0-9]{1,15}$/;
   const isNickValid = nickPattern.test(nickname.trim());
 
-  // Sync invite input with prop changes
-  const prevInviteCode = React.useRef(inviteCode);
-  const prevInvitedBy = React.useRef(invitedBy);
-  useEffect(() => {
-    if (prevInviteCode.current !== inviteCode) {
-      setInviteInput(inviteCode || '');
-      prevInviteCode.current = inviteCode;
-    }
-    if (prevInvitedBy.current !== invitedBy) {
-      setInviteOwner(invitedBy || '');
-      prevInvitedBy.current = invitedBy;
-    }
-  }, [inviteCode, invitedBy]);
   const [legalView, setLegalView] = useState<null | 'privacy' | 'terms'>(null);
 
   // Handle wallet connection via RainbowKit
@@ -118,6 +90,21 @@ export const Login: React.FC<LoginProps> = ({
     }
   };
 
+  const verifyInviteCode = async (code: string) => {
+    try {
+      const res = await apiUser.verifyRefCode(code);
+      if (!res) {
+        throw new Error('Failed to verify invite code');
+      }
+      toast.success('Invite code verified');
+      return res;
+    } catch (error) {
+      console.log(error);
+      toast.error('Failed to verify invite code');
+      return false;
+    }
+  };
+
   const handleEnterApp = async () => {
     const nick = nickname.trim();
     if (!nick) {
@@ -132,24 +119,15 @@ export const Login: React.FC<LoginProps> = ({
     setNicknameError('');
     if (!agreed) return;
 
-    if (inviteInput.trim() && !inviteLocked) {
-      const result = onValidateInvite(inviteInput.trim());
-      if (!result.ok) {
-        setInviteError(result.message || 'Invite code is invalid');
-        return;
-      }
-      setInviteOwner(result.invitedBy || '');
-      setInviteError('');
-      const persistRes = onPersistInvite(inviteInput.trim(), result.invitedBy);
-      if (!persistRes.ok) {
-        setInviteError(persistRes.message || 'Invite code is invalid');
-        return;
-      }
-    }
-    const finalInvite = inviteLocked || inviteInput.trim() ? inviteInput.trim() : '';
-
     try {
       setIsSubmitting(true);
+
+      let verifyResult = false;
+      if (inviteInput.trim()) {
+        verifyResult = await verifyInviteCode(inviteInput.trim());
+      }
+
+      const finalInvite = verifyResult ? inviteInput.trim() : undefined;
       // 调用 API 更新用户信息（nickname 和 referral code）
       const updatedUser = await apiUser.updateUserData(nick, finalInvite || undefined);
 
@@ -160,7 +138,6 @@ export const Login: React.FC<LoginProps> = ({
           JSON.stringify({
             nickname: nick,
             inviteCode: finalInvite,
-            invitedBy: inviteOwner || '',
           }),
         );
       }
@@ -323,20 +300,14 @@ export const Login: React.FC<LoginProps> = ({
                   type="text"
                   value={inviteInput}
                   onChange={(e) => {
-                    if (inviteLocked) return;
                     setInviteInput(e.target.value);
-                    onInviteChange(e.target.value);
                     setInviteError('');
                   }}
                   placeholder="Enter invite code (optional)"
-                  disabled={inviteLocked}
-                  className={`w-full bg-black/50 border ${inviteLocked ? 'border-white/10 text-gray-500' : 'border-white/10 focus:border-tech-blue'} rounded px-4 py-3 text-sm transition-colors`}
+                  className={`w-full bg-black/50 border border-white/10 focus:border-tech-blue rounded px-4 py-3 text-sm transition-colors`}
                 />
                 <div className="flex justify-between items-center mt-2 text-[11px] text-gray-500">
-                  <span>
-                    {inviteLocked ? 'Invite code locked for this session' : 'Optional'}
-                    {inviteOwner && ` · Invited by ${inviteOwner}`}
-                  </span>
+                  <span>Optional</span>
                   {inviteError && <span className="text-red-400">{inviteError}</span>}
                 </div>
               </div>

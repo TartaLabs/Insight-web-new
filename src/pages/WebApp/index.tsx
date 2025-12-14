@@ -5,7 +5,7 @@ import { TaskFlow } from './components/TaskFlow';
 import { UpgradeModal } from './components/UpgradeModal';
 import { TransactionModal } from './components/TransactionModal';
 import { LoadingScreen } from './components/LoadingScreen';
-import { useWebAppState } from './hooks';
+import { useTransaction } from './hooks';
 import { useUserStore } from '../../store/userStore';
 import { useProStore } from '../../store/proStore';
 import { useTaskStore } from '../../store/taskStore';
@@ -30,6 +30,7 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
     initialized: userInitialized,
     user,
     setUser,
+    reset,
   } = useUserStore();
   const {
     fetchProVersion,
@@ -43,6 +44,8 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
     activeTaskFlow,
     reset: resetTaskStore,
   } = useTaskStore();
+
+  const [showLogin, setShowLogin] = useState(false);
 
   // 并行初始化所有需要认证的数据
   const initializeAuthenticatedData = useCallback(async () => {
@@ -58,7 +61,13 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
   useEffect(() => {
     const initApp = async () => {
       if (!userInitialized) {
-        await fetchUserData();
+        try {
+          await fetchUserData();
+        } catch (error) {
+          console.error('Failed to fetch user data:', error);
+          reset();
+          setShowLogin(true);
+        }
       }
     };
     initApp();
@@ -81,6 +90,7 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
       // 重置其他 store 的 initialized 状态，确保重新拉取
       resetProStore();
       resetTaskStore();
+      setShowLogin(false); // 登录成功后，隐藏登录页面
 
       // 设置用户
       setUser(loggedInUser);
@@ -91,8 +101,8 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
     [setUser, resetProStore, resetTaskStore, initializeAuthenticatedData],
   );
 
-  // WebApp 核心状态
-  const state = useWebAppState();
+  // 交易逻辑
+  const transaction = useTransaction();
 
   // 升级弹窗状态
   const [showUpgrade, setShowUpgrade] = useState(false);
@@ -100,56 +110,30 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
   // 判断是否所有初始化完成
   const isInitializing = !userInitialized || !proInitialized || !taskInitialized;
 
+  const handleExit = () => {
+    reset();
+    setShowLogin(true);
+  };
+
+  // 登录页面
+  if (showLogin) {
+    return <Login onLoginSuccess={handleLoginSuccess} onBack={onExit} />;
+  }
+
   // 阻塞式加载页面
   if (isInitializing) {
     return <LoadingScreen />;
-  }
-
-  // 登录页面
-  if (!user) {
-    const { locked, persisted } = state.inviteCode.inviteCodeInfo;
-    const inviteLocked = locked || persisted;
-
-    return (
-      <Login
-        onLoginSuccess={handleLoginSuccess}
-        onBack={onExit}
-        inviteCode={state.inviteCode.inviteCodeInfo.code}
-        inviteLocked={inviteLocked}
-        invitedBy={state.inviteCode.inviteCodeInfo.invitedBy}
-        onInviteChange={(code) =>
-          state.inviteCode.setInviteCodeInfo((prev) => ({
-            ...prev,
-            code,
-            invitedBy: '',
-            locked: false,
-            persisted: false,
-          }))
-        }
-        onValidateInvite={state.inviteCode.validateInviteCode}
-        onPersistInvite={(code) =>
-          state.inviteCode.bindInviteCode(code, { lock: true, persist: true })
-        }
-      />
-    );
   }
 
   // 工作台页面
   return (
     <div className="relative min-h-screen bg-[#020205] text-white">
       <Workspace
-        invitees={state.invitees}
-        inviteCodeInfo={state.inviteCode.inviteCodeInfo}
-        ownInviteCode={state.inviteCode.ownInviteCode}
-        inviteLink={state.inviteCode.inviteLink}
-        onApplyInviteCode={(code) =>
-          state.inviteCode.bindInviteCode(code, { lock: true, persist: true })
-        }
         onUpgradeClick={() => setShowUpgrade(true)}
-        onClaimAll={state.handleClaimAll}
-        onClaimBonus={state.handleClaimDailyBonus}
-        onClaimInvitationRewards={state.handleClaimInvitationRewards}
-        onExit={onExit}
+        onClaimAll={transaction.handleClaimAll}
+        onClaimBonus={transaction.handleClaimDailyBonus}
+        onClaimInvitationRewards={transaction.handleClaimInvitationRewards}
+        onExit={handleExit}
       />
 
       {/* 任务流程弹窗 - 所有数据从 store 的 activeTaskFlow 中获取 */}
@@ -160,21 +144,21 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
         <UpgradeModal
           onClose={() => setShowUpgrade(false)}
           onUpgrade={(plan) => {
-            state.handleUpgrade(plan);
+            transaction.handleUpgrade(plan);
             setShowUpgrade(false);
           }}
         />
       )}
 
       {/* 交易模拟弹窗 */}
-      {state.transaction.txModal.isOpen && (
+      {transaction.txModal.isOpen && (
         <TransactionModal
-          type={state.transaction.txModal.type}
-          title={state.transaction.txModal.title}
-          amount={state.transaction.txModal.amount}
-          cost={state.transaction.txModal.cost}
-          onClose={state.transaction.closeTransaction}
-          onSuccess={state.transaction.handleTransactionSuccess}
+          type={transaction.txModal.type}
+          title={transaction.txModal.title}
+          amount={transaction.txModal.amount}
+          cost={transaction.txModal.cost}
+          onClose={transaction.closeTransaction}
+          onSuccess={transaction.handleTransactionSuccess}
         />
       )}
     </div>

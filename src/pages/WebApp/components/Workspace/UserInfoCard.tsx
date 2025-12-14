@@ -12,6 +12,7 @@ import { NicknameEditModal } from '../modals/NicknameEditModal';
  */
 export const UserInfoCard: React.FC = () => {
   const user = useUserStore((state) => state.user);
+  const getWalletAddress = useUserStore((state) => state.getWalletAddress);
   const pro = useProStore((state) => state.pro);
   const formatAddress = (addr: string) => (addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '');
 
@@ -52,10 +53,10 @@ export const UserInfoCard: React.FC = () => {
             </div>
             <div className="flex items-center gap-2 mt-2">
               <code className="text-xs text-gray-500 bg-black/50 px-2 py-1 rounded border border-white/5">
-                {formatAddress(user.wallet_address || '')}
+                {formatAddress(getWalletAddress() || '')}
               </code>
               <button
-                onClick={() => copyToClipboard(user.wallet_address || '', 'Address copied')}
+                onClick={() => copyToClipboard(getWalletAddress() || '', 'Address copied')}
                 className="text-gray-500 hover:text-tech-blue transition-colors"
               >
                 <Copy size={12} />

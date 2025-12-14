@@ -1,29 +1,47 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, CheckCircle2, Timer, XCircle } from 'lucide-react';
-import { TaskRecord } from '../../types';
+import type { Task, MediaInfo } from '@/services/model/types';
+import { useProStore } from '@/store/proStore';
+
+/**
+ * 任务详情弹窗数据，基于 API 返回的 Task 结构
+ */
+export interface TaskDetailData {
+  mediaUrl: string;
+  mediaInfo: MediaInfo;
+  task: Task;
+}
 
 interface TaskDetailModalProps {
-  task: TaskRecord;
+  data: TaskDetailData;
   onClose: () => void;
 }
 
 /**
  * 任务详情弹窗组件
  */
-export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
-  task,
-  onClose,
-}) => {
+export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ data, onClose }) => {
   const [photoRevealed, setPhotoRevealed] = useState(false);
+  const pro = useProStore((state) => state.pro);
+
+  const { task, mediaInfo, mediaUrl } = data;
+
+  // 根据 mediaInfo.status 计算显示状态
+  const displayStatus =
+    mediaInfo.status === 'VALID'
+      ? 'ACCEPTED'
+      : mediaInfo.status === 'INVALID'
+        ? 'REJECTED'
+        : 'VERIFYING';
 
   // Reset photo reveal when task changes
-  const prevTaskId = useRef(task.task_id);
+  const prevTaskId = useRef(task.id);
   useEffect(() => {
-    if (prevTaskId.current !== task.task_id) {
+    if (prevTaskId.current !== task.id) {
       setPhotoRevealed(false);
-      prevTaskId.current = task.task_id;
+      prevTaskId.current = task.id;
     }
-  }, [task.task_id]);
+  }, [task.id]);
 
   return (
     <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center px-4">
@@ -43,12 +61,10 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               <div className="text-xs text-tech-blue uppercase tracking-[0.2em]">
                 Submission Details
               </div>
-              <div className="text-[11px] text-gray-400 font-mono mt-1">
-                ID: {task.task_id}
-              </div>
+              <div className="text-[11px] text-gray-400 font-mono mt-1">ID: {task.id}</div>
             </div>
             <div className="text-[11px] text-gray-500 font-mono">
-              {new Date(task.timestamp).toLocaleString()}
+              {new Date(mediaInfo.submit_time).toLocaleString()}
             </div>
           </div>
 
@@ -60,17 +76,17 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   Label Summary
                 </h4>
                 <div className="flex items-center gap-2 text-[11px] text-gray-400 font-mono">
-                  {task.status === 'LABELED' && (
+                  {displayStatus === 'ACCEPTED' && (
                     <span className="text-green-500 font-bold flex items-center gap-1">
                       <CheckCircle2 size={12} /> Accepted
                     </span>
                   )}
-                  {task.status === 'AUDITING' && (
+                  {displayStatus === 'VERIFYING' && (
                     <span className="text-yellow-500 font-bold flex items-center gap-1">
                       <Timer size={12} className="animate-spin" /> Verifying
                     </span>
                   )}
-                  {task.status === 'REJECTED' && (
+                  {displayStatus === 'REJECTED' && (
                     <span className="text-red-500 font-bold flex items-center gap-1">
                       <XCircle size={12} /> Rejected
                     </span>
@@ -79,47 +95,44 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm text-white">
                 <div>
-                  <div className="text-[10px] text-gray-500 uppercase mb-1">
-                    Emotion
-                  </div>
-                  <div className="font-bold text-lg">{task.task.emotion_type}</div>
+                  <div className="text-[10px] text-gray-500 uppercase mb-1">Emotion</div>
+                  <div className="font-bold text-lg">{task.emotion_type}</div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-gray-500 uppercase mb-1">
-                    Status
-                  </div>
+                  <div className="text-[10px] text-gray-500 uppercase mb-1">Status</div>
                   <div className="text-[13px] font-bold">
-                    {task.status === 'LABELED' && (
+                    {displayStatus === 'ACCEPTED' && (
                       <span className="text-green-500">Accepted</span>
                     )}
-                    {task.status === 'AUDITING' && (
+                    {displayStatus === 'VERIFYING' && (
                       <span className="text-yellow-500">Verifying</span>
                     )}
-                    {task.status === 'REJECTED' && (
-                      <span className="text-red-500">Rejected</span>
-                    )}
+                    {displayStatus === 'REJECTED' && <span className="text-red-500">Rejected</span>}
                   </div>
-                  {task.failReason && (
-                    <div className="text-[11px] text-gray-400 mt-1">
-                      Reason: {task.failReason}
-                    </div>
-                  )}
                 </div>
               </div>
               <div className="space-y-3">
-                <div className="text-[10px] text-gray-500 uppercase">
-                  User Labels
-                </div>
+                <div className="text-[10px] text-gray-500 uppercase">Task Info</div>
                 <div className="grid grid-cols-2 gap-y-2 text-xs text-gray-300">
-                  {task.draft.answers && Object.entries(task.draft.answers).length > 0 ? (
-                    Object.entries(task.draft.answers).map(([questionId, answer]) => (
-                      <div key={questionId}>
-                        Q{questionId}:{' '}
-                        <span className="text-white font-bold">{String(answer)}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-2 text-gray-500">No answers recorded</div>
+                  <div>
+                    Task Type: <span className="text-white font-bold">{task.task_type}</span>
+                  </div>
+                  <div>
+                    Reward:{' '}
+                    <span className="text-white font-bold">
+                      {pro.benefits.points_per_annotation}
+                    </span>
+                  </div>
+                  <div>
+                    Media Type: <span className="text-white font-bold">{task.media_type}</span>
+                  </div>
+                  {mediaInfo.validate_time > 0 && (
+                    <div>
+                      Validated:{' '}
+                      <span className="text-white font-bold">
+                        {new Date(mediaInfo.validate_time).toLocaleString()}
+                      </span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -127,17 +140,15 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
             {/* Photo Preview */}
             <div className="w-full bg-[#0c111a] border border-white/10 p-4 rounded-md shadow-inner flex flex-col gap-3">
-              <div className="text-[10px] text-gray-500 uppercase">
-                Photo Preview
-              </div>
+              <div className="text-[10px] text-gray-500 uppercase">Photo Preview</div>
               <div
-                className={`flex-1 border border-dashed border-white/15 bg-black/40 rounded-md flex items-center justify-center min-h-[280px] text-gray-500 text-xs overflow-hidden relative ${task.draft.imageUrl ? 'cursor-pointer' : ''}`}
+                className={`flex-1 border border-dashed border-white/15 bg-black/40 rounded-md flex items-center justify-center min-h-[280px] text-gray-500 text-xs overflow-hidden relative ${mediaUrl ? 'cursor-pointer' : ''}`}
                 onClick={() => setPhotoRevealed(true)}
               >
-                {task.draft.imageUrl ? (
+                {mediaUrl ? (
                   <>
                     <img
-                      src={task.draft.imageUrl}
+                      src={mediaUrl}
                       alt="Captured"
                       className={`w-full h-full object-contain rounded-md transition-all duration-300 ${photoRevealed ? 'blur-0 opacity-100' : 'blur-sm scale-105 opacity-80'}`}
                     />
@@ -146,9 +157,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                         <div className="px-3 py-1 bg-black/60 rounded-full border border-white/15">
                           Blurred for privacy
                         </div>
-                        <div className="text-gray-300">
-                          Tap to reveal full photo
-                        </div>
+                        <div className="text-gray-300">Tap to reveal full photo</div>
                       </div>
                     )}
                   </>
@@ -159,7 +168,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   </div>
                 )}
               </div>
-              {task.draft.imageUrl && !photoRevealed && (
+              {mediaUrl && !photoRevealed && (
                 <button
                   onClick={() => setPhotoRevealed(true)}
                   className="text-[11px] text-tech-blue underline hover:text-white text-left"
@@ -174,4 +183,3 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     </div>
   );
 };
-

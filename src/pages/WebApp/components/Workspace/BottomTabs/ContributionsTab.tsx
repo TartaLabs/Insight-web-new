@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Edit2, Trash2, CheckCircle2, XCircle, Timer } from 'lucide-react';
-import { TaskRecord } from '../../../types';
-import { TaskDetailModal } from '../../modals/TaskDetailModal';
+import { TaskDetailModal, type TaskDetailData } from '../../modals/TaskDetailModal';
 import { useTaskStore } from '@/store/taskStore';
 import type { Task, MediaInfo } from '@/services/model/types';
 
@@ -27,19 +26,21 @@ export const ContributionsTab: React.FC = () => {
   const deleteTaskRecord = useTaskStore((state) => state.deleteTaskRecord);
 
   const [uploadPage, setUploadPage] = useState(1);
-  const [selectedTask, setSelectedTask] = useState<TaskRecord | null>(null);
+  const [selectedTask, setSelectedTask] = useState<TaskDetailData | null>(null);
 
   const drafts = taskRecords.filter((t) => t.status === 'DRAFT');
 
   // 将所有 tasks 的 medias 展平成数组
   const submittedTasks = useMemo<FlattenedMedia[]>(() => {
-    return tasks.flatMap((task) =>
-      Object.entries(task.medias).map(([url, info]) => ({
-        mediaUrl: url,
-        mediaInfo: info,
-        task,
-      })),
-    );
+    return tasks
+      .flatMap((task) =>
+        Object.entries(task.medias).map(([url, info]) => ({
+          mediaUrl: url,
+          mediaInfo: info,
+          task,
+        })),
+      )
+      .sort((a, b) => a.mediaInfo.submit_time - b.mediaInfo.submit_time);
   }, [tasks]);
   const uploadTotalPages = Math.max(1, Math.ceil(submittedTasks.length / UPLOAD_PAGE_SIZE));
 
@@ -133,16 +134,9 @@ export const ContributionsTab: React.FC = () => {
                     <button
                       onClick={() =>
                         setSelectedTask({
-                          task_id: item.task.id,
+                          mediaUrl: item.mediaUrl,
+                          mediaInfo: item.mediaInfo,
                           task: item.task,
-                          draft: { imageUrl: item.mediaUrl },
-                          status:
-                            item.mediaInfo.status === 'VALID'
-                              ? 'LABELED'
-                              : item.mediaInfo.status === 'INVALID'
-                                ? 'REJECTED'
-                                : 'AUDITING',
-                          timestamp: item.mediaInfo.submit_time,
                         })
                       }
                       className="px-3 py-1 text-[11px] font-mono rounded border border-white/15 text-white hover:border-tech-blue hover:text-tech-blue transition-colors"
@@ -197,7 +191,7 @@ export const ContributionsTab: React.FC = () => {
 
       {/* Task Detail Modal */}
       {selectedTask && (
-        <TaskDetailModal task={selectedTask} onClose={() => setSelectedTask(null)} />
+        <TaskDetailModal data={selectedTask} onClose={() => setSelectedTask(null)} />
       )}
     </div>
   );
