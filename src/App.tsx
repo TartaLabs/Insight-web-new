@@ -1,7 +1,8 @@
 import React from 'react';
+import { RouterProvider } from 'react-router';
 import WalletProvider from './wallet/WalletProvider';
-import Main from './Main';
 import { Toaster } from 'react-hot-toast';
+import { router } from './router';
 
 export default function App() {
   return (
@@ -34,7 +35,7 @@ export default function App() {
           },
         }}
       />
-      <Main />
+      <RouterProvider router={router} />
     </WalletProvider>
   );
 }

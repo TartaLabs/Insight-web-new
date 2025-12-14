@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Users, Share2, Coins, Calendar, Loader2 } from 'lucide-react';
+import { useSearchParams } from 'react-router';
 import { HudPanel, GameButton } from '../../ui';
 import { copyToClipboard, formatTimestamp } from '@/utils';
 import { useUserStore } from '@/store/userStore';
@@ -15,9 +16,14 @@ interface InvitationTabProps {
  * 邀请 Tab 组件
  */
 export const InvitationTab: React.FC<InvitationTabProps> = ({ onClaimInvitationRewards }) => {
+  const [searchParams] = useSearchParams();
   const { user, setUser } = useUserStore();
+
+  // 从 URL 参数获取邀请码
+  const inviteCodeFromUrl = searchParams.get('inviteCode') || '';
+
   const [verifyLoading, setVerifyLoading] = useState(false);
-  const [inviteInput, setInviteInput] = useState('');
+  const [inviteInput, setInviteInput] = useState(inviteCodeFromUrl);
   const [invitationRewards, setInvitationRewards] = useState(0);
   const [inviteRecords, setInviteRecords] = useState<InviteRecord[]>([]);
   const [inviteTotal, setInviteTotal] = useState(0);
@@ -50,7 +56,7 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({ onClaimInvitationR
   }, []);
 
   const inviteCodeDisplay = user.referral_code || '';
-  const inviteLinkDisplay = `${window.location.origin}${window.location.pathname}?code=${inviteCodeDisplay}&inviter=${encodeURIComponent(user.nickname || '')}`;
+  const inviteLinkDisplay = `${window.location.origin}${window.location.pathname}?inviteCode=${inviteCodeDisplay}&inviter=${encodeURIComponent(user.nickname || '')}`;
 
   const verifyCode = useCallback(async () => {
     if (verifyLoading) return;

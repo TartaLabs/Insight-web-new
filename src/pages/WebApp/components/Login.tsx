@@ -3,31 +3,39 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Check, Wallet, X } from 'lucide-react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccount, useConnect, useDisconnect, useSignMessage } from 'wagmi';
+import { useNavigate, useSearchParams } from 'react-router';
 import { apiUser } from '@/services/api.ts';
 import { Logo } from '@/components/Logo.tsx';
 import { PrivacyPolicyContent } from '../../Privacy';
 import { TermsOfUseContent } from '../../Terms';
-import { User } from '@/services/model/types.ts';
+import { useUserStore } from '@/store/userStore';
 import toast from 'react-hot-toast';
 
-interface LoginProps {
-  onLoginSuccess: (user: User) => void;
-  onBack?: () => void;
-}
-
-export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
+/**
+ * 登录页面组件
+ * 作为独立路由页面使用
+ */
+export const Login: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { openConnectModal } = useConnectModal();
   const { address, isConnected } = useAccount();
   const { connect, connectors, isPending } = useConnect();
   const { signMessageAsync } = useSignMessage();
   const { disconnect } = useDisconnect();
 
+  // Store
+  const { user, setUser } = useUserStore();
+
+  // 从 URL 参数获取邀请码
+  const inviteCodeFromUrl = searchParams.get('inviteCode') || '';
+
   const [step, setStep] = useState<1 | 2>(1); // 1: Wallet Connect, 2: Onboarding
   const [isSigning, setIsSigning] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [nickname, setNickname] = useState('');
   const [agreed, setAgreed] = useState(false);
-  const [inviteInput, setInviteInput] = useState('');
+  const [inviteInput, setInviteInput] = useState(inviteCodeFromUrl);
   const [inviteError, setInviteError] = useState('');
   const [nicknameError, setNicknameError] = useState('');
   const nickPattern = /^[A-Za-z0-9]{1,15}$/;
@@ -35,35 +43,45 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
 
   const [legalView, setLegalView] = useState<null | 'privacy' | 'terms'>(null);
 
+  // 登录成功后设置用户并导航（初始化由 WebAppRoot 处理）
+  const handleLoginSuccess = (loggedInUser: typeof user) => {
+    setUser(loggedInUser);
+    navigate('/webapp/contributions', { replace: true });
+  };
+
   // Handle wallet connection via RainbowKit
   useEffect(() => {
     if (isConnected && address) {
-      // 连接成功后执行签名
       handleSignMessage(address).catch(console.error);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected, address]);
+
+  // 已登录用户直接跳转到 App 页面
+  useEffect(() => {
+    if (user) {
+      navigate('/webapp/contributions', { replace: true });
+    }
+  }, [user, navigate]);
 
   // 签名并调用登录接口
   const handleSignMessage = async (walletAddress: string) => {
     try {
       setIsSigning(true);
 
-      // 签名消息
       const message = 'Sign in Insight Web';
       const signature = await signMessageAsync({
         account: walletAddress as `0x${string}`,
         message,
       });
 
-      // 调用登录接口
       const userLoginRes = await apiUser.login(address, signature, message);
       localStorage.setItem('auth_token', userLoginRes.session);
       if (userLoginRes.is_new) {
-        // 新用户登录后, 弹出编辑资料弹框
         setStep(2);
       } else {
         console.log('Login success:', userLoginRes);
-        onLoginSuccess(userLoginRes.user);
+        handleLoginSuccess(userLoginRes.user);
       }
     } catch (error) {
       console.error('Sign message or login failed:', error);
@@ -74,12 +92,10 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
   };
 
   const handleConnectMetaMask = () => {
-    // 尝试直接连接 MetaMask (injected connector)
     const metaMaskConnector = connectors.find((c) => c.id === 'injected' || c.name === 'MetaMask');
     if (metaMaskConnector) {
       connect({ connector: metaMaskConnector });
     } else if (openConnectModal) {
-      // 如果找不到 MetaMask connector，则打开通用连接弹窗
       openConnectModal();
     }
   };
@@ -128,10 +144,8 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
       }
 
       const finalInvite = verifyResult ? inviteInput.trim() : undefined;
-      // 调用 API 更新用户信息（nickname 和 referral code）
       const updatedUser = await apiUser.updateUserData(nick, finalInvite || undefined);
 
-      // 保存到 localStorage
       if (address) {
         localStorage.setItem(
           `insight_profile_${address}`,
@@ -142,14 +156,17 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
         );
       }
 
-      // 使用服务端返回的完整 User 对象
-      onLoginSuccess(updatedUser);
+      handleLoginSuccess(updatedUser);
     } catch (error) {
       console.error('Failed to update user data:', error);
       setNicknameError('Failed to save profile. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleBack = () => {
+    navigate('/');
   };
 
   return (
@@ -162,14 +179,12 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onBack }) => {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
       >
-        {onBack && (
-          <button
-            onClick={onBack}
-            className="absolute top-4 left-4 text-xs font-mono text-gray-500 hover:text-white flex items-center gap-1"
-          >
-            <ArrowLeft size={14} /> Back to Home
-          </button>
-        )}
+        <button
+          onClick={handleBack}
+          className="absolute top-4 left-4 text-xs font-mono text-gray-500 hover:text-white flex items-center gap-1"
+        >
+          <ArrowLeft size={14} /> Back to Home
+        </button>
         <div className="flex justify-center mb-8">
           <Logo className="w-12 h-12" />
         </div>

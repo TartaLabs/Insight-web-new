@@ -5,8 +5,10 @@ import { WalletCard } from './WalletCard';
 import { MembershipCard } from './MembershipCard';
 import { TaskListCard } from './TaskListCard';
 import { BottomTabs } from './BottomTabs';
+import { TabType } from '../../types';
 
 interface WorkspaceProps {
+  activeTab: TabType;
   onUpgradeClick: () => void;
   onClaimAll: () => void;
   onClaimBonus: () => void;
@@ -19,6 +21,7 @@ interface WorkspaceProps {
  * 组合各个卡片组件和底部 Tab 面板
  */
 export const Workspace: React.FC<WorkspaceProps> = ({
+  activeTab,
   onUpgradeClick,
   onClaimAll,
   onClaimBonus,
@@ -43,7 +46,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
         </div>
 
         {/* BOTTOM ROW: Multi-Tab Panel */}
-        <BottomTabs onClaimInvitationRewards={onClaimInvitationRewards} />
+        <BottomTabs activeTab={activeTab} onClaimInvitationRewards={onClaimInvitationRewards} />
       </div>
     </div>
   );

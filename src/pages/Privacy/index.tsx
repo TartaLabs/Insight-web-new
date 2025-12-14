@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Shield } from 'lucide-react';
+import { useNavigate } from 'react-router';
 import { Logo } from '../../components/Logo';
 
 interface PageProps {
-  onBack: () => void;
+  onBack?: () => void;
 }
 
 export const PrivacyPolicyContent: React.FC = () => (
@@ -402,15 +403,25 @@ export const PrivacyPolicyContent: React.FC = () => (
 );
 
 export const PrivacyPolicy: React.FC<PageProps> = ({ onBack }) => {
+  const navigate = useNavigate();
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate('/');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-deep-bg text-white pt-24 pb-20 px-6">
       <nav className="fixed top-0 left-0 w-full bg-deep-bg/90 backdrop-blur-md border-b border-white/5 z-50 px-6 py-4 flex items-center justify-between">
         <button
-          onClick={onBack}
+          onClick={handleBack}
           className="flex items-center gap-2 text-sm font-mono text-gray-400 hover:text-tech-blue transition-colors group"
         >
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
