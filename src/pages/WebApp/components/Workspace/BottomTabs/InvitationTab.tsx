@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Users, Share2, Coins, Calendar, Activity } from 'lucide-react';
-import { Invitee, InviteCodeInfo, RenameResult } from '../../../types';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Users, Share2, Coins, Calendar, Loader2 } from 'lucide-react';
+import { InviteCodeInfo, RenameResult } from '../../../types';
 import { HudPanel, GameButton } from '../../ui';
-import { copyToClipboard } from '@/utils';
+import { copyToClipboard, formatTimestamp } from '@/utils';
 import { useUserStore } from '@/store/userStore';
-import { apiTask } from '@/services/api';
+import { apiTask, apiUser, apiInvite } from '@/services/api';
+import { InviteRecord } from '@/services/model/types';
+import toast from 'react-hot-toast';
 
 interface InvitationTabProps {
-  invitees: Invitee[];
-  inviteCodeInfo: InviteCodeInfo;
-  ownInviteCode: string;
-  inviteLink: string;
-  onApplyInviteCode: (code: string) => RenameResult;
+  inviteCodeInfo?: InviteCodeInfo;
+  ownInviteCode?: string;
+  inviteLink?: string;
+  onApplyInviteCode?: (code: string) => RenameResult;
   onClaimInvitationRewards: () => void;
 }
 
@@ -19,17 +20,18 @@ interface InvitationTabProps {
  * 邀请 Tab 组件
  */
 export const InvitationTab: React.FC<InvitationTabProps> = ({
-  invitees,
-  inviteCodeInfo,
-  ownInviteCode,
   inviteLink,
-  onApplyInviteCode,
   onClaimInvitationRewards,
 }) => {
-  const user = useUserStore((state) => state.user);
-  const [inviteInput, setInviteInput] = useState(inviteCodeInfo.code || '');
-  const [inviteMessage, setInviteMessage] = useState('');
+  const { user, setUser } = useUserStore();
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [inviteInput, setInviteInput] = useState('');
   const [invitationRewards, setInvitationRewards] = useState(0);
+  const [inviteRecords, setInviteRecords] = useState<InviteRecord[]>([]);
+  const [inviteTotal, setInviteTotal] = useState(0);
+  const [inviteLoading, setInviteLoading] = useState(false);
+
+  const enableBind = !user.refer_user;
 
   useEffect(() => {
     const fetchInvitationRewards = async () => {
@@ -39,21 +41,47 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({
     fetchInvitationRewards();
   }, []);
 
-  // Sync invite input with prop changes
-  const prevInviteCode = React.useRef(inviteCodeInfo.code);
   useEffect(() => {
-    if (prevInviteCode.current !== inviteCodeInfo.code) {
-      setInviteInput(inviteCodeInfo.code || '');
-      prevInviteCode.current = inviteCodeInfo.code;
-    }
-  }, [inviteCodeInfo.code]);
+    const fetchInviteRecords = async () => {
+      setInviteLoading(true);
+      try {
+        const res = await apiInvite.getInviteRecords(50, 0);
+        setInviteRecords(res.users ?? []);
+        setInviteTotal(res.total);
+      } catch (error) {
+        console.error('Failed to fetch invite records:', error);
+      } finally {
+        setInviteLoading(false);
+      }
+    };
+    fetchInviteRecords();
+  }, []);
 
-  const inviteCodeDisplay = ownInviteCode || 'INV-XXXX';
+  const inviteCodeDisplay = user.referral_code || '';
   const inviteLinkDisplay =
     inviteLink ||
     (typeof window !== 'undefined'
-      ? `${window.location.origin}${window.location.pathname}?code=${inviteCodeDisplay}&inviter=${encodeURIComponent(user.nickname || 'user')}`
+      ? `${window.location.origin}${window.location.pathname}?code=${inviteCodeDisplay}&inviter=${encodeURIComponent(user.nickname || '')}`
       : '');
+
+  const verifyCode = useCallback(async () => {
+    if (verifyLoading) return;
+    try {
+      setVerifyLoading(true);
+      const res = await apiUser.verifyRefCode(inviteInput.trim());
+      if (!res) {
+        throw new Error('Failed to verify invite code');
+      }
+      const newUser = await apiUser.updateUserData(user.nickname, inviteInput.trim());
+      setUser({ ...user, ...newUser });
+      toast.success('Invite code verified');
+    } catch (error) {
+      console.log(error);
+      toast.error('Failed to verify invite code');
+    } finally {
+      setVerifyLoading(false);
+    }
+  }, [inviteInput, verifyLoading, user.nickname]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -68,7 +96,7 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({
                 <div className="text-xs text-gray-500 mt-1">Invited by {user.refer_user}</div>
               )}
             </div>
-            {(inviteCodeInfo.locked || inviteCodeInfo.persisted) && (
+            {!enableBind && (
               <div className="px-2 py-1 rounded bg-tech-blue/10 text-tech-blue text-[10px] font-bold">
                 LOCKED
               </div>
@@ -79,30 +107,24 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({
               type="text"
               value={inviteInput}
               onChange={(e) => {
-                if (inviteCodeInfo.locked || inviteCodeInfo.persisted) return;
+                if (!enableBind) return;
                 setInviteInput(e.target.value);
-                setInviteMessage('');
               }}
-              disabled={inviteCodeInfo.locked || inviteCodeInfo.persisted}
+              disabled={!enableBind}
               placeholder="Enter invite code"
-              className={`flex-1 bg-black/40 border ${inviteCodeInfo.locked || inviteCodeInfo.persisted ? 'border-white/10 text-gray-500' : 'border-white/10 focus:border-tech-blue'} rounded px-3 py-2 text-sm`}
+              className={`flex-1 bg-black/40 border ${!enableBind ? 'border-white/10 text-gray-500' : 'border-white/10 focus:border-tech-blue'} rounded px-3 py-2 text-sm`}
             />
             <GameButton
+              loading={verifyLoading}
               onClick={() => {
-                const res = onApplyInviteCode(inviteInput.trim());
-                if (!res.ok) {
-                  setInviteMessage(res.message || 'Invite code is invalid');
-                } else {
-                  setInviteMessage(`Bound. Inviter: Community Member`);
-                }
+                verifyCode();
               }}
-              disabled={inviteCodeInfo.locked || inviteCodeInfo.persisted || !inviteInput.trim()}
+              disabled={!enableBind || !inviteInput.trim()}
               className="sm:w-40"
             >
               APPLY
             </GameButton>
           </div>
-          {inviteMessage && <div className="text-xs text-tech-blue mt-2">{inviteMessage}</div>}
         </HudPanel>
 
         {/* Network Size */}
@@ -170,37 +192,44 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({
       {/* Active Nodes */}
       <div className="border border-white/5 bg-black/20 p-4">
         <h4 className="text-xs font-bold text-gray-500 uppercase mb-4 tracking-widest flex items-center gap-2">
-          <Users size={14} /> Active Nodes
+          <Users size={14} /> Active Nodes ({inviteTotal})
         </h4>
-        <div className="space-y-3">
-          {invitees.map((invitee) => (
-            <div
-              key={invitee.id}
-              className="bg-white/5 border border-white/5 p-4 flex justify-between items-center hover:border-white/20 transition-colors"
-            >
-              <div>
-                <div className="font-bold text-white text-sm mb-1">{invitee.nickname}</div>
-                <div className="text-[10px] text-gray-500 font-mono flex gap-3">
-                  <span className="flex items-center gap-1">
-                    <Calendar size={8} /> {invitee.inviteDate}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Activity size={8} /> {invitee.lastActive}
-                  </span>
+        {inviteLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 size={24} className="text-tech-blue animate-spin" />
+          </div>
+        ) : inviteRecords.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 text-sm">
+            No invitations yet. Share your invite code to get started!
+          </div>
+        ) : (
+          <div className="space-y-3 max-h-[400px] overflow-y-auto">
+            {inviteRecords.map((record) => (
+              <div
+                key={record.user_id}
+                className="bg-white/5 border border-white/5 p-4 flex justify-between items-center hover:border-white/20 transition-colors"
+              >
+                <div>
+                  <div className="font-bold text-white text-sm mb-1">{record.nickname}</div>
+                  <div className="text-[10px] text-gray-500 font-mono flex gap-3">
+                    <span className="flex items-center gap-1">
+                      <Calendar size={8} /> {formatTimestamp(record.created_at)}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right flex flex-col items-end">
+                  <div className="text-xs font-bold text-green-400 mb-1">
+                    +{record.pending_amount.toFixed(1)}{' '}
+                    <span className="text-gray-500 font-normal">Pending</span>
+                  </div>
+                  <div className="text-[10px] text-gray-500">
+                    Claimed: <span className="text-white">{record.claimed_amount.toFixed(1)}</span>
+                  </div>
                 </div>
               </div>
-              <div className="text-right flex flex-col items-end">
-                <div className="text-xs font-bold text-green-400 mb-1">
-                  +{invitee.pendingReward.toFixed(1)}{' '}
-                  <span className="text-gray-500 font-normal">Pending</span>
-                </div>
-                <div className="text-[10px] text-gray-500">
-                  Claimed: <span className="text-white">{invitee.claimedReward.toFixed(1)}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

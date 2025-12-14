@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
 import { Clock, CreditCard, Crown, Share2, Wallet } from 'lucide-react';
-import {
-  InviteCodeInfo,
-  Invitee,
-  LeaderboardEntry,
-  RenameResult,
-  SubscriptionRecord,
-  TabType,
-} from '../../../types';
+import { InviteCodeInfo, Invitee, RenameResult, TabType } from '../../../types';
 import { ContributionsTab } from './ContributionsTab';
 import { LedgerTab } from './LedgerTab';
 import { LeaderboardTab } from './LeaderboardTab';
@@ -15,7 +8,6 @@ import { InvitationTab } from './InvitationTab';
 import { SubscriptionsTab } from './SubscriptionsTab';
 
 interface BottomTabsProps {
-  leaderboard: LeaderboardEntry[];
   invitees: Invitee[];
   inviteCodeInfo: InviteCodeInfo;
   ownInviteCode: string;
@@ -36,7 +28,6 @@ const tabs = [
  * 底部多 Tab 面板容器
  */
 export const BottomTabs: React.FC<BottomTabsProps> = ({
-  leaderboard,
   invitees,
   inviteCodeInfo,
   ownInviteCode,
@@ -74,7 +65,7 @@ export const BottomTabs: React.FC<BottomTabsProps> = ({
 
         {activeTab === 'memo_history' && <LedgerTab />}
 
-        {activeTab === 'leaderboard' && <LeaderboardTab leaderboard={leaderboard} />}
+        {activeTab === 'leaderboard' && <LeaderboardTab />}
 
         {activeTab === 'invitation' && (
           <InvitationTab

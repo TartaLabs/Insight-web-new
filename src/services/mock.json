@@ -1,22 +1,17 @@
 {
   "status": 200,
   "data": {
-    "records": [
+    "users": [
       {
-        "id": "a2038ed3e9d2_1_1759536000",
-        "uuid": "a2038ed3e9d2",
-        "task_id": "1",
-        "task_type": "DAILY",
-        "task_date": 1759536000,
-        "amount": 4000000000,
-        "status": "SUCCESS",
-        "nonce": 12345,
-        "mint_expire_at": 1759623456,
-        "created_at": 1759587722
+        "user_id": "user1",
+        "nickname": "User1",
+        "avatar": "avatar_url",
+        "token_amount": 1000000,
+        "rank": 1
       }
     ],
-    "total": 50,
-    "limit": 10,
-    "offset": 0
+    "my_rank": 5,
+    "my_amount": 500000,
+    "total_users": 1000
   }
 }

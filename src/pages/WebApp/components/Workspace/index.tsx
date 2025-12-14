@@ -5,16 +5,9 @@ import { WalletCard } from './WalletCard';
 import { MembershipCard } from './MembershipCard';
 import { TaskListCard } from './TaskListCard';
 import { BottomTabs } from './BottomTabs';
-import {
-  InviteCodeInfo,
-  Invitee,
-  LeaderboardEntry,
-  RenameResult,
-  SubscriptionRecord,
-} from '../../types';
+import { InviteCodeInfo, Invitee, RenameResult } from '../../types';
 
 interface WorkspaceProps {
-  leaderboard: LeaderboardEntry[];
   invitees: Invitee[];
   inviteCodeInfo: InviteCodeInfo;
   ownInviteCode: string;
@@ -32,7 +25,6 @@ interface WorkspaceProps {
  * 组合各个卡片组件和底部 Tab 面板
  */
 export const Workspace: React.FC<WorkspaceProps> = ({
-  leaderboard,
   invitees,
   inviteCodeInfo,
   ownInviteCode,
@@ -63,7 +55,6 @@ export const Workspace: React.FC<WorkspaceProps> = ({
 
         {/* BOTTOM ROW: Multi-Tab Panel */}
         <BottomTabs
-          leaderboard={leaderboard}
           invitees={invitees}
           inviteCodeInfo={inviteCodeInfo}
           ownInviteCode={ownInviteCode}

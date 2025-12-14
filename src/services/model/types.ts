@@ -8,7 +8,6 @@ export interface User {
   // 根据Dart的User类定义相应的字段
   uid: string;
   nickname: string;
-  referralCode?: string;
   pro_version: string;
   login_streak?: number;
   last_login_at?: number;
@@ -43,9 +42,12 @@ export interface AdStatus {
 // 邀请相关类型定义
 export interface InviteRecord {
   // 根据Dart的InviteRecord类定义相应的字段
-  id: string;
-  referredUser: string;
-  createdAt: string;
+  user_id: string;
+  nickname: string;
+  total_amount: number;
+  claimed_amount: number;
+  pending_amount: number;
+  created_at: number;
   // 其他邀请记录字段...
 }
 
@@ -101,6 +103,23 @@ export interface RewardRecord {
 export interface RewardResponese {
   total: number;
   records: RewardRecord[];
+}
+
+// 排行榜用户条目（根据 mock.json 结构）
+export interface LeaderboardUser {
+  user_id: string; // 用户唯一标识
+  nickname: string; // 用户昵称
+  avatar: string; // 头像 URL
+  token_amount: number; // 代币数量
+  rank: number; // 排名
+}
+
+// 排行榜响应类型
+export interface LeaderboardResponse {
+  users: LeaderboardUser[]; // 排行榜用户列表
+  my_rank: number; // 当前用户排名
+  my_amount: number; // 当前用户代币数量
+  total_users: number; // 总用户数
 }
 
 // 任务相关类型定义

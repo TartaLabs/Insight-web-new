@@ -16,6 +16,7 @@ import type {
   DailyTasksResponse,
   UserLoginRes,
   RecordType,
+  LeaderboardResponse,
 } from './model/types';
 
 // 用户相关接口
@@ -120,19 +121,17 @@ export const apiLeaderboard = {
   /**
    * 获取用户代币余额排行榜
    */
-  getTokenLeaderboard: async (limit: number = 50, offset: number = 0): Promise<unknown> => {
-    return request.get('/api/1/user/task/token-leaderboard', {
-      params: { limit, offset },
-    });
-  },
-
-  /**
-   * 获取用户每周代币排行榜
-   */
-  getWeeklyLeaderboard: async (limit: number = 50, offset: number = 0): Promise<unknown> => {
-    return request.get('/api/1/user/task/weekly-leaderboard', {
-      params: { limit, offset },
-    });
+  getTokenLeaderboard: async (
+    limit: number = 50,
+    offset: number = 0,
+  ): Promise<LeaderboardResponse> => {
+    const response = await request.get<ApiResponse<LeaderboardResponse>>(
+      '/api/1/user/task/token-leaderboard',
+      {
+        params: { limit, offset },
+      },
+    );
+    return response.data;
   },
 };
 

@@ -1,49 +1,44 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Crown } from 'lucide-react';
-import { LeaderboardEntry } from '../../../types';
+import React, { useEffect, useState } from 'react';
+import { Crown, Loader2 } from 'lucide-react';
 import { useUserStore } from '@/store/userStore';
-
-interface LeaderboardTabProps {
-  leaderboard: LeaderboardEntry[];
-}
+import { apiLeaderboard } from '@/services/api';
+import { LeaderboardUser } from '@/services/model/types';
+import { formatTokenAmount } from '@/utils';
 
 const PAGE_SIZE = 10;
 
 /**
  * 排行榜 Tab 组件
  */
-export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ leaderboard }) => {
+export const LeaderboardTab: React.FC = () => {
   const user = useUserStore((state) => state.user);
   const [page, setPage] = useState(1);
+  const [leaderboardUsers, setLeaderboardUsers] = useState<LeaderboardUser[]>([]);
+  const [myRank, setMyRank] = useState<number>(0);
+  const [myAmount, setMyAmount] = useState<number>(0);
+  const [loading, setLoading] = useState(false);
 
-  const computedLeaderboard = useMemo(() => {
-    let list = [...leaderboard];
-    const hasSelf = list.some(
-      (e) =>
-        e.nickname.toLowerCase() === (user.nickname || '').toLowerCase() ||
-        e.address === user.wallet_address,
-    );
-    if (!hasSelf && user.token_amount > 0 && user.nickname) {
-      list.push({
-        rank: list.length + 1,
-        nickname: user.nickname,
-        address: user.wallet_address || '0xUser',
-        totalEarned: user.token_amount,
-      });
-    }
-    list = list
-      .sort((a, b) => b.totalEarned - a.totalEarned)
-      .map((e, idx) => ({ ...e, rank: idx + 1 }));
-    return list;
-  }, [leaderboard, user.token_amount, user.nickname, user.wallet_address]);
+  // 组件挂载时获取数据
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      setLoading(true);
+      try {
+        const response = await apiLeaderboard.getTokenLeaderboard(50, 0);
+        setLeaderboardUsers(response.users ?? []);
+        setMyRank(response.my_rank);
+        setMyAmount(response.my_amount);
+      } catch (error) {
+        console.error('Failed to fetch leaderboard:', error);
+        setLeaderboardUsers([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLeaderboard();
+  }, []);
 
-  const selfEntry = computedLeaderboard.find(
-    (e) =>
-      e.nickname.toLowerCase() === (user.nickname || '').toLowerCase() ||
-      e.address === user.wallet_address,
-  );
-  const selfRank = selfEntry?.rank ?? '—';
-  const otherEntries = computedLeaderboard.slice(3);
+  const top3 = leaderboardUsers.slice(0, 3);
+  const otherEntries = leaderboardUsers.slice(3);
   const totalPages = Math.max(1, Math.ceil(otherEntries.length / PAGE_SIZE));
 
   // Page bounds correction
@@ -53,12 +48,21 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ leaderboard }) =
     }
   }, [page, totalPages]);
 
+  if (loading) {
+    return (
+      <div className="text-center py-12 text-gray-400 text-xs font-mono border border-dashed border-white/10 rounded flex items-center justify-center gap-2">
+        <Loader2 size={16} className="animate-spin" />
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 pt-8">
       {/* Top 3 Highlight */}
       <div className="grid grid-cols-3 gap-6 mb-8 items-end">
         {[1, 0, 2].map((idx) => {
-          const entry = leaderboard[idx];
+          const entry = top3[idx];
           if (!entry) return null;
           const isFirst = idx === 0;
           const ringColor = isFirst
@@ -73,19 +77,21 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ leaderboard }) =
               : 'shadow-[0_0_20px_rgba(255,191,71,0.35)]';
           return (
             <div
-              key={idx}
+              key={entry.user_id}
               className={`relative flex flex-col items-center ${isFirst ? 'scale-110 z-10' : 'scale-95 opacity-90'}`}
             >
               <div className="relative">
                 <div
                   className={`w-16 h-16 rounded-full border-2 flex items-center justify-center bg-black ring-4 ${isFirst ? 'border-yellow-500' : 'border-white/20'} ${ringColor} ${glow}`}
                 >
-                  <span className="text-xl font-bold text-white">{entry.address.slice(2, 4)}</span>
+                  <span className="text-xl font-bold text-white">
+                    {entry.nickname.slice(0, 2).toUpperCase()}
+                  </span>
                 </div>
                 <div
                   className={`absolute -bottom-3 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded text-[10px] font-bold ${isFirst ? 'bg-yellow-500 text-black' : 'bg-white/20 text-white'}`}
                 >
-                  #{idx + 1}
+                  #{entry.rank}
                 </div>
                 <div className="absolute -top-6 left-1/2 -translate-x-1/2 flex items-center justify-center">
                   <Crown
@@ -96,9 +102,9 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ leaderboard }) =
               </div>
               <div className="mt-4 text-center">
                 <div className="text-sm font-bold text-white">{entry.nickname}</div>
-                <div className="text-[10px] font-mono text-gray-500">{entry.address}</div>
+                <div className="text-[10px] font-mono text-gray-500">{entry.user_id}</div>
                 <div className="text-sm font-bold text-tech-blue mt-1">
-                  {entry.totalEarned.toLocaleString()}{' '}
+                  {formatTokenAmount(entry.token_amount).toLocaleString()}{' '}
                   <span className="text-[10px] text-gray-400">$mEMO</span>
                 </div>
               </div>
@@ -113,21 +119,21 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ leaderboard }) =
           <div className="px-4 py-3 rounded border border-white/10 bg-white/5 text-xs font-mono text-gray-300 flex items-center gap-3 shadow-[0_0_12px_rgba(0,243,255,0.08)]">
             <div className="flex items-center gap-2 px-2 py-1 rounded bg-tech-blue/20 text-tech-blue font-bold text-[11px] tracking-wide">
               <span>Your Rank</span>
-              <span className="text-white text-sm">#{selfRank}</span>
+              <span className="text-white text-sm">#{myRank || '—'}</span>
             </div>
             <div className="text-[10px] text-gray-400">{user.nickname}</div>
             <div className="text-[10px] text-tech-blue">{user.wallet_address}</div>
             <div className="text-white font-bold text-sm">
-              {user.token_amount?.toLocaleString()}{' '}
+              {formatTokenAmount(myAmount).toLocaleString()}{' '}
               <span className="text-[10px] text-gray-500">$mEMO</span>
             </div>
           </div>
         </div>
         {otherEntries.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((entry) => {
-          const isSelf = selfEntry && entry.rank === selfEntry.rank;
+          const isSelf = entry.rank === myRank;
           return (
             <div
-              key={entry.rank}
+              key={entry.user_id}
               className={`flex items-center justify-between p-4 border-b border-white/5 hover:bg-white/5 transition-colors ${isSelf ? 'bg-white/5 border border-tech-blue/30 rounded' : ''}`}
             >
               <div className="flex items-center gap-4">
@@ -143,11 +149,11 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ leaderboard }) =
                       </span>
                     )}
                   </div>
-                  <div className="text-[10px] font-mono text-gray-500">{entry.address}</div>
+                  <div className="text-[10px] font-mono text-gray-500">{entry.user_id}</div>
                 </div>
               </div>
               <div className="font-mono text-sm text-white font-bold">
-                {entry.totalEarned.toLocaleString()}{' '}
+                {formatTokenAmount(entry.token_amount).toLocaleString()}{' '}
                 <span className="text-[10px] text-gray-500">$mEMO</span>
               </div>
             </div>

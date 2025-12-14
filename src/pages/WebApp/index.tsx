@@ -138,7 +138,6 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
   return (
     <div className="relative min-h-screen bg-[#020205] text-white">
       <Workspace
-        leaderboard={state.leaderboard}
         invitees={state.invitees}
         inviteCodeInfo={state.inviteCode.inviteCodeInfo}
         ownInviteCode={state.inviteCode.ownInviteCode}

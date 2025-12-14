@@ -22,3 +22,16 @@ export const dataUrlToFile = (dataUrl: string, fileName: string) => {
   const blob = new Blob([ab], { type: mimeString });
   return new File([blob], fileName, { type: mimeString });
 };
+
+export const formatTokenAmount = (amount: number) => {
+  return (amount / 1000000000).toFixed(2);
+};
+
+export const formatTimestamp = (timestamp: number) => {
+  const date = new Date(timestamp * 1000);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+};
