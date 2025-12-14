@@ -1,10 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Edit2, Trash2, CheckCircle2, XCircle, Timer } from 'lucide-react';
 import { TaskRecord } from '../../../types';
 import { TaskDetailModal } from '../../modals/TaskDetailModal';
 import { useTaskStore } from '@/store/taskStore';
+import type { Task, MediaInfo } from '@/services/model/types';
 
 const UPLOAD_PAGE_SIZE = 10;
+
+/**
+ * 展平后的 Media 数据项
+ */
+interface FlattenedMedia {
+  mediaUrl: string;
+  mediaInfo: MediaInfo;
+  task: Task;
+}
 
 /**
  * 贡献记录 Tab 组件
@@ -12,6 +22,7 @@ const UPLOAD_PAGE_SIZE = 10;
  */
 export const ContributionsTab: React.FC = () => {
   const taskRecords = useTaskStore((state) => state.taskRecords);
+  const tasks = useTaskStore((state) => state.tasks);
   const resumeTask = useTaskStore((state) => state.resumeTask);
   const deleteTaskRecord = useTaskStore((state) => state.deleteTaskRecord);
 
@@ -19,7 +30,17 @@ export const ContributionsTab: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<TaskRecord | null>(null);
 
   const drafts = taskRecords.filter((t) => t.status === 'DRAFT');
-  const submittedTasks = taskRecords.filter((t) => t.status !== 'DRAFT');
+
+  // 将所有 tasks 的 medias 展平成数组
+  const submittedTasks = useMemo<FlattenedMedia[]>(() => {
+    return tasks.flatMap((task) =>
+      Object.entries(task.medias).map(([url, info]) => ({
+        mediaUrl: url,
+        mediaInfo: info,
+        task,
+      })),
+    );
+  }, [tasks]);
   const uploadTotalPages = Math.max(1, Math.ceil(submittedTasks.length / UPLOAD_PAGE_SIZE));
 
   return (
@@ -98,36 +119,49 @@ export const ContributionsTab: React.FC = () => {
           ) : (
             submittedTasks
               .slice((uploadPage - 1) * UPLOAD_PAGE_SIZE, uploadPage * UPLOAD_PAGE_SIZE)
-              .map((task) => (
+              .map((item, index) => (
                 <div
-                  key={task.task_id}
+                  key={`${item.task.id}-${item.mediaUrl}-${index}`}
                   className="grid grid-cols-12 items-center text-xs px-4 py-3 bg-white/5 border border-white/5 hover:bg-white/10 transition-colors"
                 >
                   <div className="col-span-2 font-mono text-gray-400">
-                    {new Date(task.timestamp).toLocaleTimeString()}
+                    {new Date(item.mediaInfo.submit_time).toLocaleTimeString()}
                   </div>
-                  <div className="col-span-3 font-bold text-white">{task.task.emotion_type}</div>
-                  <div className="col-span-3 font-mono text-gray-500 truncate">{task.task_id}</div>
+                  <div className="col-span-3 font-bold text-white">{item.task.emotion_type}</div>
+                  <div className="col-span-3 font-mono text-gray-500 truncate">{item.task.id}</div>
                   <div className="col-span-2 flex justify-center">
                     <button
-                      onClick={() => setSelectedTask(task)}
+                      onClick={() =>
+                        setSelectedTask({
+                          task_id: item.task.id,
+                          task: item.task,
+                          draft: { imageUrl: item.mediaUrl },
+                          status:
+                            item.mediaInfo.status === 'VALID'
+                              ? 'LABELED'
+                              : item.mediaInfo.status === 'INVALID'
+                                ? 'REJECTED'
+                                : 'AUDITING',
+                          timestamp: item.mediaInfo.submit_time,
+                        })
+                      }
                       className="px-3 py-1 text-[11px] font-mono rounded border border-white/15 text-white hover:border-tech-blue hover:text-tech-blue transition-colors"
                     >
                       View
                     </button>
                   </div>
                   <div className="col-span-2 flex justify-end">
-                    {task.status === 'AUDITING' && (
+                    {(!item.mediaInfo.status || item.mediaInfo.status === 'PENDING') && (
                       <span className="text-yellow-500 flex items-center gap-1">
                         <Timer size={10} className="animate-spin" /> VERIFYING
                       </span>
                     )}
-                    {task.status === 'LABELED' && (
+                    {item.mediaInfo.status === 'VALID' && (
                       <span className="text-green-500 flex items-center gap-1">
                         <CheckCircle2 size={10} /> ACCEPTED
                       </span>
                     )}
-                    {task.status === 'REJECTED' && (
+                    {item.mediaInfo.status === 'INVALID' && (
                       <span className="text-red-500 flex items-center gap-1">
                         <XCircle size={10} /> REJECTED
                       </span>

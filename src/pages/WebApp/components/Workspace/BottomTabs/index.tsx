@@ -7,7 +7,6 @@ import {
   RenameResult,
   SubscriptionRecord,
   TabType,
-  Transaction,
 } from '../../../types';
 import { ContributionsTab } from './ContributionsTab';
 import { LedgerTab } from './LedgerTab';
@@ -16,15 +15,12 @@ import { InvitationTab } from './InvitationTab';
 import { SubscriptionsTab } from './SubscriptionsTab';
 
 interface BottomTabsProps {
-  history: Transaction[];
   leaderboard: LeaderboardEntry[];
   invitees: Invitee[];
   inviteCodeInfo: InviteCodeInfo;
   ownInviteCode: string;
   inviteLink: string;
-  subscriptions: SubscriptionRecord[];
   onApplyInviteCode: (code: string) => RenameResult;
-  onRetryClaim: (tx: Transaction) => void;
   onClaimInvitationRewards: () => void;
 }
 
@@ -40,15 +36,12 @@ const tabs = [
  * 底部多 Tab 面板容器
  */
 export const BottomTabs: React.FC<BottomTabsProps> = ({
-  history,
   leaderboard,
   invitees,
   inviteCodeInfo,
   ownInviteCode,
   inviteLink,
-  subscriptions,
   onApplyInviteCode,
-  onRetryClaim,
   onClaimInvitationRewards,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('contributions');
@@ -79,9 +72,7 @@ export const BottomTabs: React.FC<BottomTabsProps> = ({
       <div className="p-6">
         {activeTab === 'contributions' && <ContributionsTab />}
 
-        {activeTab === 'memo_history' && (
-          <LedgerTab history={history} onRetryClaim={onRetryClaim} />
-        )}
+        {activeTab === 'memo_history' && <LedgerTab />}
 
         {activeTab === 'leaderboard' && <LeaderboardTab leaderboard={leaderboard} />}
 
@@ -96,7 +87,7 @@ export const BottomTabs: React.FC<BottomTabsProps> = ({
           />
         )}
 
-        {activeTab === 'subscriptions' && <SubscriptionsTab subscriptions={subscriptions} />}
+        {activeTab === 'subscriptions' && <SubscriptionsTab />}
       </div>
     </div>
   );

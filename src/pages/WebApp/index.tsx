@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Login } from './components/Login';
 import { Workspace } from './components/Workspace';
 import { TaskFlow } from './components/TaskFlow';
@@ -9,6 +9,7 @@ import { useWebAppState } from './hooks';
 import { useUserStore } from '../../store/userStore';
 import { useProStore } from '../../store/proStore';
 import { useTaskStore } from '../../store/taskStore';
+import type { User } from '../../services/model/types';
 
 interface WebAppProps {
   onExit: () => void;
@@ -30,22 +31,65 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
     user,
     setUser,
   } = useUserStore();
-  const { fetchProVersion, fetchProVersionList, initialized: proInitialized } = useProStore();
-  const { fetchDailyTasks, initialized: taskInitialized, activeTaskFlow } = useTaskStore();
+  const {
+    fetchProVersion,
+    fetchProVersionList,
+    initialized: proInitialized,
+    reset: resetProStore,
+  } = useProStore();
+  const {
+    fetchDailyTasks,
+    initialized: taskInitialized,
+    activeTaskFlow,
+    reset: resetTaskStore,
+  } = useTaskStore();
 
+  // 并行初始化所有需要认证的数据
+  const initializeAuthenticatedData = useCallback(async () => {
+    await Promise.all([
+      fetchPendingRewards(),
+      fetchProVersion(),
+      fetchProVersionList(),
+      fetchDailyTasks(),
+    ]);
+  }, [fetchPendingRewards, fetchProVersion, fetchProVersionList, fetchDailyTasks]);
+
+  // 首次加载时，尝试通过 token 获取用户数据
   useEffect(() => {
-    if (!userInitialized) {
-      fetchUserData();
-      fetchPendingRewards();
-    }
-    if (!proInitialized) {
-      fetchProVersion();
-      fetchProVersionList();
-    }
-    if (!taskInitialized) {
-      fetchDailyTasks();
-    }
+    const initApp = async () => {
+      if (!userInitialized) {
+        await fetchUserData();
+      }
+    };
+    initApp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 当用户登录成功后（user 从 null 变为有值），拉取其他数据
+  useEffect(() => {
+    if (user && userInitialized) {
+      // 用户已登录，并行拉取其他依赖数据
+      if (!proInitialized || !taskInitialized) {
+        initializeAuthenticatedData();
+      }
+    }
+  }, [user, userInitialized, proInitialized, taskInitialized, initializeAuthenticatedData]);
+
+  // 登录成功回调：设置用户并触发数据重新加载
+  const handleLoginSuccess = useCallback(
+    async (loggedInUser: User) => {
+      // 重置其他 store 的 initialized 状态，确保重新拉取
+      resetProStore();
+      resetTaskStore();
+
+      // 设置用户
+      setUser(loggedInUser);
+
+      // 并行拉取所有需要认证的数据
+      await initializeAuthenticatedData();
+    },
+    [setUser, resetProStore, resetTaskStore, initializeAuthenticatedData],
+  );
 
   // WebApp 核心状态
   const state = useWebAppState();
@@ -68,12 +112,11 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
 
     return (
       <Login
-        onLoginSuccess={(u) => setUser(u)}
+        onLoginSuccess={handleLoginSuccess}
         onBack={onExit}
         inviteCode={state.inviteCode.inviteCodeInfo.code}
         inviteLocked={inviteLocked}
         invitedBy={state.inviteCode.inviteCodeInfo.invitedBy}
-        existingNicknames={state.existingNicknames}
         onInviteChange={(code) =>
           state.inviteCode.setInviteCodeInfo((prev) => ({
             ...prev,
@@ -95,20 +138,17 @@ export const WebApp: React.FC<WebAppProps> = ({ onExit }) => {
   return (
     <div className="relative min-h-screen bg-[#020205] text-white">
       <Workspace
-        history={state.history}
         leaderboard={state.leaderboard}
         invitees={state.invitees}
         inviteCodeInfo={state.inviteCode.inviteCodeInfo}
         ownInviteCode={state.inviteCode.ownInviteCode}
         inviteLink={state.inviteCode.inviteLink}
-        subscriptions={state.subscriptions}
         onApplyInviteCode={(code) =>
           state.inviteCode.bindInviteCode(code, { lock: true, persist: true })
         }
         onUpgradeClick={() => setShowUpgrade(true)}
         onClaimAll={state.handleClaimAll}
         onClaimBonus={state.handleClaimDailyBonus}
-        onRetryClaim={state.handleRetryClaim}
         onClaimInvitationRewards={state.handleClaimInvitationRewards}
         onExit={onExit}
       />

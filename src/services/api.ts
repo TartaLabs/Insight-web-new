@@ -15,6 +15,7 @@ import type {
   RewardResponese,
   DailyTasksResponse,
   UserLoginRes,
+  RecordType,
 } from './model/types';
 
 // 用户相关接口
@@ -191,6 +192,20 @@ export const apiRecords = {
       total: response.data.total,
       records: response.data.records,
     };
+  },
+
+  getClaimedRecords: async (
+    type: RecordType,
+    limit: number,
+    offset: number,
+  ): Promise<RewardResponese> => {
+    const response = await request.get<ApiResponse<{ total: number; records: RewardRecord[] }>>(
+      '/api/1/user/task/claimed-records',
+      {
+        params: { limit, offset, task_type: type },
+      },
+    );
+    return response.data;
   },
 };
 

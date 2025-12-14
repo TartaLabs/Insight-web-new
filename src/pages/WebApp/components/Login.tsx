@@ -15,7 +15,6 @@ interface LoginProps {
   inviteCode: string;
   inviteLocked: boolean;
   invitedBy?: string;
-  existingNicknames: string[];
   onInviteChange: (code: string) => void;
   onValidateInvite: (code: string) => { ok: boolean; message?: string; invitedBy?: string };
   onPersistInvite: (code: string, invitedBy?: string) => { ok: boolean; message?: string };
@@ -27,7 +26,6 @@ export const Login: React.FC<LoginProps> = ({
   inviteCode,
   inviteLocked,
   invitedBy,
-  existingNicknames,
   onInviteChange,
   onValidateInvite,
   onPersistInvite,
@@ -40,13 +38,13 @@ export const Login: React.FC<LoginProps> = ({
 
   const [step, setStep] = useState<1 | 2>(1); // 1: Wallet Connect, 2: Onboarding
   const [isSigning, setIsSigning] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [nickname, setNickname] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [inviteInput, setInviteInput] = useState(inviteCode || '');
   const [inviteError, setInviteError] = useState('');
   const [inviteOwner, setInviteOwner] = useState(invitedBy || '');
   const [nicknameError, setNicknameError] = useState('');
-  const [profileLocked, setProfileLocked] = useState(false);
   const nickPattern = /^[A-Za-z0-9]{1,15}$/;
   const isNickValid = nickPattern.test(nickname.trim());
 
@@ -120,23 +118,17 @@ export const Login: React.FC<LoginProps> = ({
     }
   };
 
-  const handleEnterApp = () => {
+  const handleEnterApp = async () => {
     const nick = nickname.trim();
     if (!nick) {
       setNicknameError('Use 1-15 characters. Letters and numbers only. Must be unique.');
       return;
     }
-    if (!profileLocked && !nickPattern.test(nick)) {
+    if (!nickPattern.test(nick)) {
       setNicknameError('Use 1-15 characters. Letters and numbers only. Must be unique.');
       return;
     }
-    if (!profileLocked) {
-      const exists = existingNicknames.some((n) => n.toLowerCase() === nick.toLowerCase());
-      if (exists) {
-        setNicknameError('Nickname already taken. Choose another.');
-        return;
-      }
-    }
+
     setNicknameError('');
     if (!agreed) return;
 
@@ -155,20 +147,33 @@ export const Login: React.FC<LoginProps> = ({
       }
     }
     const finalInvite = inviteLocked || inviteInput.trim() ? inviteInput.trim() : '';
-    if (address) {
-      localStorage.setItem(
-        `insight_profile_${address}`,
-        JSON.stringify({
-          nickname: nick,
-          inviteCode: finalInvite,
-          invitedBy: inviteOwner || '',
-        }),
-      );
-    }
-    onLoginSuccess(nick);
-  };
 
-  const effectiveNickValid = profileLocked ? !!nickname.trim() : isNickValid;
+    try {
+      setIsSubmitting(true);
+      // 调用 API 更新用户信息（nickname 和 referral code）
+      const updatedUser = await apiUser.updateUserData(nick, finalInvite || undefined);
+
+      // 保存到 localStorage
+      if (address) {
+        localStorage.setItem(
+          `insight_profile_${address}`,
+          JSON.stringify({
+            nickname: nick,
+            inviteCode: finalInvite,
+            invitedBy: inviteOwner || '',
+          }),
+        );
+      }
+
+      // 使用服务端返回的完整 User 对象
+      onLoginSuccess(updatedUser);
+    } catch (error) {
+      console.error('Failed to update user data:', error);
+      setNicknameError('Failed to save profile. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#050509] relative overflow-hidden px-4">
@@ -256,13 +261,11 @@ export const Login: React.FC<LoginProps> = ({
                     type="text"
                     value={nickname}
                     onChange={(e) => {
-                      if (profileLocked) return;
                       setNickname(e.target.value);
                     }}
                     maxLength={15}
                     placeholder="Enter a display name"
-                    disabled={profileLocked}
-                    className={`w-full bg-black/50 border ${profileLocked ? 'border-white/10 text-gray-500' : 'border-white/10 focus:border-tech-blue'} rounded px-4 py-3 pr-14 focus:outline-none transition-colors`}
+                    className={`w-full bg-black/50 border border-white/10 focus:border-tech-blue rounded px-4 py-3 pr-14 focus:outline-none transition-colors`}
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-500 font-mono">
                     {nickname.length}/15
@@ -340,14 +343,21 @@ export const Login: React.FC<LoginProps> = ({
 
               <button
                 onClick={handleEnterApp}
-                disabled={!effectiveNickValid || !agreed}
+                disabled={!isNickValid || !agreed || isSubmitting}
                 className={`w-full py-4 rounded font-bold tracking-wide transition-all ${
-                  !effectiveNickValid || !agreed
+                  !isNickValid || !agreed || isSubmitting
                     ? 'bg-white/10 text-gray-500 cursor-not-allowed'
                     : 'bg-gradient-to-r from-blue-600 to-tech-blue text-white hover:shadow-lg hover:shadow-blue-500/20'
                 }`}
               >
-                ENTER INSIGHT
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    Saving...
+                  </span>
+                ) : (
+                  'ENTER INSIGHT'
+                )}
               </button>
             </div>
           </>

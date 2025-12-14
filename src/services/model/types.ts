@@ -81,14 +81,21 @@ export interface Pro {
   pro_version: string;
 }
 
-// 奖励记录相关类型定义
+// 奖励记录状态
+export type RewardRecordStatus = 'SUCCESS' | 'PENDING' | 'FAILED';
+
+// 奖励记录相关类型定义（根据 mock.json 结构）
 export interface RewardRecord {
-  // 根据Dart的RewardRecord类定义相应的字段
-  id: string;
-  amount: string;
-  type: string;
-  createdAt: string;
-  // 其他奖励记录字段...
+  id: string; // 记录唯一标识，格式：uuid_taskId_taskDate
+  uuid: string; // 用户唯一标识
+  task_id: string; // 任务 ID
+  task_type: RecordType; // 任务类型：DAILY | INVITE | PRO
+  task_date: number; // 任务日期时间戳
+  amount: number; // 奖励金额
+  status: RewardRecordStatus; // 记录状态
+  nonce: number; // 交易 nonce
+  mint_expire_at: number; // 铸造过期时间戳
+  created_at: number; // 创建时间戳
 }
 
 export interface RewardResponese {
@@ -113,6 +120,15 @@ export interface QuestionAnswer {
   answer: string | number; // SINGLE_CHOICE 为 string，RATING 为 number
 }
 
+export interface MediaInfo {
+  submit_time: number;
+  validate_time: number;
+  status?: 'PENDING' | 'INVALID' | 'VALID';
+  claim_status?: 'INIT' | 'CLAIMED';
+}
+
+export type RecordType = 'DAILY' | 'INVITE' | 'PRO';
+
 export interface Task {
   id: string;
   user_id: string;
@@ -123,7 +139,7 @@ export interface Task {
   emotion_type: 'HAPPY' | 'SAD' | 'ANGRY' | 'FEAR' | 'SURPRISE' | 'DISGUST' | 'NEUTRAL';
   claimed_at: number;
   validation_failure_count: number;
-  medias: Record<string, unknown>;
+  medias: Record<string, MediaInfo>;
   created_at: number;
   updated_at: number;
   name: string;

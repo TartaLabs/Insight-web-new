@@ -11,22 +11,18 @@ import {
   LeaderboardEntry,
   RenameResult,
   SubscriptionRecord,
-  Transaction,
 } from '../../types';
 
 interface WorkspaceProps {
-  history: Transaction[];
   leaderboard: LeaderboardEntry[];
   invitees: Invitee[];
   inviteCodeInfo: InviteCodeInfo;
   ownInviteCode: string;
   inviteLink: string;
-  subscriptions: SubscriptionRecord[];
   onApplyInviteCode: (code: string) => RenameResult;
   onUpgradeClick: () => void;
   onClaimAll: () => void;
   onClaimBonus: () => void;
-  onRetryClaim: (tx: Transaction) => void;
   onClaimInvitationRewards: () => void;
   onExit: () => void;
 }
@@ -36,18 +32,15 @@ interface WorkspaceProps {
  * 组合各个卡片组件和底部 Tab 面板
  */
 export const Workspace: React.FC<WorkspaceProps> = ({
-  history,
   leaderboard,
   invitees,
   inviteCodeInfo,
   ownInviteCode,
   inviteLink,
-  subscriptions,
   onApplyInviteCode,
   onUpgradeClick,
   onClaimAll,
   onClaimBonus,
-  onRetryClaim,
   onClaimInvitationRewards,
   onExit,
 }) => {
@@ -70,15 +63,12 @@ export const Workspace: React.FC<WorkspaceProps> = ({
 
         {/* BOTTOM ROW: Multi-Tab Panel */}
         <BottomTabs
-          history={history}
           leaderboard={leaderboard}
           invitees={invitees}
           inviteCodeInfo={inviteCodeInfo}
           ownInviteCode={ownInviteCode}
           inviteLink={inviteLink}
-          subscriptions={subscriptions}
           onApplyInviteCode={onApplyInviteCode}
-          onRetryClaim={onRetryClaim}
           onClaimInvitationRewards={onClaimInvitationRewards}
         />
       </div>

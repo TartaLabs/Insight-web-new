@@ -100,7 +100,6 @@ export interface UseWebAppStateReturn {
   // Computed values
   getDailyLimit: () => number;
   getRewardPerTask: () => number;
-  existingNicknames: string[];
 }
 
 export function useWebAppState(): UseWebAppStateReturn {
@@ -114,11 +113,6 @@ export function useWebAppState(): UseWebAppStateReturn {
   const transaction = useTransaction();
 
   const leaderboard = MOCK_LEADERBOARD;
-
-  const existingNicknames = [
-    ...MOCK_LEADERBOARD.map((l) => l.nickname),
-    ...invitees.map((i) => i.nickname),
-  ];
 
   // Simulation: Invitee activity
   useEffect(() => {
@@ -451,6 +445,5 @@ export function useWebAppState(): UseWebAppStateReturn {
     handleUpgrade,
     getDailyLimit,
     getRewardPerTask,
-    existingNicknames,
   };
 }
