@@ -6,9 +6,9 @@
 set -e
 
 # 配置变量
-PROJECT_DIR="/opt/insight-web-new"
-PROJECT_NAME="insight-web-new"
-PORT=3000
+PROJECT_DIR="/opt/insight-web-new-prod"
+PROJECT_NAME="insight-web-new-prod"
+PORT=3005
 LOG_DIR="${PROJECT_DIR}/logs"
 PID_FILE="${PROJECT_DIR}/${PROJECT_NAME}.pid"
 NPM_REGISTRY="https://registry.npmmirror.com"
