@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Check, Wallet, X } from 'lucide-react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { useAccount, useConnect, useDisconnect, useSignMessage } from 'wagmi';
+import { useAccount, useConnect, useDisconnect, useSignMessage, useSwitchChain } from 'wagmi';
 import { useNavigate, useSearchParams } from 'react-router';
 import { apiUser } from '@/services/api.ts';
 import { Logo } from '@/components/Logo.tsx';
@@ -19,10 +19,11 @@ export const Login: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { openConnectModal } = useConnectModal();
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
   const { connect, connectors, isPending } = useConnect();
   const { signMessageAsync } = useSignMessage();
   const { disconnect } = useDisconnect();
+  const { switchChain } = useSwitchChain();
 
   // Store
   const { user, setUser } = useUserStore();
@@ -68,8 +69,12 @@ export const Login: React.FC = () => {
   const handleSignMessage = async (walletAddress: string) => {
     try {
       setIsSigning(true);
+      const defaultChainId = process.env.NODE_ENV !== 'production' ? 421614 : 42161;
+      if (chain?.id !== defaultChainId) {
+        switchChain({ chainId: defaultChainId });
+      }
 
-      const message = 'Sign in Insight Web';
+      const message = 'Sign in to Insight Web';
       const signature = await signMessageAsync({
         account: walletAddress as `0x${string}`,
         message,
@@ -85,6 +90,7 @@ export const Login: React.FC = () => {
       }
     } catch (error) {
       console.error('Sign message or login failed:', error);
+      toast.error(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       disconnect();
     } finally {
       setIsSigning(false);

@@ -1,6 +1,7 @@
 import React from 'react';
 import { LogOut } from 'lucide-react';
-import { Logo } from '../../../../components/Logo';
+import { Logo } from '@/components/Logo.tsx';
+import { useAccount } from 'wagmi';
 
 interface AppBarProps {
   onExit: () => void;
@@ -10,6 +11,7 @@ interface AppBarProps {
  * 顶部导航栏组件
  */
 export const AppBar: React.FC<AppBarProps> = ({ onExit }) => {
+  const { chain } = useAccount();
   return (
     <div className="fixed top-0 w-full z-40 bg-[#020205]/90 backdrop-blur-md border-b border-tech-blue/20 px-6 py-4 flex justify-between items-center">
       <div className="flex items-center gap-3">
@@ -22,7 +24,7 @@ export const AppBar: React.FC<AppBarProps> = ({ onExit }) => {
         <div className="hidden md:flex items-center gap-2 bg-tech-blue/5 rounded border border-tech-blue/20 px-3 py-1">
           <div className="w-1.5 h-1.5 bg-tech-blue rounded-full animate-pulse" />
           <span className="text-[10px] font-mono text-tech-blue tracking-widest">
-            MANTLE MAINNET
+            {chain?.name?.toUpperCase()}
           </span>
         </div>
 
