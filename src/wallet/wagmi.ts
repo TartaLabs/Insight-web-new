@@ -1,8 +1,8 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-import { bsc, mainnet, mantle } from 'wagmi/chains';
+import { arbitrum, arbitrumSepolia, mantle } from 'wagmi/chains';
 
 export const config = getDefaultConfig({
   appName: 'Insight',
-  projectId: 'YOUR_PROJECT_ID',
-  chains: [mainnet, mantle, bsc],
+  projectId: '3fbb6bba6f1de962d911bb5b5c9dba88',
+  chains: [mantle, arbitrumSepolia, arbitrum],
 });
