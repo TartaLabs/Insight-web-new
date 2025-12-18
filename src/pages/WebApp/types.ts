@@ -38,9 +38,11 @@ export type InviteUsageMap = Record<string, InviteUsageRecord>;
 
 export interface TransactionModalState {
   isOpen: boolean;
-  type: 'CLAIM' | 'UPGRADE' | 'APPROVE';
+  type: 'CLAIM_USDT' | 'CLAIM' | 'UPGRADE' | 'APPROVE';
   title: string;
   amount?: string;
+  symbol?: string;
+  proVersion?: number;
   cost?: string;
   onSuccessCallback?: () => void;
 }
@@ -69,4 +71,3 @@ export type TabType =
   | 'subscriptions';
 
 export type HistoryFilter = 'ISSUED' | 'CLAIMED';
-

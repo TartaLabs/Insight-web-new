@@ -5,11 +5,10 @@ import { useUserStore } from '@/store/userStore';
 import { useProStore } from '@/store/proStore';
 import { copyToClipboard, formatBalance, getAppChainId } from '@/utils';
 import { NicknameEditModal } from '../modals/NicknameEditModal';
-import { useAccount, useBalance, useWriteContract } from 'wagmi';
+import { useAccount, useBalance } from 'wagmi';
 import { useQueryConfig } from '@/services/useQueryConfig.ts';
-import { tUSDTAbi } from '@/assets/tUSDT.ts';
-import { parseEther } from 'viem';
-import toast from 'react-hot-toast';
+import { TransactionModal } from '@/pages/WebApp/components/TransactionModal.tsx';
+import { useTransaction } from '@/pages/WebApp/hooks';
 
 /**
  * 用户信息卡片组件
@@ -35,9 +34,7 @@ export const UserInfoCard: React.FC = () => {
     token: usdtAddress as `0x${string}`,
   });
 
-  const [mintLoading, setMintLoading] = useState(false);
-
-  const { writeContractAsync } = useWriteContract({});
+  const transaction = useTransaction();
 
   useEffect(() => {
     if (appConfig) {
@@ -46,24 +43,9 @@ export const UserInfoCard: React.FC = () => {
     }
   }, [appConfig]);
 
-  async function mintUSDT() {
-    setMintLoading(true);
-    const wallet = getWalletAddress() as `0x${string}`;
-    try {
-      const tx = await writeContractAsync({
-        abi: tUSDTAbi,
-        address: usdtAddress as `0x${string}`,
-        functionName: 'mint',
-        args: [wallet, parseEther('100')],
-        chain: undefined,
-        account: wallet,
-      });
-      console.log(`mint tx: ${tx}`);
-    } catch (e) {
-      console.log(e);
-      toast.error(`${e}`);
-    }
-    setMintLoading(false);
+  function hasMintedUSDT() {
+    const local = localStorage.getItem('mint_tusdt_hash');
+    return local && local.length > 0;
   }
 
   return (
@@ -138,8 +120,8 @@ export const UserInfoCard: React.FC = () => {
             <div className="text-sm font-bold text-green-400 flex flex-row gap-4 items-center justify-between">
               {tokenBalance ? formatBalance(tokenBalance.value, tokenBalance.decimals, 2) : '0.00'}
               <GameButton
-                loading={mintLoading}
-                onClick={mintUSDT}
+                disabled={hasMintedUSDT()}
+                onClick={() => transaction.handleClaimUSDT(100)}
                 className="text-[10px] py-0.5 px-[10px]"
               >
                 Claim
@@ -152,6 +134,18 @@ export const UserInfoCard: React.FC = () => {
         <NicknameEditModal
           currentNickname={user.nickname}
           onClose={() => setNicknameModalOpen(false)}
+        />
+      )}
+      {/* 交易模拟弹窗 */}
+      {transaction.txModal.isOpen && (
+        <TransactionModal
+          type={transaction.txModal.type}
+          title={transaction.txModal.title}
+          amount={transaction.txModal.amount}
+          symbol={transaction.txModal.symbol}
+          cost={transaction.txModal.cost}
+          onClose={transaction.closeTransaction}
+          onSuccess={transaction.handleTransactionSuccess}
         />
       )}
     </>

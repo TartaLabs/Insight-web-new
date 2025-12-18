@@ -97,6 +97,8 @@ export const WebApp: React.FC = () => {
           type={transaction.txModal.type}
           title={transaction.txModal.title}
           amount={transaction.txModal.amount}
+          symbol={transaction.txModal.symbol}
+          proVersion={transaction.txModal.proVersion}
           cost={transaction.txModal.cost}
           onClose={transaction.closeTransaction}
           onSuccess={transaction.handleTransactionSuccess}

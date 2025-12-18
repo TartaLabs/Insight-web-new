@@ -11,7 +11,7 @@ import { useQueryConfig } from '@/services/useQueryConfig.ts';
 
 interface UpgradeModalProps {
   onClose: () => void;
-  onUpgrade: (proVersion: string) => void;
+  onUpgrade: (proVersion: Pro) => void;
 }
 
 const getFeatures = (pro: Pro) => {
@@ -23,7 +23,7 @@ const getFeatures = (pro: Pro) => {
 };
 
 export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onUpgrade }) => {
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<Pro>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [step, setStep] = useState<'select' | 'approve' | 'pay' | 'done'>('select');
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +67,6 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onUpgrade }
     setError(null);
     setIsProcessing(true);
 
-    // Simulate a realistic approve -> pay flow
     setStep('approve');
     onUpgrade(selectedPlan);
     // TODO 接入支付
@@ -83,7 +82,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onUpgrade }
     // }, 1500);
   };
 
-  const selectedPlanDetails = proList.find((p) => p.pro_version === selectedPlan);
+  const selectedPlanDetails = proList.find((p) => p.pro_version === selectedPlan?.pro_version);
 
   const canAfford = usdtBalance && usdtBalance.value > 0;
   const hasGas = nativeBalance.value > 5365440000000n;
@@ -134,9 +133,9 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onUpgrade }
               {proList.map((pro) => (
                 <div
                   key={pro.pro_version}
-                  onClick={() => setSelectedPlan(pro.pro_version)}
+                  onClick={() => setSelectedPlan(pro)}
                   className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all overflow-hidden ${
-                    selectedPlan === pro.pro_version
+                    selectedPlan?.pro_version === pro.pro_version
                       ? 'border-tech-blue bg-tech-blue/5'
                       : 'border-white/10 hover:border-white/30 bg-white/5'
                   }`}

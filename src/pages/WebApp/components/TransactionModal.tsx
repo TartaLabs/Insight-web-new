@@ -1,44 +1,136 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Shield, Key, Wifi } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { CheckCircle2, Key, Shield, Wifi } from 'lucide-react';
+import { useAccount, useReadContract, useWriteContract } from 'wagmi';
+import { tUSDTAbi } from '@/assets/tUSDT.ts';
+import { InsightProVersionAbi } from '@/assets/InsightProVersion.ts';
+import { useUserStore } from '@/store/userStore.ts';
+import { useQueryConfig } from '@/services/useQueryConfig.ts';
+import { getAppChainId } from '@/utils';
+import { erc20Abi, formatEther, parseEther } from 'viem';
+import toast from 'react-hot-toast';
+import { getChainById } from '@/wallet/wagmi.ts';
 
 interface TransactionModalProps {
-  type: 'CLAIM' | 'UPGRADE' | 'APPROVE';
+  type: 'CLAIM_USDT' | 'CLAIM' | 'UPGRADE' | 'APPROVE';
   title: string;
   amount?: string;
+  symbol?: string;
+  proVersion?: number;
   cost?: string; // Gas or Price
   onClose: () => void;
   onSuccess: () => void;
 }
 
 export const TransactionModal: React.FC<TransactionModalProps> = ({
+  type,
   title,
   amount,
+  symbol,
+  proVersion,
   cost,
   onClose,
   onSuccess,
 }) => {
+  const getWalletAddress = useUserStore((state) => state.getWalletAddress);
+  const { writeContractAsync } = useWriteContract({});
+  const { data: appConfig } = useQueryConfig();
+  const { chain } = useAccount();
+  const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'review' | 'approve' | 'sign' | 'broadcast' | 'success'>(
     'review',
   );
 
+  const { refetch: fetchAllowance } = useReadContract({
+    abi: erc20Abi,
+    address: getUSDTAddress(),
+    functionName: 'allowance',
+    args: [getWallet(), getInsightProAddress()],
+  });
+
   useEffect(() => {
-    if (step === 'approve') {
-      setTimeout(() => setStep('sign'), 1500);
-    }
-    if (step === 'sign') {
-      setTimeout(() => setStep('broadcast'), 1500);
-    }
-    if (step === 'broadcast') {
-      setTimeout(() => setStep('success'), 2000);
-    }
     if (step === 'success') {
       setTimeout(() => onSuccess(), 1500);
     }
   }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleConfirm = () => {
-    setStep('approve');
+  function getWallet() {
+    return getWalletAddress() as `0x${string}`;
+  }
+
+  function getUSDTAddress() {
+    return appConfig.chains?.find((chain) => chain.chain_id === `${getAppChainId()}`)
+      ?.usdt as `0x${string}`;
+  }
+
+  function getInsightProAddress() {
+    return appConfig.chains?.find((chain) => chain.chain_id === `${getAppChainId()}`)
+      ?.pro_version_contract as `0x${string}`;
+  }
+
+  async function mintUSDT() {
+    const wallet = getWallet();
+    const usdtAddress = getUSDTAddress();
+    try {
+      const tx = await writeContractAsync({
+        abi: tUSDTAbi,
+        address: usdtAddress,
+        functionName: 'mint',
+        args: [wallet, parseEther(amount)],
+        chain: getChainById(getAppChainId()),
+        account: wallet,
+      });
+      localStorage.setItem('mint_tusdt_hash', tx);
+      setStep('success');
+    } catch (e) {
+      console.log(e);
+      toast.error(`${e}`);
+      setStep('review');
+    }
+  }
+
+  async function upgradeProVersion() {
+    try {
+      const allowance = await fetchAllowance();
+      const wallet = getWallet();
+      const allowanceAmount = Number(cost) * 2;
+      if (Number(formatEther(BigInt(allowance.data))) <= allowanceAmount) {
+        setStep('approve');
+        const tx = await writeContractAsync({
+          abi: erc20Abi,
+          address: getUSDTAddress(),
+          functionName: 'approve',
+          args: [getInsightProAddress(), parseEther(allowanceAmount.toString())],
+          chain: getChainById(getAppChainId()),
+          account: wallet,
+        });
+        console.log(`approve tx hash: ${tx}`);
+      }
+      setStep('sign');
+      await writeContractAsync({
+        abi: InsightProVersionAbi,
+        address: getInsightProAddress(),
+        functionName: 'purchaseProVersion',
+        args: [proVersion ?? 0],
+        chain: getChainById(getAppChainId()),
+        account: wallet,
+      });
+      setStep('success');
+    } catch (e) {
+      console.log(e);
+      toast.error(`${e}`);
+      setStep('review');
+    }
+  }
+
+  const handleConfirm = async () => {
+    setLoading(true);
+    if (type == 'CLAIM_USDT') {
+      await mintUSDT();
+    } else if (type == 'UPGRADE') {
+      await upgradeProVersion();
+    }
+    setLoading(false);
   };
 
   return (
@@ -80,32 +172,44 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                   {amount && (
                     <div className="flex justify-between text-sm border-b border-white/10 pb-2">
                       <span className="text-gray-400">Receive</span>
-                      <span className="text-green-400 font-mono font-bold">{amount}</span>
+                      <span className="text-green-400 font-mono font-bold">
+                        +{amount} {symbol ? symbol : ''}
+                      </span>
                     </div>
                   )}
                   {cost && (
                     <div className="flex justify-between text-sm border-b border-white/10 pb-2">
                       <span className="text-gray-400">Est. Cost</span>
-                      <span className="text-white font-mono">{cost}</span>
+                      <span className="text-white font-mono">
+                        {cost} {symbol ? symbol : ''}
+                      </span>
                     </div>
                   )}
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Network</span>
-                    <span className="text-tech-blue font-mono">Mantle Mainnet</span>
+                    <span className="text-tech-blue font-mono">{chain.name}</span>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <button
                     onClick={onClose}
+                    disabled={loading}
                     className="flex-1 py-3 border border-white/20 text-gray-400 font-bold text-xs hover:bg-white/5 transition-colors uppercase"
                   >
                     Cancel
                   </button>
+
                   <button
                     onClick={handleConfirm}
-                    className="flex-1 py-3 bg-tech-blue text-black font-bold text-xs hover:bg-white transition-colors uppercase"
+                    disabled={loading}
+                    className="flex-1 py-3 bg-tech-blue text-black font-bold text-xs hover:bg-white transition-colors uppercase disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
                   >
-                    Confirm
+                    {loading && (
+                      <div className="absolute inset-0 bg-tech-blue/80 flex items-center justify-center">
+                        <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                      </div>
+                    )}
+                    <span className={loading ? 'invisible' : ''}>Confirm</span>
                   </button>
                 </div>
               </motion.div>
