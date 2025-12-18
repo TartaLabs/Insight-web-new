@@ -3,20 +3,21 @@ import { request } from './request';
 
 // 从model文件夹导入所有类型定义
 import type {
-  ApiResponse,
-  User,
   AdInfo,
   AdStatus,
+  ApiResponse,
+  AppConfig,
+  DailyTasksResponse,
   InviteRecord,
   InviteResponese,
-  Product,
+  LeaderboardResponse,
   Pro,
+  Product,
+  RecordType,
   RewardRecord,
   RewardResponese,
-  DailyTasksResponse,
+  User,
   UserLoginRes,
-  RecordType,
-  LeaderboardResponse,
 } from './model/types';
 
 // 用户相关接口
@@ -65,6 +66,13 @@ export const apiUser = {
       data: { nickname, referral: refCode },
     });
     return response.data;
+  },
+
+  /**
+   * 获取应用配置
+   */
+  getAppConfig: async () => {
+    return await request.get<ApiResponse<AppConfig>>('/api/1/config', {});
   },
 };
 
@@ -214,8 +222,7 @@ export const apiTask = {
    * 获取每日任务
    */
   getDailyTasks: async (): Promise<DailyTasksResponse> => {
-    const response = await request.post<DailyTasksResponse>('/api/1/user/task/claim');
-    return response;
+    return await request.post<DailyTasksResponse>('/api/1/user/task/claim');
   },
 
   /**

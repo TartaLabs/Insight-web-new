@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
-import { Edit2, Copy, Flame, Shield } from 'lucide-react';
-import { HudPanel } from '../ui';
+import React, { useEffect, useState } from 'react';
+import { Copy, Edit2, Flame, Shield } from 'lucide-react';
+import { GameButton, HudPanel } from '../ui';
 import { useUserStore } from '@/store/userStore';
 import { useProStore } from '@/store/proStore';
-import { copyToClipboard } from '@/utils';
+import { copyToClipboard, formatBalance, getAppChainId } from '@/utils';
 import { NicknameEditModal } from '../modals/NicknameEditModal';
+import { useAccount, useBalance, useWriteContract } from 'wagmi';
+import { useQueryConfig } from '@/services/useQueryConfig.ts';
+import { tUSDTAbi } from '@/assets/tUSDT.ts';
+import { parseEther } from 'viem';
+import toast from 'react-hot-toast';
 
 /**
  * 用户信息卡片组件
@@ -17,6 +22,49 @@ export const UserInfoCard: React.FC = () => {
   const formatAddress = (addr: string) => (addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '');
 
   const [nicknameModalOpen, setNicknameModalOpen] = useState(false);
+  const { chain } = useAccount();
+  const { data: nativeBalance } = useBalance({
+    address: getWalletAddress() as `0x${string}`,
+  });
+  const { data: appConfig } = useQueryConfig();
+
+  const [usdtAddress, setUsdtAddress] = useState<string>();
+
+  const { data: tokenBalance } = useBalance({
+    address: getWalletAddress() as `0x${string}`,
+    token: usdtAddress as `0x${string}`,
+  });
+
+  const [mintLoading, setMintLoading] = useState(false);
+
+  const { writeContractAsync } = useWriteContract({});
+
+  useEffect(() => {
+    if (appConfig) {
+      const usdt = appConfig.chains?.find((chain) => chain.chain_id === `${getAppChainId()}`)?.usdt;
+      setUsdtAddress(usdt);
+    }
+  }, [appConfig]);
+
+  async function mintUSDT() {
+    setMintLoading(true);
+    const wallet = getWalletAddress() as `0x${string}`;
+    try {
+      const tx = await writeContractAsync({
+        abi: tUSDTAbi,
+        address: usdtAddress as `0x${string}`,
+        functionName: 'mint',
+        args: [wallet, parseEther('100')],
+        chain: undefined,
+        account: wallet,
+      });
+      console.log(`mint tx: ${tx}`);
+    } catch (e) {
+      console.log(e);
+      toast.error(`${e}`);
+    }
+    setMintLoading(false);
+  }
 
   return (
     <>
@@ -76,17 +124,29 @@ export const UserInfoCard: React.FC = () => {
           </div>
         </div>
 
-        {/* Balance Display  TODO 暂无相关数据*/}
-        {/* <div className="flex gap-2 w-full md:w-auto">
-        <div className="bg-black/40 border border-white/10 p-3 rounded flex-1 min-w-[80px]">
-          <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">MNT</div>
-          <div className="text-sm font-bold text-white">{'TODO: balanceMNT'}</div>
+        <div className="flex gap-2 w-full md:w-auto">
+          <div className="bg-black/40 border border-white/10 p-3 rounded flex-1 min-w-[80px] flex flex-col justify-between">
+            <div className="text-sm text-gray-500 uppercase tracking-wider mb-1">
+              {chain?.nativeCurrency?.symbol || 'ETH'}
+            </div>
+            <div className="text-sm font-bold text-white">
+              {formatBalance(nativeBalance?.value, nativeBalance?.decimals)}
+            </div>
+          </div>
+          <div className="bg-black/40 border border-white/10 p-3 rounded flex-1 min-w-[80px]">
+            <div className="text-sm text-gray-500 uppercase tracking-wider mb-1">USDT</div>
+            <div className="text-sm font-bold text-green-400 flex flex-row gap-4 items-center justify-between">
+              {tokenBalance ? formatBalance(tokenBalance.value, tokenBalance.decimals, 2) : '0.00'}
+              <GameButton
+                loading={mintLoading}
+                onClick={mintUSDT}
+                className="text-[10px] py-0.5 px-[10px]"
+              >
+                Claim
+              </GameButton>
+            </div>
+          </div>
         </div>
-        <div className="bg-black/40 border border-white/10 p-3 rounded flex-1 min-w-[80px]">
-          <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">USDT</div>
-          <div className="text-sm font-bold text-green-400">{'TODO: balanceUSDT'}</div>
-        </div>
-      </div> */}
       </HudPanel>
       {nicknameModalOpen && (
         <NicknameEditModal

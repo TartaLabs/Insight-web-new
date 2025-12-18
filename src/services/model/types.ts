@@ -181,3 +181,16 @@ export interface DailyTasksResponse {
     tasks: Task[];
   };
 }
+
+export interface AppConfig {
+  chains: {
+    chain_id: string;
+    name: string;
+    multi_call_contract: string;
+    insight_reward_contract: string;
+    eomo: string;
+    is_mainnet: boolean;
+    pro_version_contract: string;
+    usdt: string;
+  }[];
+}

@@ -10,6 +10,7 @@ import { PrivacyPolicyContent } from '../../Privacy';
 import { TermsOfUseContent } from '../../Terms';
 import { useUserStore } from '@/store/userStore';
 import toast from 'react-hot-toast';
+import { getAppChainId } from '@/utils';
 
 /**
  * 登录页面组件
@@ -69,7 +70,7 @@ export const Login: React.FC = () => {
   const handleSignMessage = async (walletAddress: string) => {
     try {
       setIsSigning(true);
-      const defaultChainId = process.env.NODE_ENV !== 'production' ? 421614 : 42161;
+      const defaultChainId = getAppChainId();
       if (chain?.id !== defaultChainId) {
         switchChain({ chainId: defaultChainId });
       }

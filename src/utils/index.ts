@@ -1,4 +1,5 @@
 import toast from 'react-hot-toast';
+import { formatUnits } from 'viem';
 
 export const copyToClipboard = async (text: string, successMsg?: string) => {
   try {
@@ -34,4 +35,22 @@ export const formatTimestamp = (timestamp: number) => {
     month: 'short',
     day: 'numeric',
   });
+};
+
+export const getAppChainId = () => {
+  return process.env.NODE_ENV !== 'production' ? 421614 : 42161;
+};
+
+// 格式化余额显示
+export const formatBalance = (
+  value: bigint | undefined,
+  decimals: number | undefined,
+  precision = 4,
+) => {
+  if (!value || !decimals) return '0.00';
+  try {
+    return parseFloat(formatUnits(value, decimals)).toFixed(precision);
+  } catch {
+    return '0.00';
+  }
 };

@@ -245,6 +245,11 @@ class Request {
 // 导出单例实例
 const request = Request.getInstance();
 // 初始化实例，使用原有的BaseURL
-request.init({ baseUrl: 'https://insightweb.tartalabs.io' });
+request.init({
+  baseUrl:
+    process.env.NODE_ENV !== 'production'
+      ? 'https://insight174653.tartalabs.io'
+      : 'https://insightweb.tartalabs.io',
+});
 
 export { request };

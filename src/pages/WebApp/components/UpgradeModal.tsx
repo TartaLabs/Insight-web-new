@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Check, Loader2, CreditCard, AlertCircle } from 'lucide-react';
 import { Button } from './Button';
 import { useProStore } from '@/store/proStore';
 import { Pro } from '@/services/model/types';
 import { useUserStore } from '@/store/userStore';
+import { useAccount, useBalance } from 'wagmi';
+import { formatBalance, getAppChainId } from '@/utils';
+import { useQueryConfig } from '@/services/useQueryConfig.ts';
 
 interface UpgradeModalProps {
   onClose: () => void;
@@ -26,6 +29,24 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onUpgrade }
   const [error, setError] = useState<string | null>(null);
   const proVersionList = useProStore((state) => state.proVersionList);
   const getWalletAddress = useUserStore((state) => state.getWalletAddress);
+  const { data: nativeBalance } = useBalance({
+    address: getWalletAddress() as `0x${string}`,
+  });
+  const { data: appConfig } = useQueryConfig();
+  const [usdtAddress, setUsdtAddress] = useState<string>();
+  const { chain } = useAccount();
+
+  const { data: usdtBalance } = useBalance({
+    address: getWalletAddress() as `0x${string}`,
+    token: usdtAddress as `0x${string}`,
+  });
+
+  useEffect(() => {
+    if (appConfig) {
+      const usdt = appConfig.chains?.find((chain) => chain.chain_id === `${getAppChainId()}`)?.usdt;
+      setUsdtAddress(usdt);
+    }
+  }, [appConfig]);
 
   const proList = proVersionList.filter((p) => p.is_pro);
   const resetState = () => {
@@ -64,9 +85,8 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onUpgrade }
 
   const selectedPlanDetails = proList.find((p) => p.pro_version === selectedPlan);
 
-  // TODO 接入支付
-  const canAfford = false;
-  const hasGas = false;
+  const canAfford = usdtBalance && usdtBalance.value > 0;
+  const hasGas = nativeBalance.value > 5365440000000n;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
@@ -80,7 +100,8 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onUpgrade }
             <div>
               <h2 className="text-3xl font-bold">Upgrade to Pro</h2>
               <p className="text-gray-400 mt-2">
-                Pay with <span className="text-green-400 font-bold">USDT</span> on Mantle Network
+                Pay with <span className="text-green-400 font-bold">USDT</span> on {chain.name}{' '}
+                Network
               </p>
               <div className="text-[11px] text-gray-500 font-mono mt-1">
                 Wallet: {getWalletAddress() || 'Connected'}
@@ -92,7 +113,8 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onUpgrade }
                 <div
                   className={`font-mono font-bold ${canAfford ? 'text-green-500' : 'text-red-500'}`}
                 >
-                  {0} USDT
+                  {usdtBalance ? formatBalance(usdtBalance?.value, usdtBalance?.decimals) : '0.00'}{' '}
+                  USDT
                 </div>
               </div>
               <Button
