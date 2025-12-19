@@ -8,15 +8,16 @@ export interface UseTransactionReturn {
   handleClaimAll: () => void;
   handleClaimInvitationRewards: () => void;
   handleClaimDailyBonus: () => void;
-  handleRetryClaim: () => void;
+  handleRetryClaim: (taskNonce: number | undefined) => void;
   handleUpgrade: (proVersion: Pro) => void;
   openTransaction: (
-    type: 'CLAIM_USDT' | 'CLAIM' | 'UPGRADE' | 'APPROVE',
+    type: 'CLAIM_USDT' | 'CLAIM_PRO_DAILY' | 'CLAIM_TASK' | 'CLAIM_INVITE' | 'UPGRADE' | 'APPROVE',
     title: string,
     amount: string | undefined,
     symbol: string | undefined,
     proVersion: number | undefined,
     cost: string | undefined,
+    taskNonce: number | undefined,
     onSuccess: () => void,
   ) => void;
   closeTransaction: () => void;
@@ -26,18 +27,25 @@ export interface UseTransactionReturn {
 export function useTransaction(): UseTransactionReturn {
   const [txModal, setTxModal] = useState<TransactionModalState>({
     isOpen: false,
-    type: 'CLAIM',
+    type: 'APPROVE',
     title: '',
   });
 
   const openTransaction = useCallback(
     (
-      type: 'CLAIM_USDT' | 'CLAIM' | 'UPGRADE' | 'APPROVE',
+      type:
+        | 'CLAIM_USDT'
+        | 'CLAIM_PRO_DAILY'
+        | 'CLAIM_TASK'
+        | 'CLAIM_INVITE'
+        | 'UPGRADE'
+        | 'APPROVE',
       title: string,
       amount: string | undefined,
       symbol: string | undefined,
       proVersion: number | undefined,
       cost: string | undefined,
+      taskNonce: number | undefined,
       onSuccess: () => void,
     ) => {
       setTxModal({
@@ -48,6 +56,7 @@ export function useTransaction(): UseTransactionReturn {
         symbol,
         proVersion,
         cost,
+        taskNonce,
         onSuccessCallback: onSuccess,
       });
     },
@@ -64,6 +73,7 @@ export function useTransaction(): UseTransactionReturn {
         'tUSDT',
         undefined,
         undefined,
+        undefined,
         () => {},
       );
     },
@@ -72,14 +82,24 @@ export function useTransaction(): UseTransactionReturn {
 
   // 领取全部任务奖励
   const handleClaimAll = useCallback(() => {
-    openTransaction('CLAIM', 'Claim All Tasks', undefined, '$mEMO', undefined, undefined, () => {});
+    openTransaction(
+      'CLAIM_TASK',
+      'Claim All Tasks',
+      undefined,
+      '$mEMO',
+      undefined,
+      undefined,
+      undefined,
+      () => {},
+    );
   }, [openTransaction]);
 
   // 领取邀请奖励
   const handleClaimInvitationRewards = useCallback(() => {
     openTransaction(
-      'CLAIM',
+      'CLAIM_INVITE',
       'Claim Invitation Rewards',
+      undefined,
       undefined,
       undefined,
       undefined,
@@ -91,8 +111,9 @@ export function useTransaction(): UseTransactionReturn {
   // 领取每日奖励
   const handleClaimDailyBonus = useCallback(() => {
     openTransaction(
-      'CLAIM',
+      'CLAIM_PRO_DAILY',
       'Claim Daily Bonus',
+      undefined,
       undefined,
       undefined,
       undefined,
@@ -102,9 +123,21 @@ export function useTransaction(): UseTransactionReturn {
   }, [openTransaction]);
 
   // 领取记录，领取失败，二次领取
-  const handleRetryClaim = useCallback(() => {
-    openTransaction('CLAIM', 'Retry Claim', undefined, undefined, undefined, undefined, () => {});
-  }, [openTransaction]);
+  const handleRetryClaim = useCallback(
+    (taskNonce: number | undefined) => {
+      openTransaction(
+        'CLAIM_TASK',
+        'Retry Claim',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        taskNonce,
+        () => {},
+      );
+    },
+    [openTransaction],
+  );
 
   function getProVersionValue(proVersion: string) {
     switch (proVersion) {
@@ -129,6 +162,7 @@ export function useTransaction(): UseTransactionReturn {
         'tUSDT',
         getProVersionValue(_proVersion.pro_version),
         _proVersion.benefits.price.toString(),
+        undefined,
         () => {},
       );
     },

@@ -54,3 +54,10 @@ export const formatBalance = (
     return '0.00';
   }
 };
+
+export function asciiToHex(str: string) {
+  return str
+    .split('')
+    .map((c) => c.charCodeAt(0).toString(16).padStart(2, '0'))
+    .join('');
+}

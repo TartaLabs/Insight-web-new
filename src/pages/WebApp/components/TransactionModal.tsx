@@ -4,20 +4,24 @@ import { CheckCircle2, Key, Shield, Wifi } from 'lucide-react';
 import { useAccount, useReadContract, useWriteContract } from 'wagmi';
 import { tUSDTAbi } from '@/assets/tUSDT.ts';
 import { InsightProVersionAbi } from '@/assets/InsightProVersion.ts';
+import { InsightReward } from '@/assets/InsightReward.ts';
 import { useUserStore } from '@/store/userStore.ts';
 import { useQueryConfig } from '@/services/useQueryConfig.ts';
-import { getAppChainId } from '@/utils';
+import { asciiToHex, getAppChainId } from '@/utils';
 import { erc20Abi, formatEther, parseEther } from 'viem';
 import toast from 'react-hot-toast';
 import { getChainById } from '@/wallet/wagmi.ts';
+import { apiPayment, apiUser } from '@/services/api.ts';
+import { MintSigRes } from '@/services/model/types.ts';
 
 interface TransactionModalProps {
-  type: 'CLAIM_USDT' | 'CLAIM' | 'UPGRADE' | 'APPROVE';
+  type: 'CLAIM_USDT' | 'CLAIM_PRO_DAILY' | 'CLAIM_TASK' | 'CLAIM_INVITE' | 'UPGRADE' | 'APPROVE';
   title: string;
   amount?: string;
   symbol?: string;
   proVersion?: number;
   cost?: string; // Gas or Price
+  taskNonce?: number;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -29,6 +33,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   symbol,
   proVersion,
   cost,
+  taskNonce,
   onClose,
   onSuccess,
 }) => {
@@ -66,6 +71,11 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   function getInsightProAddress() {
     return appConfig.chains?.find((chain) => chain.chain_id === `${getAppChainId()}`)
       ?.pro_version_contract as `0x${string}`;
+  }
+
+  function getInsightRewardAddress() {
+    return appConfig.chains?.find((chain) => chain.chain_id === `${getAppChainId()}`)
+      ?.insight_reward_contract as `0x${string}`;
   }
 
   async function mintUSDT() {
@@ -107,7 +117,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         console.log(`approve tx hash: ${tx}`);
       }
       setStep('sign');
-      await writeContractAsync({
+      const txHash = await writeContractAsync({
         abi: InsightProVersionAbi,
         address: getInsightProAddress(),
         functionName: 'purchaseProVersion',
@@ -115,6 +125,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         chain: getChainById(getAppChainId()),
         account: wallet,
       });
+      await apiPayment.updatePayResult(txHash);
       setStep('success');
     } catch (e) {
       console.log(e);
@@ -123,12 +134,87 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     }
   }
 
+  async function claimProDaily() {
+    try {
+      const mintSigRes = await apiUser.getProMintSig({});
+      const mintSig = mintSigRes.data;
+      await execClaimMintTx(mintSig);
+      setStep('success');
+    } catch (e) {
+      console.log(e);
+      toast.error(`${e}`);
+      setStep('review');
+    }
+  }
+
+  async function claimTask(nonce: number | undefined) {
+    try {
+      const mintSigRes = await apiUser.getTaskMintSig({ nonce });
+      const mintSig = mintSigRes.data;
+      await execClaimMintTx(mintSig);
+      setStep('success');
+    } catch (e) {
+      console.log(e);
+      toast.error(`${e}`);
+      setStep('review');
+    }
+  }
+
+  async function claimInvite() {
+    try {
+      const mintSigRes = await apiUser.getInviteMintSig({});
+      const mintSig = mintSigRes.data;
+      await execClaimMintTx(mintSig);
+      setStep('success');
+    } catch (e) {
+      console.log(e);
+      toast.error(`${e}`);
+      setStep('review');
+    }
+  }
+
+  async function execClaimMintTx(mintSig: MintSigRes) {
+    const tasksHex = asciiToHex(mintSig.tasks);
+    const wallet = getWallet();
+    const txHash = await writeContractAsync({
+      abi: InsightReward,
+      address: getInsightRewardAddress(),
+      functionName: 'mintWithSignature',
+      args: [
+        wallet,
+        ('0x' + mintSig.uuid) as `0x${string}`,
+        BigInt(mintSig.nonce),
+        BigInt(mintSig.timestamp),
+        BigInt(mintSig.amount),
+        ('0x' + tasksHex) as `0x${string}`,
+        mintSig.signature as `0x${string}`,
+      ],
+      chain: getChainById(getAppChainId()),
+      account: wallet,
+    });
+    await apiUser.submitClaimTxHash({ tx_hash: txHash, nonce: mintSig.nonce });
+  }
+
   const handleConfirm = async () => {
     setLoading(true);
-    if (type == 'CLAIM_USDT') {
-      await mintUSDT();
-    } else if (type == 'UPGRADE') {
-      await upgradeProVersion();
+    switch (type) {
+      case 'CLAIM_USDT':
+        await mintUSDT();
+        break;
+      case 'UPGRADE':
+        await upgradeProVersion();
+        break;
+      case 'CLAIM_PRO_DAILY':
+        await claimProDaily();
+        break;
+      case 'CLAIM_TASK':
+        await claimTask(taskNonce);
+        break;
+      case 'CLAIM_INVITE':
+        await claimInvite();
+        break;
+      default:
+        toast('unknown transaction type: ' + type + '');
     }
     setLoading(false);
   };

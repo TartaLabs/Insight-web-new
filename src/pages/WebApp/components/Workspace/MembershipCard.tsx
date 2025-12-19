@@ -3,6 +3,8 @@ import { Crown } from 'lucide-react';
 import { HudPanel, GameButton } from '../ui';
 import { useProStore } from '@/store/proStore';
 import { useUserStore } from '@/store/userStore';
+import { useQueryClaimableAmount } from '@/services/useQueryClaimableAmount.ts';
+import { formatUnits } from 'viem';
 
 interface MembershipCardProps {
   onClaimBonus: () => void;
@@ -16,9 +18,10 @@ interface MembershipCardProps {
 export const MembershipCard: React.FC<MembershipCardProps> = ({ onClaimBonus, onUpgradeClick }) => {
   const pro = useProStore((state) => state.pro);
   const user = useUserStore((state) => state.user);
-  const pendingReward = useUserStore((state) => state.pendingRewards);
 
-  const hasClaimedBonus = pendingReward > 0;
+  const { data } = useQueryClaimableAmount('PRO');
+
+  const claimableAmount = BigInt(data?.claimable_amount ?? 0);
 
   return (
     <HudPanel className="col-span-1 lg:col-span-1 p-5 flex flex-col gap-4">
@@ -44,15 +47,15 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({ onClaimBonus, on
       <div className="bg-white/5 p-3 rounded border border-white/10 mt-auto">
         <div className="flex justify-between items-center mb-2">
           <span className="text-[10px] uppercase text-gray-400">Daily Drop</span>
-          <span className="text-xs font-bold text-white">+{pro.benefits.daily_free_points}</span>
+          <span className="text-xs font-bold text-white">+{formatUnits(claimableAmount, 9)}</span>
         </div>
         {pro.is_pro ? (
           <GameButton
             onClick={onClaimBonus}
-            disabled={hasClaimedBonus}
+            disabled={claimableAmount <= 0}
             className="w-full text-[10px] py-1.5"
           >
-            {hasClaimedBonus ? 'RECEIVED' : 'CLAIM DROP'}
+            {claimableAmount <= 0 ? 'RECEIVED' : 'CLAIM DROP'}
           </GameButton>
         ) : (
           <GameButton onClick={onUpgradeClick} className="w-full text-[10px] py-1.5">

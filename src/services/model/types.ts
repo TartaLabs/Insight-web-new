@@ -194,3 +194,34 @@ export interface AppConfig {
     usdt: string;
   }[];
 }
+
+export interface MintSigReq {
+  nonce?: number;
+}
+
+export interface MintSigRes {
+  uuid: string;
+  nonce: number;
+  timestamp: number;
+  amount: string;
+  tasks: string;
+  signature: string;
+}
+
+export interface SubmitClaimTxHashReq {
+  nonce: number;
+  tx_hash: string;
+}
+
+export interface SubmitClaimTxHashRes {
+  task_uuids: string[];
+  tx_hash: string;
+  status: string;
+  message: string;
+}
+
+export type ClaimableAmountRes = {
+  task_type: string;
+  claimable_amount: number;
+  record_count: number;
+};

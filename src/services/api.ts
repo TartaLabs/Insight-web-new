@@ -2,20 +2,25 @@
 import { request } from './request';
 
 // 从model文件夹导入所有类型定义
-import type {
+import {
   AdInfo,
   AdStatus,
   ApiResponse,
   AppConfig,
+  ClaimableAmountRes,
   DailyTasksResponse,
   InviteRecord,
   InviteResponese,
   LeaderboardResponse,
+  MintSigReq,
+  MintSigRes,
   Pro,
   Product,
   RecordType,
   RewardRecord,
   RewardResponese,
+  SubmitClaimTxHashReq,
+  SubmitClaimTxHashRes,
   User,
   UserLoginRes,
 } from './model/types';
@@ -73,6 +78,39 @@ export const apiUser = {
    */
   getAppConfig: async () => {
     return await request.get<ApiResponse<AppConfig>>('/api/1/config', {});
+  },
+
+  getClaimableAmount: async (type: string) => {
+    return await request.get<ApiResponse<ClaimableAmountRes>>('/api/1/user/task/claimable-amount', {
+      params: {
+        task_type: type,
+      },
+    });
+  },
+
+  getTaskMintSig: async (req: MintSigReq) => {
+    return await request.post<ApiResponse<MintSigRes>>('/api/1/user/task/mint-signature', {
+      data: req,
+    });
+  },
+
+  getInviteMintSig: async (req: MintSigReq) => {
+    return await request.post<ApiResponse<MintSigRes>>('/api/1/user/task/mint-invite-signature', {
+      data: req,
+    });
+  },
+
+  getProMintSig: async (req: MintSigReq) => {
+    return await request.post<ApiResponse<MintSigRes>>('/api/1/user/task/mint-pro-signature', {
+      data: req,
+    });
+  },
+
+  submitClaimTxHash: async (req: SubmitClaimTxHashReq) => {
+    return await request.post<ApiResponse<SubmitClaimTxHashRes>>(
+      '/api/1/user/task/submit-tx-hash',
+      { data: req },
+    );
   },
 };
 
@@ -151,6 +189,15 @@ export const apiPayment = {
   getProductList: async (): Promise<Product[]> => {
     const response = await request.get<ApiResponse<Product[]>>('/api/1/user/payment/products');
     return response.data;
+  },
+
+  /**
+   * 上报购买交易 Hash
+   */
+  updatePayResult: async (hash: string) => {
+    return await request.post('/api/1/user/payment/submit-chain-proversion', {
+      data: { tx_hash: hash },
+    });
   },
 };
 

@@ -57,7 +57,7 @@ export const UserInfoCard: React.FC = () => {
             <div className="absolute inset-0 border-2 border-tech-blue rounded-full animate-spin-slow border-dashed opacity-50" />
             <div className="absolute inset-2 bg-gradient-to-b from-blue-900 to-black rounded-full flex items-center justify-center border border-white/10">
               <span className="text-xl font-bold text-white">
-                {user.nickname ? user.nickname.charAt(0).toUpperCase() : '?'}
+                {user?.nickname ? user?.nickname.charAt(0).toUpperCase() : '?'}
               </span>
             </div>
             {pro.is_pro && (
@@ -71,7 +71,7 @@ export const UserInfoCard: React.FC = () => {
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-bold text-white tracking-widest uppercase">
-                {user.nickname}
+                {user?.nickname}
               </h2>
               <button
                 onClick={() => setNicknameModalOpen(true)}
@@ -144,6 +144,7 @@ export const UserInfoCard: React.FC = () => {
           amount={transaction.txModal.amount}
           symbol={transaction.txModal.symbol}
           cost={transaction.txModal.cost}
+          taskNonce={transaction.txModal.taskNonce}
           onClose={transaction.closeTransaction}
           onSuccess={transaction.handleTransactionSuccess}
         />

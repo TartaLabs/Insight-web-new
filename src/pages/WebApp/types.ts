@@ -38,12 +38,13 @@ export type InviteUsageMap = Record<string, InviteUsageRecord>;
 
 export interface TransactionModalState {
   isOpen: boolean;
-  type: 'CLAIM_USDT' | 'CLAIM' | 'UPGRADE' | 'APPROVE';
+  type: 'CLAIM_USDT' | 'CLAIM_PRO_DAILY' | 'CLAIM_TASK' | 'CLAIM_INVITE' | 'UPGRADE' | 'APPROVE';
   title: string;
   amount?: string;
   symbol?: string;
   proVersion?: number;
   cost?: string;
+  taskNonce?: number;
   onSuccessCallback?: () => void;
 }
 

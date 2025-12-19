@@ -100,6 +100,7 @@ export const WebApp: React.FC = () => {
           symbol={transaction.txModal.symbol}
           proVersion={transaction.txModal.proVersion}
           cost={transaction.txModal.cost}
+          taskNonce={transaction.txModal.taskNonce}
           onClose={transaction.closeTransaction}
           onSuccess={transaction.handleTransactionSuccess}
         />
