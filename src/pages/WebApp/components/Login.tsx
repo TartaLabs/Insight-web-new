@@ -145,6 +145,20 @@ export const Login: React.FC = () => {
     try {
       setIsSubmitting(true);
 
+      // 服务端校验昵称
+      try {
+        const exists = await apiUser.checkNickname(nick);
+        if (exists) {
+          setNicknameError('Nickname already exists.');
+          setIsSubmitting(false);
+          return;
+        }
+      } catch (error) {
+        setNicknameError((error as Error).message || 'Nickname is not available.');
+        setIsSubmitting(false);
+        return;
+      }
+
       let verifyResult = false;
       if (inviteInput.trim()) {
         verifyResult = await verifyInviteCode(inviteInput.trim());

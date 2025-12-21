@@ -9,6 +9,9 @@ interface NicknameEditModalProps {
   onClose: () => void;
 }
 
+// 昵称校验正则：1-15个字母或数字
+const nickPattern = /^[A-Za-z0-9]{1,15}$/;
+
 /**
  * 昵称编辑弹窗组件
  */
@@ -19,14 +22,45 @@ export const NicknameEditModal: React.FC<NicknameEditModalProps> = ({
   const { user, setUser } = useUserStore((state) => state);
   const [nicknameInput, setNicknameInput] = useState(currentNickname);
   const [nicknameError, setNicknameError] = useState('');
+  const [isChecking, setIsChecking] = useState(false);
 
   const handleSave = async () => {
+    const nick = nicknameInput.trim();
+
+    // 前端校验
+    if (!nick) {
+      setNicknameError('Nickname is required.');
+      return;
+    }
+    if (!nickPattern.test(nick)) {
+      setNicknameError('Use 1-15 letters or numbers only. No special characters.');
+      return;
+    }
+
+    // 服务端校验
     try {
-      const newUser = await apiUser.updateUserData(nicknameInput);
+      setIsChecking(true);
+      const exists = await apiUser.checkNickname(nick);
+      if (exists) {
+        setNicknameError('Nickname already exists.');
+        setIsChecking(false);
+        return;
+      }
+    } catch (error) {
+      setNicknameError((error as Error).message || 'Nickname is not available.');
+      setIsChecking(false);
+      return;
+    }
+
+    // 校验通过，保存昵称
+    try {
+      const newUser = await apiUser.updateUserData(nick);
       setUser({ ...user, ...newUser });
       onClose();
     } catch (error) {
-      setNicknameError(error.message || 'Nickname invalid');
+      setNicknameError((error as Error).message || 'Nickname invalid');
+    } finally {
+      setIsChecking(false);
     }
   };
 
@@ -48,6 +82,7 @@ export const NicknameEditModal: React.FC<NicknameEditModalProps> = ({
             setNicknameInput(e.target.value);
             setNicknameError('');
           }}
+          maxLength={15}
           className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-tech-blue outline-none"
           placeholder="Enter nickname"
         />
@@ -56,8 +91,8 @@ export const NicknameEditModal: React.FC<NicknameEditModalProps> = ({
           <GameButton variant="ghost" onClick={onClose} className="px-4 py-2 text-[11px]">
             Cancel
           </GameButton>
-          <GameButton onClick={handleSave} className="px-4 py-2 text-[11px]">
-            Save
+          <GameButton onClick={handleSave} disabled={isChecking} className="px-4 py-2 text-[11px]">
+            {isChecking ? 'Checking...' : 'Save'}
           </GameButton>
         </div>
       </div>

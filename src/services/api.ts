@@ -112,6 +112,20 @@ export const apiUser = {
       { data: req },
     );
   },
+
+  /**
+   * 校验昵称是否可用
+   */
+  checkNickname: async (nickname: string): Promise<boolean> => {
+    const response = await request.post<ApiResponse<{ exists: boolean }>>(
+      '/api/1/user/check-nickname',
+      {
+        data: { nickname },
+      },
+    );
+
+    return response.data.exists;
+  },
 };
 
 // 广告相关接口
