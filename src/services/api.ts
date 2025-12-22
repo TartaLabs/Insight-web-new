@@ -117,10 +117,10 @@ export const apiUser = {
    * 校验昵称是否可用
    */
   checkNickname: async (nickname: string): Promise<boolean> => {
-    const response = await request.post<ApiResponse<{ exists: boolean }>>(
+    const response = await request.get<ApiResponse<{ exists: boolean }>>(
       '/api/1/user/check-nickname',
       {
-        data: { nickname },
+        params: { nickname },
       },
     );
 
