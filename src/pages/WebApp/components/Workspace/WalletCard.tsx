@@ -30,7 +30,7 @@ export const WalletCard: React.FC<WalletCardProps> = ({ onClaimAll }) => {
             TOTAL EARNINGS
           </div>
           <div className="text-3xl font-bold text-white flex items-baseline gap-1">
-            {user.token_amount?.toFixed(1) || '0'}{' '}
+            {user.token_amount ? formatUnits(BigInt(user.token_amount), 9) : '0'}{' '}
             <span className="text-sm font-normal text-gray-500">$mEMO</span>
           </div>
         </div>

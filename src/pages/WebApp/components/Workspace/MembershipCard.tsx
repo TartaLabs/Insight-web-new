@@ -35,16 +35,16 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({ onClaimBonus, on
         <div
           className={`text-xl font-bold ${pro.is_pro ? 'text-neon-purple drop-shadow-[0_0_5px_rgba(188,19,254,0.5)]' : 'text-gray-500'}`}
         >
-          {pro.is_pro ? 'PRO ACCESS' : 'BASIC ACCESS'}
+          {pro.display_name}
         </div>
         {pro.is_pro && user.pro_version_expires_at && (
-          <div className="text-[10px] text-gray-600">
-            Sync Ends: {new Date(user.pro_version_expires_at).toLocaleDateString()}
+          <div className="text-[10px] text-gray-400">
+            Sync Ends: {new Date(user.pro_version_expires_at * 1000).toLocaleDateString()}
           </div>
         )}
       </div>
 
-      <div className="bg-white/5 p-3 rounded border border-white/10 mt-auto">
+      <div className="bg-white/5 p-3 rounded border border-white/10 mt-2">
         <div className="flex justify-between items-center mb-2">
           <span className="text-[10px] uppercase text-gray-400">Daily Drop</span>
           <span className="text-xs font-bold text-white">+{formatUnits(claimableAmount, 9)}</span>

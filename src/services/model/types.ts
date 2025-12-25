@@ -3,6 +3,12 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+export interface ReferUser {
+  nickname: string;
+  avatar: string;
+  uid: string;
+}
+
 // 用户相关类型定义
 export interface User {
   // 根据Dart的User类定义相应的字段
@@ -15,7 +21,7 @@ export interface User {
   pro_version_expires_at?: number;
   referral_code?: string;
   token_amount?: number;
-  refer_user?: string;
+  refer_user?: ReferUser;
   refer_count?: number;
   oauth_info?: {
     wallet?: {

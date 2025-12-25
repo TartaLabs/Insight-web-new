@@ -2,8 +2,8 @@ import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router';
 
 // Roots
-import { HomeRoot } from './roots/HomeRoot';
-import { WebAppRoot } from './roots/WebAppRoot';
+import { HomeRoot } from '@/roots';
+import { WebAppRoot } from '@/roots';
 
 // Pages
 import Home from './pages/Home';

@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Users, Share2, Coins, Calendar, Loader2 } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Calendar, Coins, Loader2, Share2, Users } from 'lucide-react';
 import { useSearchParams } from 'react-router';
-import { HudPanel, GameButton } from '../../ui';
+import { GameButton, HudPanel } from '../../ui';
 import { copyToClipboard, formatTimestamp } from '@/utils';
 import { useUserStore } from '@/store/userStore';
-import { apiTask, apiUser, apiInvite } from '@/services/api';
+import { apiInvite, apiUser } from '@/services/api';
 import { InviteRecord } from '@/services/model/types';
 import toast from 'react-hot-toast';
+import { useQueryClaimableAmount } from '@/services/useQueryClaimableAmount.ts';
+import { formatUnits } from 'viem';
 
 interface InvitationTabProps {
   onClaimInvitationRewards: () => void;
@@ -24,20 +26,13 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({ onClaimInvitationR
 
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [inviteInput, setInviteInput] = useState(inviteCodeFromUrl);
-  const [invitationRewards, setInvitationRewards] = useState(0);
   const [inviteRecords, setInviteRecords] = useState<InviteRecord[]>([]);
   const [inviteTotal, setInviteTotal] = useState(0);
   const [inviteLoading, setInviteLoading] = useState(false);
+  const { data } = useQueryClaimableAmount('INVITE');
+  const claimableAmount = BigInt(data?.claimable_amount ?? 0);
 
   const enableBind = !user.refer_user;
-
-  useEffect(() => {
-    const fetchInvitationRewards = async () => {
-      const rewards = await apiTask.getClaimableAmount('INVITE');
-      setInvitationRewards(rewards);
-    };
-    fetchInvitationRewards();
-  }, []);
 
   useEffect(() => {
     const fetchInviteRecords = async () => {
@@ -86,9 +81,11 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({ onClaimInvitationR
             <div>
               <div className="text-[10px] text-tech-blue uppercase tracking-widest">Invitation</div>
               <div className="text-xl font-bold text-white">Bind Invite Code</div>
-              {user.refer_user && (
-                <div className="text-xs text-gray-500 mt-1">Invited by {user.refer_user}</div>
-              )}
+              {user.refer_user ? (
+                <div className="text-xs text-gray-500 mt-1">
+                  Invited by {user.refer_user.nickname}
+                </div>
+              ) : undefined}
             </div>
             {!enableBind && (
               <div className="px-2 py-1 rounded bg-tech-blue/10 text-tech-blue text-[10px] font-bold">
@@ -169,13 +166,13 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({ onClaimInvitationR
                 Commission Pool
               </div>
               <div className="text-3xl font-bold text-white font-mono">
-                +{invitationRewards.toFixed(1)} $mEMO
+                +{formatUnits(claimableAmount, 9)} $mEMO
               </div>
             </div>
           </div>
           <GameButton
             onClick={onClaimInvitationRewards}
-            disabled={invitationRewards <= 0}
+            disabled={claimableAmount <= 0}
             className="w-full flex items-center justify-center gap-2"
           >
             <Coins size={14} /> EXTRACT COMMISSION
@@ -217,7 +214,10 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({ onClaimInvitationR
                     <span className="text-gray-500 font-normal">Pending</span>
                   </div>
                   <div className="text-[10px] text-gray-500">
-                    Claimed: <span className="text-white">{record.claimed_amount.toFixed(1)}</span>
+                    Claimed:{' '}
+                    <span className="text-white">
+                      {formatUnits(BigInt(record.claimed_amount), 9)}
+                    </span>
                   </div>
                 </div>
               </div>

@@ -1,6 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { TransactionModalState } from '../types';
 import { Pro } from '@/services/model/types.ts';
+import { queryClient } from '@/wallet/query.ts';
+import { useUserStore } from '@/store/userStore.ts';
+import { useProStore } from '@/store/proStore.ts';
 
 export interface UseTransactionReturn {
   txModal: TransactionModalState;
@@ -30,6 +33,9 @@ export function useTransaction(): UseTransactionReturn {
     type: 'APPROVE',
     title: '',
   });
+
+  const { fetchUserData } = useUserStore();
+  const { fetchProVersion } = useProStore();
 
   const openTransaction = useCallback(
     (
@@ -90,7 +96,11 @@ export function useTransaction(): UseTransactionReturn {
       undefined,
       undefined,
       undefined,
-      () => {},
+      () => {
+        queryClient
+          .invalidateQueries({ queryKey: ['claimable-amount', 'DAILY'] })
+          .catch(console.error);
+      },
     );
   }, [openTransaction]);
 
@@ -104,7 +114,11 @@ export function useTransaction(): UseTransactionReturn {
       undefined,
       undefined,
       undefined,
-      () => {},
+      () => {
+        queryClient
+          .invalidateQueries({ queryKey: ['claimable-amount', 'INVITE'] })
+          .catch(console.error);
+      },
     );
   }, [openTransaction]);
 
@@ -118,7 +132,11 @@ export function useTransaction(): UseTransactionReturn {
       undefined,
       undefined,
       undefined,
-      () => {},
+      () => {
+        queryClient
+          .invalidateQueries({ queryKey: ['claimable-amount', 'PRO'] })
+          .catch(console.error);
+      },
     );
   }, [openTransaction]);
 
@@ -163,10 +181,14 @@ export function useTransaction(): UseTransactionReturn {
         getProVersionValue(_proVersion.pro_version),
         _proVersion.benefits.price.toString(),
         undefined,
-        () => {},
+        () => {
+          fetchUserData()
+            .then(() => fetchProVersion())
+            .catch(console.error);
+        },
       );
     },
-    [openTransaction],
+    [fetchProVersion, fetchUserData, openTransaction],
   );
 
   const closeTransaction = useCallback(() => {
