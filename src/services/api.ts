@@ -14,6 +14,7 @@ import {
   LeaderboardResponse,
   MintSigReq,
   MintSigRes,
+  PaymentListResponse,
   Pro,
   Product,
   RecordType,
@@ -212,6 +213,19 @@ export const apiPayment = {
     return await request.post('/api/1/user/payment/submit-chain-proversion', {
       data: { tx_hash: hash },
     });
+  },
+
+  /**
+   * 获取支付记录列表
+   */
+  getPaymentList: async (limit: number = 10, offset: number = 0): Promise<PaymentListResponse> => {
+    const response = await request.post<ApiResponse<PaymentListResponse>>(
+      '/api/1/user/payment/list',
+      {
+        data: { limit, offset },
+      },
+    );
+    return response.data;
   },
 };
 

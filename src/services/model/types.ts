@@ -225,3 +225,32 @@ export type ClaimableAmountRes = {
   claimable_amount: number;
   record_count: number;
 };
+
+// 支付记录状态
+export type PaymentStatus = 'COMPLETED' | 'PENDING' | 'FAILED';
+
+// 支付记录类型
+export interface Payment {
+  id: string;
+  user_id: string;
+  provider: string;
+  type: string;
+  product_id: string;
+  transaction_id: string;
+  status: PaymentStatus;
+  amount: number;
+  currency: string;
+  purchase_time: number;
+  expires_time: number;
+  auto_renewing: boolean;
+  created_at: number;
+  updated_at: number;
+}
+
+// 支付列表响应
+export interface PaymentListResponse {
+  limit: number;
+  offset: number;
+  payments: Payment[];
+  total: number;
+}
