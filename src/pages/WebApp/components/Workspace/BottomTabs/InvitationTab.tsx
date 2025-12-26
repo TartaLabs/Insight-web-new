@@ -210,7 +210,7 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({ onClaimInvitationR
                 </div>
                 <div className="text-right flex flex-col items-end">
                   <div className="text-xs font-bold text-green-400 mb-1">
-                    +{record.pending_amount.toFixed(1)}{' '}
+                    {formatUnits(BigInt(record.pending_amount), 9)}{' '}
                     <span className="text-gray-500 font-normal">Pending</span>
                   </div>
                   <div className="text-[10px] text-gray-500">
