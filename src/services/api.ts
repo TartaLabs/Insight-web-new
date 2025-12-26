@@ -18,6 +18,7 @@ import {
   Pro,
   Product,
   RecordType,
+  ReferUser,
   RewardRecord,
   RewardResponese,
   SubmitClaimTxHashReq,
@@ -43,7 +44,7 @@ export const apiUser = {
    */
   getUserData: async (): Promise<User> => {
     const response =
-      await request.get<ApiResponse<{ user: User; refer_user: string; refer_count: number }>>(
+      await request.get<ApiResponse<{ user: User; refer_user: ReferUser; refer_count: number }>>(
         '/api/1/user/data',
       );
 
@@ -209,9 +210,9 @@ export const apiPayment = {
   /**
    * 上报购买交易 Hash
    */
-  updatePayResult: async (hash: string) => {
+  updatePayResult: async (chain_id: string, hash: string) => {
     return await request.post('/api/1/user/payment/submit-chain-proversion', {
-      data: { tx_hash: hash },
+      data: { tx_hash: hash, chain_id: chain_id },
     });
   },
 

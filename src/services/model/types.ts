@@ -110,6 +110,7 @@ export interface RewardRecord {
   nonce: number; // 交易 nonce
   mint_expire_at: number; // 铸造过期时间戳
   created_at: number; // 创建时间戳
+  chain_id: string;
 }
 
 export interface RewardResponese {
@@ -202,6 +203,7 @@ export interface AppConfig {
 }
 
 export interface MintSigReq {
+  chain_id: string;
   nonce?: number;
 }
 
@@ -215,6 +217,7 @@ export interface MintSigRes {
 }
 
 export interface SubmitClaimTxHashReq {
+  chain_id: string;
   nonce: number;
   tx_hash: string;
 }

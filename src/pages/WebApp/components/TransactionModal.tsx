@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { CheckCircle2, Key, Shield, Wifi } from 'lucide-react';
-import { useAccount, useReadContract, useWriteContract } from 'wagmi';
+import { CheckCircle2, ChevronDown, Key, Shield, Wifi } from 'lucide-react';
+import { useReadContract, useWriteContract } from 'wagmi';
 import { tUSDTAbi } from '@/assets/tUSDT.ts';
 import { InsightProVersionAbi } from '@/assets/InsightProVersion.ts';
 import { InsightReward } from '@/assets/InsightReward.ts';
 import { useUserStore } from '@/store/userStore.ts';
 import { useQueryConfig } from '@/services/useQueryConfig.ts';
-import { asciiToHex, getAppChainId } from '@/utils';
+import { asciiToHex } from '@/utils';
 import { erc20Abi, formatEther, parseEther } from 'viem';
 import toast from 'react-hot-toast';
 import { getChainById } from '@/wallet/wagmi.ts';
 import { apiPayment, apiUser } from '@/services/api.ts';
 import { MintSigRes } from '@/services/model/types.ts';
+import { useLocalStore } from '@/store/useLocalStore.ts';
 
 interface TransactionModalProps {
   type: 'CLAIM_USDT' | 'CLAIM_PRO_DAILY' | 'CLAIM_TASK' | 'CLAIM_INVITE' | 'UPGRADE' | 'APPROVE';
@@ -38,9 +39,10 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   onSuccess,
 }) => {
   const getWalletAddress = useUserStore((state) => state.getWalletAddress);
+  const { selectedChainId, setSelectedChainId, mintedUSDTChainIds, setMintedUSDTChainIds } =
+    useLocalStore();
   const { writeContractAsync } = useWriteContract({});
   const { data: appConfig } = useQueryConfig();
-  const { chain } = useAccount();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'review' | 'approve' | 'sign' | 'broadcast' | 'success'>(
     'review',
@@ -59,38 +61,46 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     }
   }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  function updateChainId(chainId: number) {
+    setSelectedChainId(chainId);
+  }
+
   function getWallet() {
     return getWalletAddress() as `0x${string}`;
   }
 
   function getUSDTAddress() {
-    return appConfig.chains?.find((chain) => chain.chain_id === `${getAppChainId()}`)
+    return appConfig.chains?.find((chain) => chain.chain_id === selectedChainId.toString())
       ?.usdt as `0x${string}`;
   }
 
   function getInsightProAddress() {
-    return appConfig.chains?.find((chain) => chain.chain_id === `${getAppChainId()}`)
+    return appConfig.chains?.find((chain) => chain.chain_id === selectedChainId.toString())
       ?.pro_version_contract as `0x${string}`;
   }
 
   function getInsightRewardAddress() {
-    return appConfig.chains?.find((chain) => chain.chain_id === `${getAppChainId()}`)
+    return appConfig.chains?.find((chain) => chain.chain_id === selectedChainId.toString())
       ?.insight_reward_contract as `0x${string}`;
+  }
+
+  function getSelectedChain() {
+    return getChainById(selectedChainId);
   }
 
   async function mintUSDT() {
     const wallet = getWallet();
     const usdtAddress = getUSDTAddress();
     try {
-      const tx = await writeContractAsync({
+      await writeContractAsync({
         abi: tUSDTAbi,
         address: usdtAddress,
         functionName: 'mint',
         args: [wallet, parseEther(amount)],
-        chain: getChainById(getAppChainId()),
+        chain: getSelectedChain(),
         account: wallet,
       });
-      localStorage.setItem('mint_tusdt_hash', tx);
+      setMintedUSDTChainIds([...mintedUSDTChainIds, selectedChainId]);
       setStep('success');
     } catch (e) {
       console.log(e);
@@ -111,7 +121,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
           address: getUSDTAddress(),
           functionName: 'approve',
           args: [getInsightProAddress(), parseEther(allowanceAmount.toString())],
-          chain: getChainById(getAppChainId()),
+          chain: getSelectedChain(),
           account: wallet,
         });
         console.log(`approve tx hash: ${tx}`);
@@ -122,10 +132,10 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         address: getInsightProAddress(),
         functionName: 'purchaseProVersion',
         args: [proVersion ?? 0],
-        chain: getChainById(getAppChainId()),
+        chain: getSelectedChain(),
         account: wallet,
       });
-      await apiPayment.updatePayResult(txHash);
+      await apiPayment.updatePayResult(selectedChainId.toString(), txHash);
       setStep('success');
     } catch (e) {
       console.log(e);
@@ -136,7 +146,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
   async function claimProDaily() {
     try {
-      const mintSigRes = await apiUser.getProMintSig({});
+      const mintSigRes = await apiUser.getProMintSig({ chain_id: selectedChainId.toString() });
       const mintSig = mintSigRes.data;
       await execClaimMintTx(mintSig);
       setStep('success');
@@ -149,7 +159,10 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
   async function claimTask(nonce: number | undefined) {
     try {
-      const mintSigRes = await apiUser.getTaskMintSig({ nonce });
+      const mintSigRes = await apiUser.getTaskMintSig({
+        nonce,
+        chain_id: selectedChainId.toString(),
+      });
       const mintSig = mintSigRes.data;
       await execClaimMintTx(mintSig);
       setStep('success');
@@ -162,7 +175,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
   async function claimInvite() {
     try {
-      const mintSigRes = await apiUser.getInviteMintSig({});
+      const mintSigRes = await apiUser.getInviteMintSig({ chain_id: selectedChainId.toString() });
       const mintSig = mintSigRes.data;
       await execClaimMintTx(mintSig);
       setStep('success');
@@ -189,10 +202,14 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         ('0x' + tasksHex) as `0x${string}`,
         mintSig.signature as `0x${string}`,
       ],
-      chain: getChainById(getAppChainId()),
+      chain: getSelectedChain(),
       account: wallet,
     });
-    await apiUser.submitClaimTxHash({ tx_hash: txHash, nonce: mintSig.nonce });
+    await apiUser.submitClaimTxHash({
+      tx_hash: txHash,
+      nonce: mintSig.nonce,
+      chain_id: selectedChainId.toString(),
+    });
   }
 
   const handleConfirm = async () => {
@@ -271,9 +288,25 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                       </span>
                     </div>
                   )}
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-sm items-center">
                     <span className="text-gray-400">Network</span>
-                    <span className="text-tech-blue font-mono">{chain.name}</span>
+                    <div className="relative">
+                      <select
+                        value={selectedChainId || appConfig?.chains?.[0]?.chain_id || ''}
+                        onChange={(e) => updateChainId(Number(e.target.value))}
+                        className="appearance-none bg-[#1a1a24] border border-tech-blue/30 text-tech-blue font-mono text-sm px-3 py-1.5 pr-8 rounded hover:border-tech-blue/60 focus:outline-none focus:border-tech-blue transition-colors cursor-pointer"
+                      >
+                        {appConfig?.chains?.map((chain) => (
+                          <option key={chain.chain_id} value={chain.chain_id}>
+                            {chain.name}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown
+                        size={14}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-tech-blue pointer-events-none"
+                      />
+                    </div>
                   </div>
                 </div>
                 <div className="flex gap-3">

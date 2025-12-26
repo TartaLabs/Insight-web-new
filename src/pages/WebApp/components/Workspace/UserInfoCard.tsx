@@ -3,12 +3,13 @@ import { Copy, Edit2, Flame, Shield } from 'lucide-react';
 import { GameButton, HudPanel } from '../ui';
 import { useUserStore } from '@/store/userStore';
 import { useProStore } from '@/store/proStore';
-import { copyToClipboard, formatBalance, getAppChainId } from '@/utils';
+import { copyToClipboard, formatBalance } from '@/utils';
 import { NicknameEditModal } from '../modals/NicknameEditModal';
 import { useAccount, useBalance } from 'wagmi';
 import { useQueryConfig } from '@/services/useQueryConfig.ts';
 import { TransactionModal } from '@/pages/WebApp/components/TransactionModal.tsx';
 import { useTransaction } from '@/pages/WebApp/hooks';
+import { useLocalStore } from '@/store/useLocalStore.ts';
 
 /**
  * 用户信息卡片组件
@@ -16,20 +17,21 @@ import { useTransaction } from '@/pages/WebApp/hooks';
  */
 export const UserInfoCard: React.FC = () => {
   const user = useUserStore((state) => state.user);
+  const { selectedChainId, mintedUSDTChainIds } = useLocalStore();
   const getWalletAddress = useUserStore((state) => state.getWalletAddress);
   const pro = useProStore((state) => state.pro);
   const formatAddress = (addr: string) => (addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '');
 
   const [nicknameModalOpen, setNicknameModalOpen] = useState(false);
   const { chain } = useAccount();
-  const { data: nativeBalance } = useBalance({
+  const { data: nativeBalance, refetch: refetchNative } = useBalance({
     address: getWalletAddress() as `0x${string}`,
   });
   const { data: appConfig } = useQueryConfig();
 
   const [usdtAddress, setUsdtAddress] = useState<string>();
 
-  const { data: tokenBalance } = useBalance({
+  const { data: tokenBalance, refetch: refetchToken } = useBalance({
     address: getWalletAddress() as `0x${string}`,
     token: usdtAddress as `0x${string}`,
   });
@@ -38,14 +40,20 @@ export const UserInfoCard: React.FC = () => {
 
   useEffect(() => {
     if (appConfig) {
-      const usdt = appConfig.chains?.find((chain) => chain.chain_id === `${getAppChainId()}`)?.usdt;
+      const usdt = appConfig.chains?.find(
+        (chain) => chain.chain_id === selectedChainId.toString(),
+      )?.usdt;
       setUsdtAddress(usdt);
     }
-  }, [appConfig]);
+  }, [appConfig, selectedChainId]);
+
+  useEffect(() => {
+    refetchToken();
+    refetchNative();
+  }, [mintedUSDTChainIds, refetchNative, refetchToken]);
 
   function hasMintedUSDT() {
-    const local = localStorage.getItem('mint_tusdt_hash');
-    return local && local.length > 0;
+    return mintedUSDTChainIds.includes(selectedChainId);
   }
 
   return (

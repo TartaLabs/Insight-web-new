@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Check, Loader2, CreditCard, AlertCircle } from 'lucide-react';
+import { AlertCircle, Check, CreditCard, Loader2, X } from 'lucide-react';
 import { Button } from './Button';
 import { useProStore } from '@/store/proStore';
 import { Pro } from '@/services/model/types';
 import { useUserStore } from '@/store/userStore';
 import { useAccount, useBalance } from 'wagmi';
-import { formatBalance, getAppChainId } from '@/utils';
+import { formatBalance } from '@/utils';
 import { useQueryConfig } from '@/services/useQueryConfig.ts';
+import { useLocalStore } from '@/store/useLocalStore.ts';
 
 interface UpgradeModalProps {
   onClose: () => void;
@@ -29,6 +30,9 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onUpgrade }
   const [error, setError] = useState<string | null>(null);
   const proVersionList = useProStore((state) => state.proVersionList);
   const getWalletAddress = useUserStore((state) => state.getWalletAddress);
+
+  const { selectedChainId } = useLocalStore();
+
   const { data: nativeBalance } = useBalance({
     address: getWalletAddress() as `0x${string}`,
   });
@@ -43,10 +47,12 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onUpgrade }
 
   useEffect(() => {
     if (appConfig) {
-      const usdt = appConfig.chains?.find((chain) => chain.chain_id === `${getAppChainId()}`)?.usdt;
+      const usdt = appConfig.chains?.find(
+        (chain) => chain.chain_id === selectedChainId.toString(),
+      )?.usdt;
       setUsdtAddress(usdt);
     }
-  }, [appConfig]);
+  }, [appConfig, selectedChainId]);
 
   const proList = proVersionList.filter((p) => p.is_pro);
   const resetState = () => {
@@ -69,17 +75,6 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onUpgrade }
 
     setStep('approve');
     onUpgrade(selectedPlan);
-    // TODO 接入支付
-    // setTimeout(() => {
-    //   // mock allowance success
-    //   setStep('pay');
-    //   setTimeout(() => {
-    //     const plan = plans.find((p) => p.id === selectedPlan);
-    //     if (plan) onUpgrade(plan);
-    //     setStep('done');
-    //     setIsProcessing(false);
-    //   }, 1800);
-    // }, 1500);
   };
 
   const selectedPlanDetails = proList.find((p) => p.pro_version === selectedPlan?.pro_version);

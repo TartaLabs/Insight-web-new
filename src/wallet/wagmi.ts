@@ -1,10 +1,24 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-import { arbitrum, arbitrumSepolia, mainnet, mantle } from 'wagmi/chains';
+import {
+  arbitrum,
+  arbitrumSepolia,
+  bsc,
+  mainnet,
+  mantle,
+  mantleSepoliaTestnet,
+} from 'wagmi/chains';
+
+export const getDefaultChainId = () => {
+  return process.env.NODE_ENV !== 'production' ? 421614 : 5000;
+};
 
 export const config = getDefaultConfig({
   appName: 'Insight',
   projectId: '3fbb6bba6f1de962d911bb5b5c9dba88',
-  chains: [mantle, arbitrumSepolia, arbitrum],
+  chains:
+    process.env.NODE_ENV !== 'production'
+      ? [mantleSepoliaTestnet, bsc, arbitrumSepolia]
+      : [mantle, bsc],
 });
 
 export function getChainById(chainId: number) {
@@ -13,6 +27,12 @@ export function getChainById(chainId: number) {
       return arbitrumSepolia;
     case 42161:
       return arbitrum;
+    case 56:
+      return bsc;
+    case 5000:
+      return mantle;
+    case 5003:
+      return mantleSepoliaTestnet;
     default:
       return mainnet;
   }

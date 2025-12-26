@@ -80,7 +80,9 @@ export function useTransaction(): UseTransactionReturn {
         undefined,
         undefined,
         undefined,
-        () => {},
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['balance'] }).catch(console.error);
+        },
       );
     },
     [openTransaction],
@@ -100,9 +102,10 @@ export function useTransaction(): UseTransactionReturn {
         queryClient
           .invalidateQueries({ queryKey: ['claimable-amount', 'DAILY'] })
           .catch(console.error);
+        fetchUserData().catch(console.error);
       },
     );
-  }, [openTransaction]);
+  }, [fetchUserData, openTransaction]);
 
   // 领取邀请奖励
   const handleClaimInvitationRewards = useCallback(() => {
@@ -118,9 +121,10 @@ export function useTransaction(): UseTransactionReturn {
         queryClient
           .invalidateQueries({ queryKey: ['claimable-amount', 'INVITE'] })
           .catch(console.error);
+        fetchUserData().catch(console.error);
       },
     );
-  }, [openTransaction]);
+  }, [fetchUserData, openTransaction]);
 
   // 领取每日奖励
   const handleClaimDailyBonus = useCallback(() => {
@@ -136,9 +140,10 @@ export function useTransaction(): UseTransactionReturn {
         queryClient
           .invalidateQueries({ queryKey: ['claimable-amount', 'PRO'] })
           .catch(console.error);
+        fetchUserData().catch(console.error);
       },
     );
-  }, [openTransaction]);
+  }, [fetchUserData, openTransaction]);
 
   // 领取记录，领取失败，二次领取
   const handleRetryClaim = useCallback(

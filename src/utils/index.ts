@@ -37,10 +37,6 @@ export const formatTimestamp = (timestamp: number) => {
   });
 };
 
-export const getAppChainId = () => {
-  return process.env.NODE_ENV !== 'production' ? 421614 : 42161;
-};
-
 // 格式化余额显示
 export const formatBalance = (
   value: bigint | undefined,

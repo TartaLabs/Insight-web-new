@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Check, Wallet, X } from 'lucide-react';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { useAccount, useConnect, useDisconnect, useSignMessage, useSwitchChain } from 'wagmi';
+import { useAccount, useConnect, useDisconnect, useSignMessage } from 'wagmi';
 import { useNavigate, useSearchParams } from 'react-router';
 import { apiUser } from '@/services/api.ts';
 import { Logo } from '@/components/Logo.tsx';
@@ -10,7 +10,6 @@ import { PrivacyPolicyContent } from '../../Privacy';
 import { TermsOfUseContent } from '../../Terms';
 import { useUserStore } from '@/store/userStore';
 import toast from 'react-hot-toast';
-import { getAppChainId } from '@/utils';
 
 /**
  * 登录页面组件
@@ -20,11 +19,10 @@ export const Login: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { openConnectModal } = useConnectModal();
-  const { address, isConnected, chain } = useAccount();
+  const { address, isConnected } = useAccount();
   const { connect, connectors, isPending } = useConnect();
   const { signMessageAsync } = useSignMessage();
   const { disconnect } = useDisconnect();
-  const { switchChain } = useSwitchChain();
 
   // Store
   const { user, setUser } = useUserStore();
@@ -70,11 +68,6 @@ export const Login: React.FC = () => {
   const handleSignMessage = async (walletAddress: string) => {
     try {
       setIsSigning(true);
-      const defaultChainId = getAppChainId();
-      if (chain?.id !== defaultChainId) {
-        switchChain({ chainId: defaultChainId });
-      }
-
       const message = 'Sign in to Insight Web';
       const signature = await signMessageAsync({
         account: walletAddress as `0x${string}`,

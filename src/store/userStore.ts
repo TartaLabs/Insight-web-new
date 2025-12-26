@@ -66,7 +66,12 @@ export const useUserStore = create<UserState>((set, get) => ({
   setLoading: (loading: boolean) => set({ loading }),
 
   reset: () => {
-    set({ user: null, pendingRewards: 0, loading: false, initialized: false });
+    set({
+      user: null,
+      pendingRewards: 0,
+      loading: false,
+      initialized: false,
+    });
     localStorage.removeItem('auth_token');
   },
 }));
