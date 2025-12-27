@@ -15,11 +15,11 @@ interface UpgradeModalProps {
   onUpgrade: (proVersion: Pro) => void;
 }
 
-const getFeatures = (pro: Pro) => {
+const getFeatures = (pro: Pro, symbol: string) => {
   return [
-    `Daily Bonus: ${pro.benefits.daily_free_points} $mEMO`,
+    `Daily Bonus: ${pro.benefits.daily_free_points} ${symbol}`,
     `Task Limit: ${pro.benefits.daily_initial_annotation}x`,
-    `Reward: ${pro.benefits.points_per_annotation} $mEMO`,
+    `Reward: ${pro.benefits.points_per_annotation} ${symbol}`,
   ];
 };
 
@@ -30,6 +30,8 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onUpgrade }
   const [error, setError] = useState<string | null>(null);
   const proVersionList = useProStore((state) => state.proVersionList);
   const getWalletAddress = useUserStore((state) => state.getWalletAddress);
+  const tokenSymbol = useLocalStore((state) => state.tokenSymbol);
+  const symbol = `$${tokenSymbol}`;
 
   const { selectedChainId } = useLocalStore();
 
@@ -145,7 +147,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onUpgrade }
                   <p className="text-xs text-gray-500 mb-4">{pro.benefits.duration} days</p>
 
                   <ul className="space-y-2 mb-4">
-                    {getFeatures(pro).map((f, i) => (
+                    {getFeatures(pro, symbol).map((f, i) => (
                       <li key={i} className="flex items-center gap-2 text-xs text-gray-300">
                         <Check size={12} className="text-tech-blue" />
                         {f}

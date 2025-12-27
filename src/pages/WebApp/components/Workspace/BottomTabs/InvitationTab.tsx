@@ -9,6 +9,7 @@ import { InviteRecord } from '@/services/model/types';
 import toast from 'react-hot-toast';
 import { useQueryClaimableAmount } from '@/services/useQueryClaimableAmount.ts';
 import { formatUnits } from 'viem';
+import { useLocalStore } from '@/store/useLocalStore';
 
 interface InvitationTabProps {
   onClaimInvitationRewards: () => void;
@@ -20,6 +21,8 @@ interface InvitationTabProps {
 export const InvitationTab: React.FC<InvitationTabProps> = ({ onClaimInvitationRewards }) => {
   const [searchParams] = useSearchParams();
   const { user, setUser } = useUserStore();
+  const tokenSymbol = useLocalStore((state) => state.tokenSymbol);
+  const symbol = `$${tokenSymbol}`;
 
   // 从 URL 参数获取邀请码
   const inviteCodeFromUrl = searchParams.get('inviteCode') || '';
@@ -166,7 +169,7 @@ export const InvitationTab: React.FC<InvitationTabProps> = ({ onClaimInvitationR
                 Commission Pool
               </div>
               <div className="text-3xl font-bold text-white font-mono">
-                +{formatUnits(claimableAmount, 9)} $mEMO
+                +{formatUnits(claimableAmount, 9)} {symbol}
               </div>
             </div>
           </div>

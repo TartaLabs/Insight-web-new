@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Wallet, Coins } from 'lucide-react';
 import { HudPanel, GameButton } from '../ui';
 import { useUserStore } from '@/store/userStore';
 import { useQueryClaimableAmount } from '@/services/useQueryClaimableAmount.ts';
 import { formatUnits } from 'viem';
+import { useBalance } from 'wagmi';
+import { useChainToken } from '../../hooks';
+import { useLocalStore } from '@/store/useLocalStore';
 
 interface WalletCardProps {
   onClaimAll: () => void;
@@ -14,13 +17,28 @@ interface WalletCardProps {
  * 显示总收益、待领取奖励和领取按钮
  */
 export const WalletCard: React.FC<WalletCardProps> = ({ onClaimAll }) => {
-  const { user } = useUserStore((state) => ({
-    user: state.user,
+  const { getWalletAddress } = useUserStore((state) => ({
     pendingRewards: state.pendingRewards,
+    getWalletAddress: state.getWalletAddress,
   }));
 
   const { data } = useQueryClaimableAmount('DAILY');
+  const { eomoAddress } = useChainToken();
+  const setTokenSymbol = useLocalStore((state) => state.setTokenSymbol);
+
   const claimableAmount = BigInt(data?.claimable_amount ?? 0);
+
+  const { data: eomoBalance } = useBalance({
+    address: getWalletAddress() as `0x${string}`,
+    token: eomoAddress,
+  });
+
+  // 当获取到代币信息后，将 symbol 存储到 localStore
+  useEffect(() => {
+    if (eomoBalance?.symbol) {
+      setTokenSymbol(eomoBalance.symbol);
+    }
+  }, [eomoBalance?.symbol, setTokenSymbol]);
 
   return (
     <HudPanel className="col-span-1 p-6 flex flex-col justify-between">
@@ -30,8 +48,8 @@ export const WalletCard: React.FC<WalletCardProps> = ({ onClaimAll }) => {
             TOTAL EARNINGS
           </div>
           <div className="text-3xl font-bold text-white flex items-baseline gap-1">
-            {user.token_amount ? formatUnits(BigInt(user.token_amount), 9) : '0'}{' '}
-            <span className="text-sm font-normal text-gray-500">$mEMO</span>
+            {eomoBalance?.value ? formatUnits(eomoBalance.value, eomoBalance.decimals) : '0'}{' '}
+            <span className="text-sm font-normal text-gray-500">${eomoBalance?.symbol}</span>
           </div>
         </div>
         <div className="p-2 bg-tech-blue/10 rounded-full">

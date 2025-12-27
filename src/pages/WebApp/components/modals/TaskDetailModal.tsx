@@ -64,7 +64,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ data, onClose 
               <div className="text-[11px] text-gray-400 font-mono mt-1">ID: {task.id}</div>
             </div>
             <div className="text-[11px] text-gray-500 font-mono">
-              {new Date(mediaInfo.submit_time).toLocaleString()}
+              {new Date(mediaInfo.submit_time * 1000).toLocaleString()}
             </div>
           </div>
 
@@ -130,12 +130,38 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ data, onClose 
                     <div>
                       Validated:{' '}
                       <span className="text-white font-bold">
-                        {new Date(mediaInfo.validate_time).toLocaleString()}
+                        {new Date(mediaInfo.validate_time * 1000).toLocaleString()}
                       </span>
                     </div>
                   )}
                 </div>
               </div>
+
+              {/* Answers Section */}
+              {mediaInfo.answers && mediaInfo.answers.length > 0 && (
+                <div className="space-y-3 pt-3 border-t border-white/10">
+                  <div className="text-[10px] text-gray-500 uppercase">Your Answers</div>
+                  <div className="space-y-3">
+                    {mediaInfo.answers.map((answer) => {
+                      const question = task.questions.find((q) => q.id === answer.question_id);
+                      if (!question) return null;
+                      return (
+                        <div
+                          key={answer.question_id}
+                          className="bg-black/30 border border-white/5 rounded-md p-3"
+                        >
+                          <div className="text-[11px] text-gray-400 mb-1">{question.title}</div>
+                          <div className="text-sm text-white font-medium">
+                            {question.type === 'RATING'
+                              ? `${answer.answer} / 100`
+                              : String(answer.answer)}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Photo Preview */}

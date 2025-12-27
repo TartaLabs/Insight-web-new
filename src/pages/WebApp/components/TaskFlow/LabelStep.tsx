@@ -28,7 +28,9 @@ export const LabelStep: React.FC<LabelStepProps> = ({
   onSubmit,
 }) => {
   // 按 order 排序问题
-  const sortedQuestions = [...questions].sort((a, b) => a.order - b.order);
+  const sortedQuestions = [...questions]
+    .sort((a, b) => a.order - b.order)
+    .filter((q) => q.id !== 5);
 
   // 检查是否所有必填问题都已回答
   const canSubmit = sortedQuestions.every((q) => {

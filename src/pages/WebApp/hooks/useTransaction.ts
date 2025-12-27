@@ -4,6 +4,7 @@ import { Pro } from '@/services/model/types.ts';
 import { queryClient } from '@/wallet/query.ts';
 import { useUserStore } from '@/store/userStore.ts';
 import { useProStore } from '@/store/proStore.ts';
+import { useLocalStore } from '@/store/useLocalStore';
 
 export interface UseTransactionReturn {
   txModal: TransactionModalState;
@@ -36,6 +37,8 @@ export function useTransaction(): UseTransactionReturn {
 
   const { fetchUserData } = useUserStore();
   const { fetchProVersion } = useProStore();
+  const tokenSymbol = useLocalStore((state) => state.tokenSymbol);
+  const symbol = `$${tokenSymbol}`;
 
   const openTransaction = useCallback(
     (
@@ -94,7 +97,7 @@ export function useTransaction(): UseTransactionReturn {
       'CLAIM_TASK',
       'Claim All Tasks',
       undefined,
-      '$mEMO',
+      symbol,
       undefined,
       undefined,
       undefined,
@@ -105,7 +108,7 @@ export function useTransaction(): UseTransactionReturn {
         fetchUserData().catch(console.error);
       },
     );
-  }, [fetchUserData, openTransaction]);
+  }, [fetchUserData, openTransaction, symbol]);
 
   // 领取邀请奖励
   const handleClaimInvitationRewards = useCallback(() => {

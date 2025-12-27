@@ -193,12 +193,14 @@ export const Login: React.FC = () => {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
       >
-        <button
-          onClick={handleBack}
-          className="absolute top-4 left-4 text-xs font-mono text-gray-500 hover:text-white flex items-center gap-1"
-        >
-          <ArrowLeft size={14} /> Back to Home
-        </button>
+        {step === 1 && (
+          <button
+            onClick={handleBack}
+            className="absolute top-4 left-4 text-xs font-mono text-gray-500 hover:text-white flex items-center gap-1"
+          >
+            <ArrowLeft size={14} /> Back to Home
+          </button>
+        )}
         <div className="flex justify-center mb-8">
           <Logo className="w-12 h-12" />
         </div>

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 
 interface CaptureStepProps {
   onCapture: (photoDataUrl: string) => void;
@@ -12,43 +12,78 @@ export const CaptureStep: React.FC<CaptureStepProps> = ({ onCapture }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const isMountedRef = useRef(true);
 
   const [isReady, setIsReady] = useState(false);
   const [cameraError, setCameraError] = useState<string>('');
+  const [permissionDenied, setPermissionDenied] = useState(false);
+
+  const startCamera = useCallback(async () => {
+    setCameraError('');
+    setIsReady(false);
+    setPermissionDenied(false);
+
+    try {
+      const media = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user' },
+      });
+
+      // 检查组件是否仍然挂载
+      if (!isMountedRef.current) {
+        media.getTracks().forEach((t) => t.stop());
+        return;
+      }
+
+      streamRef.current = media;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = media;
+        try {
+          await videoRef.current.play();
+          if (isMountedRef.current) {
+            setIsReady(true);
+          }
+        } catch (playError) {
+          // 忽略 AbortError，这是由于组件卸载或重新渲染导致的
+          if (playError instanceof DOMException && playError.name === 'AbortError') {
+            return;
+          }
+          throw playError;
+        }
+      }
+    } catch (error) {
+      // 忽略 AbortError
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+      console.error(error);
+      if (error instanceof DOMException && error.name === 'NotAllowedError') {
+        setPermissionDenied(true);
+        setCameraError(
+          'Camera permission denied. Please enable it in browser settings, then tap to retry.',
+        );
+      } else {
+        setCameraError('Camera unavailable. Tap to retry.');
+      }
+    }
+  }, []);
+
+  const handleRetry = () => {
+    startCamera();
+  };
 
   useEffect(() => {
-    const startCamera = async () => {
-      if (isReady) return;
-
-      setCameraError('');
-      setIsReady(false);
-
-      try {
-        const media = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user' },
-        });
-        streamRef.current = media;
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = media;
-          await videoRef.current.play();
-          setIsReady(true);
-        }
-      } catch (error) {
-        console.error(error);
-        // setCameraError('Camera access denied or unavailable.');
-      }
-    };
-
+    isMountedRef.current = true;
     startCamera();
 
     return () => {
+      isMountedRef.current = false;
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
       }
     };
-  }, []);
+  }, [startCamera]);
 
   const handleCapture = () => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -83,10 +118,19 @@ export const CaptureStep: React.FC<CaptureStepProps> = ({ onCapture }) => {
           </div>
         )}
 
-        {/* 错误状态 */}
+        {/* 错误状态 - 点击重试 */}
         {cameraError && (
-          <div className="absolute inset-0 bg-black/70 flex items-center justify-center text-red-400 text-xs px-4 text-center">
-            {cameraError}
+          <div
+            onClick={handleRetry}
+            className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-xs px-4 text-center cursor-pointer hover:bg-black/60 transition-colors gap-3"
+          >
+            <span className="text-red-400">{cameraError}</span>
+            {permissionDenied && (
+              <span className="text-gray-400 text-[10px]">
+                Settings → Site Settings → Camera → Allow
+              </span>
+            )}
+            <span className="text-tech-blue text-[10px] underline">Tap to retry</span>
           </div>
         )}
       </div>

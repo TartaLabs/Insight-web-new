@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Edit2, Trash2, CheckCircle2, XCircle, Timer } from 'lucide-react';
 import { TaskDetailModal, type TaskDetailData } from '../../modals/TaskDetailModal';
 import { useTaskStore } from '@/store/taskStore';
@@ -24,9 +24,11 @@ export const ContributionsTab: React.FC = () => {
   const tasks = useTaskStore((state) => state.tasks);
   const resumeTask = useTaskStore((state) => state.resumeTask);
   const deleteTaskRecord = useTaskStore((state) => state.deleteTaskRecord);
+  const refreshList = useTaskStore((state) => state.refreshList);
 
   const [uploadPage, setUploadPage] = useState(1);
   const [selectedTask, setSelectedTask] = useState<TaskDetailData | null>(null);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const drafts = taskRecords.filter((t) => t.status === 'DRAFT');
 
@@ -42,6 +44,37 @@ export const ContributionsTab: React.FC = () => {
       )
       .sort((a, b) => a.mediaInfo.submit_time - b.mediaInfo.submit_time);
   }, [tasks]);
+
+  // 检查是否有验证中的任务
+  const hasPendingTasks = useMemo(() => {
+    return submittedTasks.some(
+      (item) => !item.mediaInfo.status || item.mediaInfo.status === 'PENDING',
+    );
+  }, [submittedTasks]);
+
+  // 轮询逻辑：如果有 PENDING 状态的任务，每秒刷新一次
+  useEffect(() => {
+    if (hasPendingTasks) {
+      // 开启轮询
+      pollingRef.current = setInterval(() => {
+        refreshList();
+      }, 1000);
+    } else {
+      // 没有 PENDING 任务，清除轮询
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    }
+
+    // 清理函数
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, [hasPendingTasks, refreshList]);
   const uploadTotalPages = Math.max(1, Math.ceil(submittedTasks.length / UPLOAD_PAGE_SIZE));
 
   return (
@@ -126,7 +159,7 @@ export const ContributionsTab: React.FC = () => {
                   className="grid grid-cols-12 items-center text-xs px-4 py-3 bg-white/5 border border-white/5 hover:bg-white/10 transition-colors"
                 >
                   <div className="col-span-2 font-mono text-gray-400">
-                    {new Date(item.mediaInfo.submit_time).toLocaleTimeString()}
+                    {new Date(item.mediaInfo.submit_time * 1000).toLocaleTimeString()}
                   </div>
                   <div className="col-span-3 font-bold text-white">{item.task.emotion_type}</div>
                   <div className="col-span-3 font-mono text-gray-500 truncate">{item.task.id}</div>

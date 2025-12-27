@@ -20,14 +20,14 @@ const emotionEmojis: Record<EmotionType, string> = {
 export const TaskListCard: React.FC = () => {
   const tasks = useTaskStore((state) => state.tasks);
   const startTask = useTaskStore((state) => state.startTask);
-  const claimedAt = useTaskStore((state) => state.claimedAt);
+  // const claimedAt = useTaskStore((state) => state.claimedAt);
 
   // 格式化 claimedAt 为 UTC 时间字符串
-  const formatClaimedTime = (timestamp: number): string => {
-    if (!timestamp) return '--:-- UTC';
-    const date = new Date(timestamp);
-    return `${date.getUTCHours().toString().padStart(2, '0')}:${date.getUTCMinutes().toString().padStart(2, '0')} UTC`;
-  };
+  // const formatClaimedTime = (timestamp: number): string => {
+  //   if (!timestamp) return '--:-- UTC';
+  //   const date = new Date(timestamp);
+  //   return `${date.getUTCHours().toString().padStart(2, '0')}:${date.getUTCMinutes().toString().padStart(2, '0')} UTC`;
+  // };
 
   return (
     <div className="col-span-1 lg:col-span-3">
@@ -35,9 +35,7 @@ export const TaskListCard: React.FC = () => {
         <h3 className="text-sm font-bold text-tech-blue uppercase tracking-widest flex items-center gap-2">
           <Zap size={14} /> Active Missions
         </h3>
-        <div className="text-[10px] text-gray-500 font-mono">
-          REFRESH: {formatClaimedTime(claimedAt)}
-        </div>
+        <div className="text-[10px] text-gray-500 font-mono">REFRESH: 00:00 UTC</div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">

@@ -94,7 +94,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     try {
       const response = await apiTask.getDailyTasks();
       set({
-        tasks: response.data.tasks,
+        tasks: response.data.tasks.filter((task) => task.task_type === 'DAILY'),
         claimedAt: response.data.claimed_at,
         loading: false,
         initialized: true,
@@ -109,7 +109,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     try {
       const response = await apiTask.getDailyTasks();
       set({
-        tasks: response.data.tasks,
+        tasks: response.data.tasks.filter((task) => task.task_type === 'DAILY'),
       });
     } catch (error) {
       console.error('Failed to refresh task list:', error);

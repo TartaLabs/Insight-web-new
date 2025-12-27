@@ -4,6 +4,7 @@ import { useUserStore } from '@/store/userStore';
 import { apiLeaderboard } from '@/services/api';
 import { LeaderboardUser } from '@/services/model/types';
 import { formatTokenAmount } from '@/utils';
+import { useLocalStore } from '@/store/useLocalStore';
 
 const PAGE_SIZE = 10;
 
@@ -18,6 +19,8 @@ export const LeaderboardTab: React.FC = () => {
   const [myRank, setMyRank] = useState<number>(0);
   const [myAmount, setMyAmount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
+  const tokenSymbol = useLocalStore((state) => state.tokenSymbol);
+  const symbol = `$${tokenSymbol}`;
 
   // 组件挂载时获取数据
   useEffect(() => {
@@ -106,7 +109,7 @@ export const LeaderboardTab: React.FC = () => {
                 <div className="text-[10px] font-mono text-gray-500">{entry.user_id}</div>
                 <div className="text-sm font-bold text-tech-blue mt-1">
                   {formatTokenAmount(entry.token_amount).toLocaleString()}{' '}
-                  <span className="text-[10px] text-gray-400">$mEMO</span>
+                  <span className="text-[10px] text-gray-400">{symbol}</span>
                 </div>
               </div>
             </div>
@@ -126,7 +129,7 @@ export const LeaderboardTab: React.FC = () => {
             <div className="text-[10px] text-tech-blue">{getWalletAddress()}</div>
             <div className="text-white font-bold text-sm">
               {formatTokenAmount(myAmount).toLocaleString()}{' '}
-              <span className="text-[10px] text-gray-500">$mEMO</span>
+              <span className="text-[10px] text-gray-500">{symbol}</span>
             </div>
           </div>
         </div>
@@ -155,7 +158,7 @@ export const LeaderboardTab: React.FC = () => {
               </div>
               <div className="font-mono text-sm text-white font-bold">
                 {formatTokenAmount(entry.token_amount).toLocaleString()}{' '}
-                <span className="text-[10px] text-gray-500">$mEMO</span>
+                <span className="text-[10px] text-gray-500">{symbol}</span>
               </div>
             </div>
           );

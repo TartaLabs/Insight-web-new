@@ -5,6 +5,7 @@ import { useUserStore } from '@/store/userStore';
 import { useProStore } from '@/store/proStore';
 import { copyToClipboard, formatBalance } from '@/utils';
 import { NicknameEditModal } from '../modals/NicknameEditModal';
+import { ForceNicknameModal } from '../modals/ForceNicknameModal';
 import { useAccount, useBalance } from 'wagmi';
 import { useQueryConfig } from '@/services/useQueryConfig.ts';
 import { TransactionModal } from '@/pages/WebApp/components/TransactionModal.tsx';
@@ -23,6 +24,8 @@ export const UserInfoCard: React.FC = () => {
   const formatAddress = (addr: string) => (addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '');
 
   const [nicknameModalOpen, setNicknameModalOpen] = useState(false);
+  const [forceNicknameModalOpen, setForceNicknameModalOpen] = useState(false);
+  const [hasCheckedDefaultNickname, setHasCheckedDefaultNickname] = useState(false);
   const { chain } = useAccount();
   const { data: nativeBalance, refetch: refetchNative } = useBalance({
     address: getWalletAddress() as `0x${string}`,
@@ -46,6 +49,20 @@ export const UserInfoCard: React.FC = () => {
       setUsdtAddress(usdt);
     }
   }, [appConfig, selectedChainId]);
+
+  // 检查昵称是否为默认昵称（地址缩写），如果是则强制弹出修改弹窗
+  useEffect(() => {
+    if (hasCheckedDefaultNickname) return;
+
+    const walletAddress = getWalletAddress();
+    if (!walletAddress || !user?.nickname) return;
+
+    const defaultNickname = formatAddress(walletAddress);
+    if (user.nickname === defaultNickname) {
+      setForceNicknameModalOpen(true);
+      setHasCheckedDefaultNickname(true);
+    }
+  }, [user?.nickname, getWalletAddress, hasCheckedDefaultNickname]);
 
   useEffect(() => {
     refetchToken();
@@ -142,6 +159,12 @@ export const UserInfoCard: React.FC = () => {
         <NicknameEditModal
           currentNickname={user.nickname}
           onClose={() => setNicknameModalOpen(false)}
+        />
+      )}
+      {forceNicknameModalOpen && (
+        <ForceNicknameModal
+          walletAddress={getWalletAddress()}
+          onSuccess={() => setForceNicknameModalOpen(false)}
         />
       )}
       {/* 交易模拟弹窗 */}

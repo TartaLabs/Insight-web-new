@@ -13,6 +13,7 @@ import {
   type ActiveTaskFlow,
 } from '../../../../store/taskStore';
 import { useProStore } from '@/store/proStore';
+import { useLocalStore } from '@/store/useLocalStore';
 
 type Step = 'example' | 'capture' | 'review' | 'label';
 
@@ -26,6 +27,8 @@ const TaskFlowContent: React.FC<{ flow: ActiveTaskFlow; onSubmitSuccess?: () => 
 }) => {
   const { saveDraft, submitTask, cancelTask, submitLoading } = useTaskStore();
   const pro = useProStore((state) => state.pro);
+  const tokenSymbol = useLocalStore((state) => state.tokenSymbol);
+  const symbol = `$${tokenSymbol}`;
 
   // 从 activeTaskFlow 获取数据
   const emotion = getEmotionFromTaskFlow(flow);
@@ -53,7 +56,7 @@ const TaskFlowContent: React.FC<{ flow: ActiveTaskFlow; onSubmitSuccess?: () => 
     // 为 RATING 类型问题设置默认值 50
     questions.forEach((q) => {
       if (q.type === 'RATING') {
-        initialAnswers[q.id] = 50;
+        initialAnswers[q.id] = 100;
       }
       // 自动锁定情绪类型问题
       if (q.type === 'SINGLE_CHOICE' && q.title.toLowerCase().includes('type of emotion')) {
@@ -130,7 +133,9 @@ const TaskFlowContent: React.FC<{ flow: ActiveTaskFlow; onSubmitSuccess?: () => 
             </button>
             <div>
               <h2 className="font-bold text-white tracking-widest uppercase">Emotion Labeling</h2>
-              <div className="text-[10px] text-tech-blue">Reward: {rewardAmount} $mEMO</div>
+              <div className="text-[10px] text-tech-blue">
+                Reward: {rewardAmount} {symbol}
+              </div>
             </div>
           </div>
           <div className="text-xs text-gray-500 font-mono">STEP: {currentStep.toUpperCase()}</div>

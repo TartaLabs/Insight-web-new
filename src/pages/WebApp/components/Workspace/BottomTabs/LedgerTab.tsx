@@ -3,6 +3,7 @@ import { Wallet, Zap, RefreshCw, ExternalLink, Loader2 } from 'lucide-react';
 import { HistoryFilter } from '../../../types';
 import { apiRecords } from '@/services/api';
 import { RewardRecord, RecordType } from '@/services/model/types';
+import { useLocalStore } from '@/store/useLocalStore';
 
 interface LedgerTabProps {
   onRetryClaim?: (record: RewardRecord) => void;
@@ -26,6 +27,8 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ onRetryClaim }) => {
   const [records, setRecords] = useState<RewardRecord[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const tokenSymbol = useLocalStore((state) => state.tokenSymbol);
+  const symbol = `$${tokenSymbol}`;
 
   const ledgerTotalPages = Math.max(1, Math.ceil(total / LEDGER_PAGE_SIZE));
 
@@ -119,7 +122,7 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ onRetryClaim }) => {
                 <div className="text-right">
                   <div className="text-sm font-bold text-white mb-1">
                     +{(record.amount / 1e9).toLocaleString()}{' '}
-                    <span className="text-tech-blue">$mEMO</span>
+                    <span className="text-tech-blue">{symbol}</span>
                   </div>
                   <div className="flex items-center justify-end gap-2">
                     {historyFilter === 'CLAIMED' && record.status === 'FAILED' && onRetryClaim && (

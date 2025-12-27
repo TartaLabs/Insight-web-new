@@ -157,6 +157,7 @@ export interface MediaInfo {
   validate_time: number;
   status?: 'PENDING' | 'INVALID' | 'VALID';
   claim_status?: 'INIT' | 'CLAIMED';
+  answers?: QuestionAnswer[];
 }
 
 export type RecordType = 'DAILY' | 'INVITE' | 'PRO';
