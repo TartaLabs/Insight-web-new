@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Wallet, Zap, RefreshCw, ExternalLink, Loader2 } from 'lucide-react';
-import { HistoryFilter } from '../../../types';
 import { apiRecords } from '@/services/api';
-import { RewardRecord, RecordType } from '@/services/model/types';
+import { RewardRecord, RewardRecordStatus } from '@/services/model/types';
 import { useLocalStore } from '@/store/useLocalStore';
+
+// 过滤类型：UNCLAIMED 未领取(INIT)，CLAIMED 已领取(SUCCESS)
+type LedgerFilter = 'ISSUED' | 'CLAIMED';
 
 interface LedgerTabProps {
   onRetryClaim?: (record: RewardRecord) => void;
@@ -11,57 +13,64 @@ interface LedgerTabProps {
 
 const LEDGER_PAGE_SIZE = 10;
 
-// 根据 HistoryFilter 映射到 RecordType
-const filterToRecordType: Record<HistoryFilter, RecordType> = {
-  ISSUED: 'INVITE',
-  CLAIMED: 'DAILY',
+// 过滤器映射到状态
+const filterToStatus: Record<LedgerFilter, RewardRecordStatus> = {
+  ISSUED: 'INIT',
+  CLAIMED: 'SUCCESS',
 };
 
 /**
  * 账本记录 Tab 组件
- * 显示发放和领取的交易历史
+ * 显示已领取和未领取的奖励记录
  */
 export const LedgerTab: React.FC<LedgerTabProps> = ({ onRetryClaim }) => {
-  const [historyFilter, setHistoryFilter] = useState<HistoryFilter>('ISSUED');
+  const [ledgerFilter, setLedgerFilter] = useState<LedgerFilter>('ISSUED');
   const [ledgerPage, setLedgerPage] = useState(1);
-  const [records, setRecords] = useState<RewardRecord[]>([]);
-  const [total, setTotal] = useState(0);
+  const [allRecords, setAllRecords] = useState<RewardRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const tokenSymbol = useLocalStore((state) => state.tokenSymbol);
   const symbol = `$${tokenSymbol}`;
 
-  const ledgerTotalPages = Math.max(1, Math.ceil(total / LEDGER_PAGE_SIZE));
+  // 根据当前过滤器筛选记录
+  const filteredRecords = allRecords.filter(
+    (record) => record.status === filterToStatus[ledgerFilter],
+  );
+  const filteredTotal = filteredRecords.length;
+  const ledgerTotalPages = Math.max(1, Math.ceil(filteredTotal / LEDGER_PAGE_SIZE));
+
+  // 当前页的记录
+  const paginatedRecords = filteredRecords.slice(
+    (ledgerPage - 1) * LEDGER_PAGE_SIZE,
+    ledgerPage * LEDGER_PAGE_SIZE,
+  );
 
   // 获取记录数据
   const fetchRecords = useCallback(async () => {
     if (loading) return;
     setLoading(true);
     try {
-      const offset = (ledgerPage - 1) * LEDGER_PAGE_SIZE;
-      const recordType = filterToRecordType[historyFilter];
+      // 获取所有记录，前端进行状态筛选
+      const response = await apiRecords.getRewardRecords(100, 0);
 
-      const response = await apiRecords.getClaimedRecords(recordType, LEDGER_PAGE_SIZE, offset);
-
-      setRecords(response.records ?? []);
-      setTotal(response.total);
+      setAllRecords(response.records ?? []);
     } catch (error) {
       console.error('Failed to fetch records:', error);
-      setRecords([]);
-      setTotal(0);
+      setAllRecords([]);
     } finally {
       setLoading(false);
     }
-  }, [historyFilter, ledgerPage, loading]);
+  }, [loading]);
 
-  // 当过滤器或页码变化时获取数据
+  // 初始加载数据
   useEffect(() => {
     fetchRecords();
-  }, [historyFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 切换过滤器时重置页码
   useEffect(() => {
     setLedgerPage(1);
-  }, [historyFilter]);
+  }, [ledgerFilter]);
 
   // Page bounds correction
   useEffect(() => {
@@ -76,9 +85,9 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ onRetryClaim }) => {
         {(['ISSUED', 'CLAIMED'] as const).map((filter) => (
           <button
             key={filter}
-            onClick={() => setHistoryFilter(filter)}
+            onClick={() => setLedgerFilter(filter)}
             className={`px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider border transition-colors ${
-              historyFilter === filter
+              ledgerFilter === filter
                 ? 'bg-tech-blue text-black border-tech-blue'
                 : 'text-gray-500 border-white/10 hover:border-gray-400'
             }`}
@@ -94,22 +103,22 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ onRetryClaim }) => {
             <Loader2 size={16} className="animate-spin" />
             Loading...
           </div>
-        ) : records.length === 0 ? (
+        ) : paginatedRecords.length === 0 ? (
           <div className="text-center py-12 text-gray-600 text-xs font-mono border border-dashed border-white/10 rounded">
             No records yet.
           </div>
         ) : (
           <>
-            {records.map((record) => (
+            {paginatedRecords.map((record) => (
               <div
-                key={record.id}
+                key={record.nonce}
                 className="flex items-center justify-between p-4 border-l-2 border-white/10 bg-white/5 hover:border-tech-blue transition-colors"
               >
                 <div className="flex items-center gap-4">
                   <div
-                    className={`p-2 rounded ${record.status === 'SUCCESS' ? 'bg-green-500/10 text-green-500' : record.status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-red-500/10 text-red-500'}`}
+                    className={`p-2 rounded ${record.status === 'SUCCESS' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}`}
                   >
-                    {historyFilter === 'CLAIMED' ? <Wallet size={16} /> : <Zap size={16} />}
+                    {ledgerFilter === 'CLAIMED' ? <Wallet size={16} /> : <Zap size={16} />}
                   </div>
                   <div>
                     <div className="text-xs font-bold text-white uppercase">{record.task_type}</div>
@@ -121,21 +130,23 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ onRetryClaim }) => {
 
                 <div className="text-right">
                   <div className="text-sm font-bold text-white mb-1">
-                    +{(record.amount / 1e9).toLocaleString()}{' '}
-                    <span className="text-tech-blue">{symbol}</span>
+                    +{(record.total_amount / 1e9).toLocaleString()}{' '}
+                    <span className="text-tech-blue">
+                      {ledgerFilter === 'ISSUED' ? 'Reward' : symbol}
+                    </span>
                   </div>
                   <div className="flex items-center justify-end gap-2">
-                    {historyFilter === 'CLAIMED' && record.status === 'FAILED' && onRetryClaim && (
+                    {ledgerFilter === 'ISSUED' && onRetryClaim && (
                       <button
                         onClick={() => onRetryClaim(record)}
-                        className="text-[9px] bg-red-500/20 text-red-500 px-2 py-0.5 rounded flex items-center gap-1 hover:bg-red-500 hover:text-white"
+                        className="text-[9px] bg-tech-blue/20 text-tech-blue px-2 py-0.5 rounded flex items-center gap-1 hover:bg-tech-blue hover:text-black"
                       >
-                        <RefreshCw size={8} /> RETRY
+                        <RefreshCw size={8} /> CLAIM
                       </button>
                     )}
-                    {historyFilter === 'CLAIMED' && record.status === 'SUCCESS' && (
+                    {ledgerFilter === 'CLAIMED' && record.tx_hash && (
                       <a
-                        href="#"
+                        href={'#'}
                         className="text-[9px] text-tech-blue flex items-center gap-1 hover:underline"
                       >
                         EXPLORER <ExternalLink size={8} />

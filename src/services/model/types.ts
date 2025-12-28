@@ -95,22 +95,19 @@ export interface Pro {
   pro_version: string;
 }
 
-// 奖励记录状态
-export type RewardRecordStatus = 'SUCCESS' | 'PENDING' | 'FAILED';
+// 奖励记录状态：SUCCESS 为已领取，INIT 为未领取
+export type RewardRecordStatus = 'SUCCESS' | 'INIT';
 
-// 奖励记录相关类型定义（根据 mock.json 结构）
+// 奖励记录相关类型定义
 export interface RewardRecord {
-  id: string; // 记录唯一标识，格式：uuid_taskId_taskDate
-  uuid: string; // 用户唯一标识
-  task_id: string; // 任务 ID
-  task_type: RecordType; // 任务类型：DAILY | INVITE | PRO
-  task_date: number; // 任务日期时间戳
-  amount: number; // 奖励金额
-  status: RewardRecordStatus; // 记录状态
   nonce: number; // 交易 nonce
+  total_amount: number; // 奖励金额
+  status: RewardRecordStatus; // 记录状态：SUCCESS 已领取，INIT 未领取
+  record_count: number; // 记录数量
   mint_expire_at: number; // 铸造过期时间戳
+  task_type: string; // 任务类型
   created_at: number; // 创建时间戳
-  chain_id: string;
+  tx_hash: string; // 交易哈希
 }
 
 export interface RewardResponese {
