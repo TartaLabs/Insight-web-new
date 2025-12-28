@@ -108,6 +108,7 @@ export interface RewardRecord {
   task_type: string; // 任务类型
   created_at: number; // 创建时间戳
   tx_hash: string; // 交易哈希
+  chain_id: string;
 }
 
 export interface RewardResponese {

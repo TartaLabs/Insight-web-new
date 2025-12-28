@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, ChevronDown, Key, Shield, Wifi } from 'lucide-react';
-import { useReadContract, useWriteContract } from 'wagmi';
+import { useBalance, useReadContract, useWriteContract } from 'wagmi';
 import { tUSDTAbi } from '@/assets/tUSDT.ts';
 import { InsightProVersionAbi } from '@/assets/InsightProVersion.ts';
 import { InsightReward } from '@/assets/InsightReward.ts';
@@ -14,6 +14,7 @@ import { getChainById } from '@/wallet/wagmi.ts';
 import { apiPayment, apiUser } from '@/services/api.ts';
 import { MintSigRes } from '@/services/model/types.ts';
 import { useLocalStore } from '@/store/useLocalStore.ts';
+import { useChainToken } from '@/pages/WebApp/hooks';
 
 interface TransactionModalProps {
   type: 'CLAIM_USDT' | 'CLAIM_PRO_DAILY' | 'CLAIM_TASK' | 'CLAIM_INVITE' | 'UPGRADE' | 'APPROVE';
@@ -53,6 +54,12 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     address: getUSDTAddress(),
     functionName: 'allowance',
     args: [getWallet(), getInsightProAddress()],
+  });
+
+  const { eomoAddress } = useChainToken();
+  const { refetch: refetchEmoBalance } = useBalance({
+    address: getWalletAddress() as `0x${string}`,
+    token: eomoAddress,
   });
 
   useEffect(() => {
@@ -150,6 +157,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       const mintSig = mintSigRes.data;
       await execClaimMintTx(mintSig);
       setStep('success');
+      refetchEmoBalance().catch(console.error);
     } catch (e) {
       console.log(e);
       toast.error(`${e}`);
@@ -166,6 +174,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       const mintSig = mintSigRes.data;
       await execClaimMintTx(mintSig);
       setStep('success');
+      refetchEmoBalance().catch(console.error);
     } catch (e) {
       console.log(e);
       toast.error(`${e}`);
@@ -179,6 +188,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       const mintSig = mintSigRes.data;
       await execClaimMintTx(mintSig);
       setStep('success');
+      refetchEmoBalance().catch(console.error);
     } catch (e) {
       console.log(e);
       toast.error(`${e}`);

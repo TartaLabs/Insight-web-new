@@ -3,6 +3,7 @@ import { Wallet, Zap, RefreshCw, ExternalLink, Loader2 } from 'lucide-react';
 import { apiRecords } from '@/services/api';
 import { RewardRecord, RewardRecordStatus } from '@/services/model/types';
 import { useLocalStore } from '@/store/useLocalStore';
+import { getChainById } from '@/wallet/wagmi.ts';
 
 // 过滤类型：UNCLAIMED 未领取(INIT)，CLAIMED 已领取(SUCCESS)
 type LedgerFilter = 'ISSUED' | 'CLAIMED';
@@ -30,6 +31,7 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ onRetryClaim }) => {
   const [loading, setLoading] = useState(false);
   const tokenSymbol = useLocalStore((state) => state.tokenSymbol);
   const symbol = `$${tokenSymbol}`;
+  const { selectedChainId } = useLocalStore();
 
   // 根据当前过滤器筛选记录
   const filteredRecords = allRecords.filter(
@@ -51,21 +53,22 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ onRetryClaim }) => {
     try {
       // 获取所有记录，前端进行状态筛选
       const response = await apiRecords.getRewardRecords(100, 0);
-
-      setAllRecords(response.records ?? []);
+      setAllRecords(
+        response.records.filter((item) => item.chain_id == selectedChainId.toString()) ?? [],
+      );
     } catch (error) {
       console.error('Failed to fetch records:', error);
       setAllRecords([]);
     } finally {
       setLoading(false);
     }
-  }, [loading]);
+  }, [loading, selectedChainId]);
 
   // 初始加载数据
   useEffect(() => {
-    fetchRecords();
+    fetchRecords().catch(console.error);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedChainId]);
 
   // 切换过滤器时重置页码
   useEffect(() => {
@@ -78,6 +81,10 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ onRetryClaim }) => {
       setLedgerPage(ledgerTotalPages);
     }
   }, [ledgerPage, ledgerTotalPages]);
+
+  function getChainTxExplorerUrl(txHash: string) {
+    return getChainById(selectedChainId)?.blockExplorers.default.url + '/tx/' + txHash;
+  }
 
   return (
     <div>
@@ -146,7 +153,8 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ onRetryClaim }) => {
                     )}
                     {ledgerFilter === 'CLAIMED' && record.tx_hash && (
                       <a
-                        href={'#'}
+                        href={getChainTxExplorerUrl(record.tx_hash)}
+                        target="_blank"
                         className="text-[9px] text-tech-blue flex items-center gap-1 hover:underline"
                       >
                         EXPLORER <ExternalLink size={8} />

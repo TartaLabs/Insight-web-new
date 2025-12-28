@@ -162,7 +162,9 @@ export const ContributionsTab: React.FC = () => {
                     {new Date(item.mediaInfo.submit_time * 1000).toLocaleTimeString()}
                   </div>
                   <div className="col-span-3 font-bold text-white">{item.task.emotion_type}</div>
-                  <div className="col-span-3 font-mono text-gray-500 truncate">{item.task.id}</div>
+                  <div className="col-span-3 font-mono text-gray-500 truncate">
+                    {item.task.id}_{index}
+                  </div>
                   <div className="col-span-2 flex justify-center">
                     <button
                       onClick={() =>

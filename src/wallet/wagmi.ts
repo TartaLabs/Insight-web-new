@@ -9,7 +9,7 @@ import {
 } from 'wagmi/chains';
 
 export const getDefaultChainId = () => {
-  return process.env.NODE_ENV !== 'production' ? 421614 : 5000;
+  return process.env.NODE_ENV !== 'production' ? 5000 : 5000;
 };
 
 export const config = getDefaultConfig({
@@ -17,7 +17,7 @@ export const config = getDefaultConfig({
   projectId: '3fbb6bba6f1de962d911bb5b5c9dba88',
   chains:
     process.env.NODE_ENV !== 'production'
-      ? [mantleSepoliaTestnet, bsc, arbitrumSepolia]
+      ? [mantle, mantleSepoliaTestnet, bsc, arbitrumSepolia]
       : [mantle, bsc],
 });
 
