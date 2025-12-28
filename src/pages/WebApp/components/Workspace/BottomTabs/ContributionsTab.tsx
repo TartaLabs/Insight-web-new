@@ -58,7 +58,7 @@ export const ContributionsTab: React.FC = () => {
       // 开启轮询
       pollingRef.current = setInterval(() => {
         refreshList();
-      }, 1000);
+      }, 3000);
     } else {
       // 没有 PENDING 任务，清除轮询
       if (pollingRef.current) {

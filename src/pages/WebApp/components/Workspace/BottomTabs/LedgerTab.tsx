@@ -56,7 +56,7 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ onRetryClaim }) => {
   // 当过滤器或页码变化时获取数据
   useEffect(() => {
     fetchRecords();
-  }, []);
+  }, [historyFilter]);
 
   // 切换过滤器时重置页码
   useEffect(() => {

@@ -145,6 +145,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ data, onClose 
                     {mediaInfo.answers.map((answer) => {
                       const question = task.questions.find((q) => q.id === answer.question_id);
                       if (!question) return null;
+                      if (question.id === 5) return null;
                       return (
                         <div
                           key={answer.question_id}
