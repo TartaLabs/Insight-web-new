@@ -184,13 +184,14 @@ export const apiLeaderboard = {
    * 获取用户代币余额排行榜
    */
   getTokenLeaderboard: async (
+    chain_id: string,
     limit: number = 50,
     offset: number = 0,
   ): Promise<LeaderboardResponse> => {
     const response = await request.get<ApiResponse<LeaderboardResponse>>(
-      '/api/1/user/task/token-leaderboard',
+      '/api/1/user/task/chain-leaderboard',
       {
-        params: { limit, offset },
+        params: { chain_id, limit, offset },
       },
     );
     return response.data;

@@ -120,13 +120,15 @@ export interface RewardResponese {
 export interface LeaderboardUser {
   user_id: string; // 用户唯一标识
   nickname: string; // 用户昵称
+  wallet_address: string;
   avatar: string; // 头像 URL
-  token_amount: number; // 代币数量
+  amount: number; // 代币数量
   rank: number; // 排名
 }
 
 // 排行榜响应类型
 export interface LeaderboardResponse {
+  chain_id: string;
   users: LeaderboardUser[]; // 排行榜用户列表
   my_rank: number; // 当前用户排名
   my_amount: number; // 当前用户代币数量

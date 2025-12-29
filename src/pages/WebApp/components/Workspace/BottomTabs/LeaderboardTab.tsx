@@ -14,6 +14,7 @@ const PAGE_SIZE = 10;
 export const LeaderboardTab: React.FC = () => {
   const user = useUserStore((state) => state.user);
   const getWalletAddress = useUserStore((state) => state.getWalletAddress);
+  const { selectedChainId } = useLocalStore();
   const [page, setPage] = useState(1);
   const [leaderboardUsers, setLeaderboardUsers] = useState<LeaderboardUser[]>([]);
   const [myRank, setMyRank] = useState<number>(0);
@@ -27,7 +28,11 @@ export const LeaderboardTab: React.FC = () => {
     const fetchLeaderboard = async () => {
       setLoading(true);
       try {
-        const response = await apiLeaderboard.getTokenLeaderboard(50, 0);
+        const response = await apiLeaderboard.getTokenLeaderboard(
+          selectedChainId.toString(),
+          50,
+          0,
+        );
         setLeaderboardUsers(response.users ?? []);
         setMyRank(response.my_rank);
         setMyAmount(response.my_amount);
@@ -39,7 +44,7 @@ export const LeaderboardTab: React.FC = () => {
       }
     };
     fetchLeaderboard();
-  }, []);
+  }, [selectedChainId]);
 
   const top3 = leaderboardUsers.slice(0, 3);
   const otherEntries = leaderboardUsers.slice(3);
@@ -108,7 +113,7 @@ export const LeaderboardTab: React.FC = () => {
                 <div className="text-sm font-bold text-white">{entry.nickname}</div>
                 <div className="text-[10px] font-mono text-gray-500">{entry.user_id}</div>
                 <div className="text-sm font-bold text-tech-blue mt-1">
-                  {formatTokenAmount(entry.token_amount).toLocaleString()}{' '}
+                  {formatTokenAmount(entry.amount).toLocaleString()}{' '}
                   <span className="text-[10px] text-gray-400">{symbol}</span>
                 </div>
               </div>
@@ -157,7 +162,7 @@ export const LeaderboardTab: React.FC = () => {
                 </div>
               </div>
               <div className="font-mono text-sm text-white font-bold">
-                {formatTokenAmount(entry.token_amount).toLocaleString()}{' '}
+                {formatTokenAmount(entry.amount).toLocaleString()}{' '}
                 <span className="text-[10px] text-gray-500">{symbol}</span>
               </div>
             </div>

@@ -85,7 +85,7 @@ export const UserInfoCard: React.FC = () => {
                 {user?.nickname ? user?.nickname.charAt(0).toUpperCase() : '?'}
               </span>
             </div>
-            {pro.is_pro && (
+            {pro?.is_pro && (
               <div className="absolute -bottom-1 -right-1 bg-neon-purple text-white text-[10px] font-bold px-2 py-0.5 rounded border border-white/20">
                 PRO
               </div>
@@ -125,7 +125,7 @@ export const UserInfoCard: React.FC = () => {
               <div className="flex items-center gap-1 text-gray-400">
                 <Shield size={12} className="text-tech-blue" />
                 Role:{' '}
-                <span className="text-white">{pro.is_pro ? 'Validating Node' : 'Light Node'}</span>
+                <span className="text-white">{pro?.is_pro ? 'Validating Node' : 'Light Node'}</span>
               </div>
             </div>
           </div>
