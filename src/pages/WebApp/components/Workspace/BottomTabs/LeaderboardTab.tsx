@@ -138,56 +138,66 @@ export const LeaderboardTab: React.FC = () => {
             </div>
           </div>
         </div>
-        {otherEntries.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((entry) => {
-          const isSelf = entry.rank === myRank;
-          return (
-            <div
-              key={entry.user_id}
-              className={`flex items-center justify-between p-4 border-b border-white/5 hover:bg-white/5 transition-colors ${isSelf ? 'bg-white/5 border border-tech-blue/30 rounded' : ''}`}
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-8 h-8 flex items-center justify-center font-bold font-mono text-gray-500">
-                  #{entry.rank}
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-white flex items-center gap-2">
-                    {entry.nickname}
-                    {isSelf && (
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-tech-blue/20 text-tech-blue font-mono">
-                        YOU
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-[10px] font-mono text-gray-500">{entry.user_id}</div>
-                </div>
-              </div>
-              <div className="font-mono text-sm text-white font-bold">
-                {formatTokenAmount(entry.amount).toLocaleString()}{' '}
-                <span className="text-[10px] text-gray-500">{symbol}</span>
-              </div>
-            </div>
-          );
-        })}
-        <div className="flex justify-center items-center gap-3 pt-2">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className={`px-3 py-1 text-[11px] font-mono rounded border border-white/10 ${page === 1 ? 'text-gray-600 cursor-not-allowed' : 'text-white hover:border-tech-blue/50 hover:text-tech-blue'}`}
-          >
-            Prev
-          </button>
-          <div className="text-xs font-mono text-gray-400">
-            Page <span className="text-white">{page}</span> /{' '}
-            <span className="text-white">{totalPages}</span>
+        {otherEntries.length === 0 ? (
+          <div className="text-center py-12 text-gray-600 text-xs font-mono border border-dashed border-white/10 rounded">
+            No data yet.
           </div>
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className={`px-3 py-1 text-[11px] font-mono rounded border border-white/10 ${page === totalPages ? 'text-gray-600 cursor-not-allowed' : 'text-white hover:border-tech-blue/50 hover:text-tech-blue'}`}
-          >
-            Next
-          </button>
-        </div>
+        ) : (
+          <>
+            {otherEntries.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((entry) => {
+              const isSelf = entry.rank === myRank;
+              return (
+                <div
+                  key={entry.user_id}
+                  className={`flex items-center justify-between p-4 border-b border-white/5 hover:bg-white/5 transition-colors ${isSelf ? 'bg-white/5 border border-tech-blue/30 rounded' : ''}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-8 h-8 flex items-center justify-center font-bold font-mono text-gray-500">
+                      #{entry.rank}
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-white flex items-center gap-2">
+                        {entry.nickname}
+                        {isSelf && (
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-tech-blue/20 text-tech-blue font-mono">
+                            YOU
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[10px] font-mono text-gray-500">
+                        {entry.wallet_address}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="font-mono text-sm text-white font-bold">
+                    {formatTokenAmount(entry.amount).toLocaleString()}{' '}
+                    <span className="text-[10px] text-gray-500">{symbol}</span>
+                  </div>
+                </div>
+              );
+            })}
+            <div className="flex justify-center items-center gap-3 pt-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className={`px-3 py-1 text-[11px] font-mono rounded border border-white/10 ${page === 1 ? 'text-gray-600 cursor-not-allowed' : 'text-white hover:border-tech-blue/50 hover:text-tech-blue'}`}
+              >
+                Prev
+              </button>
+              <div className="text-xs font-mono text-gray-400">
+                Page <span className="text-white">{page}</span> /{' '}
+                <span className="text-white">{totalPages}</span>
+              </div>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className={`px-3 py-1 text-[11px] font-mono rounded border border-white/10 ${page === totalPages ? 'text-gray-600 cursor-not-allowed' : 'text-white hover:border-tech-blue/50 hover:text-tech-blue'}`}
+              >
+                Next
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
