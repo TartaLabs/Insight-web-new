@@ -66,7 +66,7 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
               </div>
               <div className="flex items-center gap-3 text-gray-300">
                 <Zap size={16} className="text-blue-400" />
-                <span>Earn $bEMO</span>
+                <span>Earn $bEMO & $mEMO</span>
               </div>
             </div>
 
@@ -107,7 +107,7 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
                 <Monitor size={32} />
               </div>
               <div className="px-4 py-1 rounded-full border border-tech-blue/30 bg-tech-blue/5 text-tech-blue text-xs font-mono tracking-widest">
-                MANTLE CHAIN
+                BNB CHAIN & MANTLE CHAIN
               </div>
             </div>
 
@@ -123,7 +123,7 @@ export const PlatformShowcase: React.FC<PlatformShowcaseProps> = ({ onLaunch }) 
               </div>
               <div className="flex items-center gap-3 text-gray-300">
                 <Zap size={16} className="text-tech-blue" />
-                <span>Earn $mEMO</span>
+                <span>Earn $bEMO & $mEMO</span>
               </div>
             </div>
 

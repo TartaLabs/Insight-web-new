@@ -13,7 +13,7 @@ export const TokenSystem: React.FC = () => {
           </span>
         </h2>
         <p className="text-tech-gray text-center max-w-4xl text-base md:text-lg leading-relaxed mx-auto">
-          A unified incentive layer. Earn <span className="text-blue-400">$aEMO</span> on Arbitrum
+          A unified incentive layer. Earn <span className="text-blue-400">$bEMO</span> on BNB Chain
           via Mobile, or <span className="text-tech-blue">$mEMO</span> on Mantle via Web. Both serve
           as your soulbound proof of contribution to Emotion AI.
         </p>
