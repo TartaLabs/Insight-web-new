@@ -106,8 +106,8 @@ export const PrivacyPolicyContent: React.FC = () => (
               <div>
                 <span className="text-white font-bold block">Mobile (iOS/Android)</span>
                 <p className="text-gray-400 text-sm">
-                  A Sequence AA smart account is automatically generated on Arbitrum to store your
-                  reward balance ($aEMO).
+                  A Sequence AA smart account is automatically generated on BNB Chain and Mantle to
+                  store your reward balance ($bEMO & $mEMO).
                 </p>
               </div>
               <div>

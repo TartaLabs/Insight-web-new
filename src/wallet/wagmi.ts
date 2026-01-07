@@ -16,9 +16,7 @@ export const config = getDefaultConfig({
   appName: 'Insight',
   projectId: '3fbb6bba6f1de962d911bb5b5c9dba88',
   chains:
-    process.env.NODE_ENV !== 'production'
-      ? [mantle, mantleSepoliaTestnet, bsc, arbitrumSepolia]
-      : [mantle, bsc],
+    process.env.NODE_ENV !== 'production' ? [mantle, mantleSepoliaTestnet, bsc] : [mantle, bsc],
 });
 
 export function getChainById(chainId: number) {

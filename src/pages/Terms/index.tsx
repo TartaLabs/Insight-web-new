@@ -108,7 +108,7 @@ export const TermsOfUseContent: React.FC = () => (
             </p>
             <ul className="list-disc pl-5 space-y-1 text-gray-400">
               <li>
-                <strong>iOS / Android (Sequence AA, Arbitrum chain):</strong> $aEMO
+                <strong>iOS / Android (Sequence AA, BNB chain):</strong> $bEMO
               </li>
               <li>
                 <strong>Web (Metamask / OKX, Mantle chain):</strong> $mEMO
@@ -150,7 +150,8 @@ export const TermsOfUseContent: React.FC = () => (
               <li>Shared identity across iOS & Android</li>
             </ul>
             <p className="text-gray-300">
-              Reward tracking wallet: <strong>Sequence Smart Account on Arbitrum.</strong>
+              Reward tracking wallet:{' '}
+              <strong>Sequence Smart Account on BNB Chain and Mantle Chain.</strong>
             </p>
           </div>
           <div>
@@ -284,7 +285,7 @@ export const TermsOfUseContent: React.FC = () => (
             </p>
             <ul className="list-disc pl-5 space-y-1 text-gray-400 mb-2">
               <li>
-                <strong>$aEMO on Arbitrum</strong> (iOS & Android)
+                <strong>$bEMO on BNB Chain</strong> (iOS & Android)
               </li>
               <li>
                 <strong>$mEMO on Mantle</strong> (Web)
@@ -515,7 +516,7 @@ export const TermsOfUseContent: React.FC = () => (
             <li>Apple</li>
             <li>Google</li>
             <li>Sequence</li>
-            <li>Mantle & Arbitrum blockchains</li>
+            <li>Mantle & BNB Chain</li>
             <li>Analytics providers</li>
           </ul>
           <p className="text-gray-400 mb-2">Their terms also apply.</p>
