@@ -86,6 +86,17 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ onRetryClaim }) => {
     return getChainById(selectedChainId)?.blockExplorers.default.url + '/tx/' + txHash;
   }
 
+  function taskTypeStr(taskType: string) {
+    switch (taskType) {
+      case 'DAILY':
+        return 'Labeled';
+      case 'INVITE':
+        return 'Invitation';
+      case 'PRO':
+        return 'Pro Daily';
+    }
+  }
+
   return (
     <div>
       <div className="flex gap-2 mb-6">
@@ -128,7 +139,9 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ onRetryClaim }) => {
                     {ledgerFilter === 'CLAIMED' ? <Wallet size={16} /> : <Zap size={16} />}
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-white uppercase">{record.task_type}</div>
+                    <div className="text-xs font-bold text-white uppercase">
+                      {taskTypeStr(record.task_type)}
+                    </div>
                     <div className="text-[10px] text-gray-500">
                       {new Date(record.created_at * 1000).toLocaleString()}
                     </div>
